@@ -108,7 +108,7 @@
 /* Results */
 .results { margin-top: 40px; }
 
-.explain {
+.summary {
   background: var(--card);
   border: 1px solid var(--line);
   border-left: 4px solid var(--accent);
@@ -117,9 +117,8 @@
   margin-bottom: 24px;
   box-shadow: var(--shadow);
 }
-.explainTitle { font-size: 1.3rem; margin-bottom: 12px; }
-.explain p { margin: 0 0 12px; }
-.explain p:last-child { margin-bottom: 0; }
+.summaryTitle { font-size: 1.3rem; margin-bottom: 12px; }
+.summary p { margin: 0; }
 
 .list { display: flex; flex-direction: column; gap: 16px; }
 .card {
@@ -136,7 +135,7 @@
 .price { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .fees { font-size: 0.78rem; color: var(--warn); }
 
-.segments { list-style: none; padding: 0; margin: 16px 0; display: flex; flex-direction: column; gap: 6px; }
+.segments { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 6px; }
 .segments li { font-size: 0.9rem; color: var(--ink-soft); }
 .segments strong { color: var(--ink); }
 
@@ -158,3 +157,45 @@
   transition: background 0.15s ease, color 0.15s ease;
 }
 .book:hover { background: var(--accent); color: #fff; }
+
+/* All-in price line under the headline price */
+.allIn { font-size: 0.78rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+/* Layer 2: one-line verdict tag, color-coded by level */
+.verdict {
+  display: inline-block;
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin: 0 0 14px;
+}
+.verdictGood { background: #ecf6ef; color: var(--safe); border: 1px solid #c5e3cf; }
+.verdictCaution { background: #fdf3e7; color: var(--warn); border: 1px solid #f0d6b0; }
+.verdictHighRisk { background: #fdecec; color: var(--danger); border: 1px solid #f3c0c0; }
+
+/* Card action row: Explain toggle + book link */
+.cardActions { display: flex; gap: 12px; align-items: center; }
+
+.explainBtn {
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 9px 16px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.explainBtn:hover { background: #efece3; border-color: var(--ink-soft); }
+.explainBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Layer 3: revealed detail panel */
+.detail {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.detail p { margin: 0 0 12px; }
+.detail p:last-child { margin-bottom: 0; }
