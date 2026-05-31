@@ -13,6 +13,8 @@ export async function POST(request) {
     const flights = demoFlights;
 
     // Deterministic honesty flags, computed in code (not left to the AI).
+    // The 2nd arg (all flights) is intentional — it lets detectRisks spot a
+    // possible mistake fare by comparing each price against the others.
     const riskMap = {};
     for (const f of flights) riskMap[f.id] = detectRisks(f, flights);
 
