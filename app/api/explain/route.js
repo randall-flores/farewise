@@ -1,8 +1,8 @@
 // app/api/explain/route.js
 // The ONLY place Claude is called. Runs on the server — the API key never reaches the browser.
 import { demoFlights } from "@/lib/demo-flights";
-import { detectRisks } from "@/lib/flight-helpers";
-import { getExplanation } from "@/lib/anthropic";
+import { detectRisks, reconcileVerdict } from "@/lib/flight-helpers";
+import { getComparison } from "@/lib/anthropic";
 
 export async function POST(request) {
   try {
@@ -16,9 +16,21 @@ export async function POST(request) {
     const riskMap = {};
     for (const f of flights) riskMap[f.id] = detectRisks(f, flights);
 
-    const explanation = await getExplanation(flights, search, riskMap);
+    // ONE Claude call: summary + per-flight verdict tags + explanations.
+    const result = await getComparison(flights, search, riskMap);
 
-    return Response.json({ flights, riskMap, explanation });
+    // Map Claude's per-flight output by id, and clamp each verdict against OUR flags
+    // so a model slip can only make a card more cautious, never hide a risk.
+    const verdicts = {};
+    for (const item of result.flights || []) {
+      verdicts[item.id] = {
+        verdict: reconcileVerdict(item.verdict, riskMap[item.id] || []),
+        tag: item.tag,
+        explanation: item.explanation,
+      };
+    }
+
+    return Response.json({ flights, riskMap, summary: result.summary, verdicts });
   } catch (err) {
     console.error("explain route error:", err);
     return Response.json(
