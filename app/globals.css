@@ -1,49 +1,42 @@
+/* ---- FareWise design tokens ----
+   One place for color + type so the whole app stays consistent. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f7f5ef;      /* warm off-white background */
+  --ink: #14181f;        /* near-black text */
+  --ink-soft: #4b5563;   /* secondary text */
+  --line: #e4e0d6;       /* hairline borders */
+  --card: #ffffff;       /* card surface */
+
+  --accent: #0f766e;     /* trust teal — primary actions */
+  --accent-ink: #0b5048; /* darker teal for hover */
+
+  --warn: #b45309;       /* amber — caution risk */
+  --danger: #b91c1c;     /* red — high risk */
+  --safe: #15803d;       /* green — reassurance */
+
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(20, 24, 31, 0.06), 0 8px 24px rgba(20, 24, 31, 0.06);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+* { box-sizing: border-box; }
 
-html {
-  height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
+html, body {
+  margin: 0;
   padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display), Georgia, serif;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+a { color: inherit; }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
+button, input, select { font: inherit; }
