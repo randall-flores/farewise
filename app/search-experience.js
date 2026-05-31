@@ -1,11 +1,24 @@
 "use client";
 import { useState } from "react";
-import { formatMoney, totalExtraFees } from "@/lib/flight-helpers";
+import { formatMoney, totalExtraFees, allInPrice } from "@/lib/flight-helpers";
 import styles from "./page.module.css";
 
-// One flight result card. Shows price, segments, risk flags, and a book-direct link.
-function FlightCard({ flight, risks }) {
+// Maps a verdict value to its CSS-module color class.
+const VERDICT_CLASS = {
+  good: "verdictGood",
+  caution: "verdictCaution",
+  "high-risk": "verdictHighRisk",
+};
+
+// One flight result card.
+// At a glance: airline, route, verdict tag, price, all-in price, and ALWAYS-visible warnings.
+// Behind "Explain": the full reasoning (incl. cabin-upgrade delta) and the segment breakdown.
+function FlightCard({ flight, risks, verdict }) {
+  const [open, setOpen] = useState(false);
   const fees = totalExtraFees(flight);
+  const allIn = allInPrice(flight);
+  const level = verdict?.verdict || "good";
+
   return (
     <article className={styles.card}>
       <div className={styles.cardTop}>
@@ -17,20 +30,18 @@ function FlightCard({ flight, risks }) {
         </div>
         <div className={styles.priceBox}>
           <span className={styles.price}>{formatMoney(flight.price, flight.currency)}</span>
-          {fees > 0 && (
-            <span className={styles.fees}>+{formatMoney(fees, flight.currency)} likely fees</span>
-          )}
+          <span className={styles.allIn}>
+            {fees > 0 ? `~${formatMoney(allIn, flight.currency)} all-in` : "no add-on fees"}
+          </span>
         </div>
       </div>
 
-      <ul className={styles.segments}>
-        {flight.segments.map((s, i) => (
-          <li key={i}>
-            <strong>{s.from} → {s.to}</strong> · {s.airline} {s.flightNo} · {s.duration}
-          </li>
-        ))}
-      </ul>
+      {/* Layer 2: the one-line honest verdict, color-coded. */}
+      {verdict?.tag && (
+        <p className={`${styles.verdict} ${styles[VERDICT_CLASS[level]]}`}>{verdict.tag}</p>
+      )}
 
+      {/* Warnings ALWAYS show — even collapsed. Deterministic, from code, not the AI. */}
       {risks.length > 0 && (
         <ul className={styles.risks}>
           {risks.map((r, i) => (
@@ -39,9 +50,38 @@ function FlightCard({ flight, risks }) {
         </ul>
       )}
 
-      <a className={styles.book} href={flight.bookVia.url} target="_blank" rel="noopener noreferrer">
-        Book direct with {flight.bookVia.name} ↗
-      </a>
+      <div className={styles.cardActions}>
+        <button
+          type="button"
+          className={styles.explainBtn}
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+        >
+          {open ? "Hide details" : "Explain"}
+        </button>
+        <a className={styles.book} href={flight.bookVia.url} target="_blank" rel="noopener noreferrer">
+          Book direct ↗
+        </a>
+      </div>
+
+      {/* Layer 3: full reasoning + segment detail, revealed on demand. */}
+      {open && (
+        <div className={styles.detail}>
+          <ul className={styles.segments}>
+            {flight.segments.map((s, i) => (
+              <li key={i}>
+                <strong>{s.from} → {s.to}</strong> · {s.airline} {s.flightNo} · {s.duration}
+              </li>
+            ))}
+          </ul>
+          {verdict?.explanation
+            ? verdict.explanation
+                .split("\n")
+                .filter(Boolean)
+                .map((p, i) => <p key={i}>{p}</p>)
+            : <p>No further detail available.</p>}
+        </div>
+      )}
     </article>
   );
 }
@@ -132,19 +172,21 @@ export default function SearchExperience() {
 
       {data && (
         <section className={styles.results}>
-          <div className={styles.explain}>
-            <h2 className={styles.explainTitle}>FareWise&apos;s honest read</h2>
-            {data.explanation
-              .split("\n")
-              .filter(Boolean)
-              .map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
+          {/* Layer 1: the short summary. */}
+          <div className={styles.summary}>
+            <h2 className={styles.summaryTitle}>FareWise&apos;s honest read</h2>
+            <p>{data.summary}</p>
           </div>
 
+          {/* Layer 2 + 3: one card per flight. */}
           <div className={styles.list}>
             {data.flights.map((f) => (
-              <FlightCard key={f.id} flight={f} risks={data.riskMap[f.id] || []} />
+              <FlightCard
+                key={f.id}
+                flight={f}
+                risks={data.riskMap[f.id] || []}
+                verdict={data.verdicts[f.id]}
+              />
             ))}
           </div>
         </section>
