@@ -133,8 +133,55 @@ const flightResult = {
 1. **Phase 1 — Demo prototype** _(current)_: form + hardcoded flights + Claude explanation. Free.
 2. **Phase 2 — Real data, free tier**: swap demo objects for live results (e.g. Sky Scrapper API on RapidAPI, free tier), normalized into the shape above.
 3. **Phase 3 — Make it usable**: upgrade to a paid data tier (~$10–30/mo) for volume + commercial rights + live data; add cabin selection + upgrade comparison; add affiliate redirect links (e.g. Travelpayouts).
+   - _(Phase 2/3)_ Calendar price overview (like Google Flights) — show fares across a range of dates so users see cheap/expensive days at a glance. Requires live flight data; not possible with demo data, so build this once real data is wired in.
 4. **Phase 4 — Honesty features**: catch-warnings, total-cost-upfront, mistake-fare flagging.
 5. **Phase 5 — Prove it**: book a real trip, compare the decision against Google Flights / Skyscanner, document the outcome.
+
+---
+
+## Voice & language rules (how every explanation must sound)
+
+FareWise's explanations are the product. They must sound like a sharp, honest operator who respects the user's time — not a travel blogger and not an AI essay. Two rules govern everything:
+
+### Rule 1 — Transactional
+
+State the fact, then why it matters, then stop. No mood words, no padding, no hedging. One idea per line. The user is booking a flight, not reading an article — they want the decision made fast.
+
+- Cut adjectives that set a mood ("relaxed," "comfortable," "smooth journey").
+- Prefer fact + consequence: "One ticket, so if the first flight is late, TAP rebooks you."
+- Use → and short fragments for cost math: "Bag +$35, seat +$12 → ~$467 total."
+
+### Rule 2 — Plain language (no jargon)
+
+The test for every word: would someone who flies twice a year understand it instantly? If not, swap it. Never make the user feel they need insider knowledge — that breaks the trust the whole product is built on.
+
+Banned word → use instead:
+
+- "leg" / "first leg" → "flight" / "first flight"
+- "layover" → "wait" or "stop" ("1h 50m wait between flights")
+- "self-transfer" → "separate tickets"
+- "nonstop" / "direct" → "no stops" / "one flight, straight there"
+- "all-in" → "total"
+- "reprices" / "fare adjusts" → "until the price is confirmed"
+- "virtual interlining," "hidden city," etc. → explain in plain words, never name the jargon
+
+### The one exception — risk warnings stay full sentences
+
+Transactional does NOT mean cryptic. Where a user must actually UNDERSTAND a risk, clarity beats brevity. Write the warning as a plain, blunt, complete sentence — never shorthand. This is the moment that matters most.
+
+Good: "High risk: these are two separate tickets, and you'd have to switch airports (London Gatwick → Stansted, about 60 miles) in 1h 10m. If you miss the second flight, you lose that ticket and pay again. Skip it."
+
+### Before / after reference
+
+Verdict line —
+
+- ❌ "Single-ticket itinerary with carrier liability on the first leg."
+- ✅ "One ticket — if your first flight is late, TAP puts you on the next one."
+
+Detail —
+
+- ❌ "At $420 this connects through Lisbon with a comfortable 1h 50m layover on a single ticket, which is the key thing — TAP is responsible for getting you onward if the first leg is late."
+- ✅ "$420, one stop in Lisbon (1h 50m wait). It's one ticket, so if the first flight is delayed and you miss the connection, TAP rebooks you — their problem, not yours. Bag not included: +$35, seat +$12 → ~$467 total."
 
 ---
 
