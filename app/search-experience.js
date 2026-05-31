@@ -17,7 +17,7 @@ function FlightCard({ flight, risks, verdict }) {
   const [open, setOpen] = useState(false);
   const fees = totalExtraFees(flight);
   const allIn = allInPrice(flight);
-  const level = verdict?.verdict || "good";
+  const level = verdict?.verdict ?? "caution";
 
   return (
     <article className={styles.card}>
@@ -25,7 +25,7 @@ function FlightCard({ flight, risks, verdict }) {
         <div>
           <p className={styles.airline}>{flight.bookVia.name}</p>
           <p className={styles.route}>
-            {flight.stops === 0 ? "Nonstop" : `${flight.stops} stop`} · {flight.totalDuration}
+            {flight.stops === 0 ? "Nonstop" : `${flight.stops} stop${flight.stops === 1 ? "" : "s"}`} · {flight.totalDuration}
           </p>
         </div>
         <div className={styles.priceBox}>
@@ -96,7 +96,7 @@ export default function SearchExperience() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState(null);   // { flights, riskMap, explanation }
+  const [data, setData] = useState(null);   // { flights, riskMap, summary, verdicts }
   const [error, setError] = useState(null);
 
   function update(e) {

@@ -133,7 +133,6 @@
 .route { color: var(--ink-soft); margin: 2px 0 0; font-size: 0.9rem; }
 .priceBox { text-align: right; display: flex; flex-direction: column; }
 .price { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-.fees { font-size: 0.78rem; color: var(--warn); }
 
 .segments { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 6px; }
 .segments li { font-size: 0.9rem; color: var(--ink-soft); }
@@ -147,7 +146,9 @@
 .risk_info { background: #eef6f5; color: var(--accent-ink); border: 1px solid #cfe6e2; }
 
 .book {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-weight: 600;
   color: var(--accent);
   text-decoration: none;
@@ -179,6 +180,9 @@
 .cardActions { display: flex; gap: 12px; align-items: center; }
 
 .explainBtn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-weight: 600;
   color: var(--ink);
   background: var(--paper);
