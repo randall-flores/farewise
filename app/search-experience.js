@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { formatMoney, totalExtraFees, allInPrice } from "@/lib/flight-helpers";
+import { searchAirports } from "@/lib/airport-search";
 import styles from "./page.module.css";
 
 // A From/To field with debounced airport/city autocomplete.
@@ -9,47 +10,20 @@ function AirportField({ label, name, initial, onSelect }) {
   const [text, setText] = useState(initial); // what's visible in the box
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [active, setActive] = useState(-1); // highlighted suggestion for arrow-key nav
   const [invalid, setInvalid] = useState(false); // typed something but never picked a real place
   const blurTimer = useRef(null);
-  const skipSearch = useRef(false); // true right after a pick, so we don't re-search the label
   const committed = useRef(Boolean(initial)); // a valid code is currently chosen for this field
   const errorId = `${name}-error`;
 
-  // Debounce: every time `text` changes we (re)start a 300ms timer. If the user
-  // types again before it fires, the cleanup clears it — so we only call the API
-  // ~300ms AFTER they stop typing, not on every keystroke. All state updates live
-  // inside the timer callback (never synchronously in the effect body).
-  useEffect(() => {
-    // A pick just set the text to the chosen label — don't search for it.
-    if (skipSearch.current) {
-      skipSearch.current = false;
-      return;
-    }
-    const q = text.trim();
-    const timer = setTimeout(async () => {
-      if (q.length < 2) {
-        setResults([]);
-        setActive(-1);
-        return;
-      }
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/places?q=${encodeURIComponent(q)}`);
-        const json = await res.json();
-        setResults(json.places || []);
-        setActive(-1); // new list -> nothing highlighted yet
-        setOpen(true);
-      } catch {
-        setResults([]);
-        setActive(-1);
-      } finally {
-        setLoading(false);
-      }
-    }, 300);
-    return () => clearTimeout(timer); // cancel the pending request if text changed
-  }, [text]);
+  // Local, instant autocomplete over the bundled airport dataset — no network,
+  // no API key, no per-keystroke quota. (Was a debounced /api/places fetch.)
+  function runSearch(value) {
+    const matches = searchAirports(value);
+    setResults(matches);
+    setOpen(matches.length > 0);
+    setActive(-1);
+  }
 
   // Keep the arrow-key-highlighted option visible inside the scrollable dropdown.
   // "nearest" only scrolls when it's actually off-screen, and stays within the list.
@@ -62,7 +36,6 @@ function AirportField({ label, name, initial, onSelect }) {
   function onChange(e) {
     const value = e.target.value;
     setText(value);
-    setActive(-1);
     setInvalid(false); // clear the error while they're still typing
     // Let power users type a raw 3-letter code directly (e.g. "JFK").
     const code = value.trim().toUpperCase();
@@ -73,13 +46,13 @@ function AirportField({ label, name, initial, onSelect }) {
       committed.current = false; // edited text no longer matches a chosen place
       onSelect(""); // tell the parent this field has no valid code right now
     }
+    runSearch(value);
   }
 
   function choose(place) {
-    skipSearch.current = true; // the upcoming text change is the label, not a query
     committed.current = true;
-    onSelect(place.code); // the parent stores the IATA code for the Duffel search
-    setText(place.label); // the box shows the friendly label, e.g. "New York (NYC)"
+    onSelect(place.code); // the parent stores the IATA code for the search
+    setText(place.label); // the box shows the friendly label, e.g. "Berlin (BER) — Brandenburg"
     setResults([]);
     setActive(-1);
     setOpen(false);
@@ -146,11 +119,8 @@ function AirportField({ label, name, initial, onSelect }) {
           aria-describedby={invalid ? errorId : undefined}
           required
         />
-        {open && (results.length > 0 || loading) && (
+        {open && results.length > 0 && (
           <ul className={styles.suggestions} id={`${name}-listbox`} role="listbox">
-            {loading && results.length === 0 && (
-              <li className={styles.acStatus}>Searching…</li>
-            )}
             {results.map((p, i) => (
               <li key={`${p.type}-${p.code}-${p.label}`} role="option" aria-selected={i === active}>
                 <button
@@ -308,14 +278,25 @@ function FlightCard({ flight, risks, verdict }) {
               ) : (
                 <p>No further detail available.</p>
               )}
-              <a
-                className={styles.book}
-                href={flight.bookVia.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Book direct with {flight.bookVia.name} ↗
-              </a>
+              {flight.bookVia?.url ? (
+                <a
+                  className={styles.book}
+                  href={flight.bookVia.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Book direct with {flight.bookVia.name} ↗
+                </a>
+              ) : (
+                // We don't fetch seller/booking links on the results page. This is
+                // the clearly-marked spot to pull them lazily later — on expand or
+                // book click — using flight.bookVia.token (SerpApi departure_token).
+                // TODO(phase: booking links): fetch + render the real booking link.
+                <p className={styles.bookSoon}>
+                  We send you to {flight.bookVia.name} to book. We don&apos;t load
+                  seller links until you&apos;re ready, so prices stay the airline&apos;s own.
+                </p>
+              )}
             </div>
           </div>
         </div>

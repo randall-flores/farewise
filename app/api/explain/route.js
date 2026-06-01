@@ -5,13 +5,29 @@ import { detectRisks, reconcileVerdict } from "@/lib/flight-helpers";
 import { getComparison } from "@/lib/anthropic";
 
 export async function POST(request) {
+  const search = await request.json();
+
+  // 1) Get the flights. Source is SerpApi in production (FAREWISE_DATA_SOURCE).
+  // We only ever reason over THIS data — nothing invented. On ANY failure or an
+  // empty result we DO NOT fall back to demo/fake data: we return an honest
+  // down-state. FareWise would rather show nothing than fares it can't verify.
+  let flights;
   try {
-    const search = await request.json();
+    flights = await getFlights(search);
+  } catch (err) {
+    console.error("flight source error:", err);
+    return Response.json(
+      {
+        error:
+          "We couldn't pull up verified fares for this search right now. FareWise won't show prices it can't stand behind — please try again in a moment.",
+      },
+      { status: 502 }
+    );
+  }
 
-    // Where the flights come from depends on FAREWISE_DATA_SOURCE
-    // (demo | sample | live). We only ever reason over THIS data — nothing invented.
-    const flights = await getFlights(search);
-
+  // 2) Explain. A failure here is different: we HAVE real flights, the AI layer
+  // just didn't respond. Say so honestly, separately from a data outage.
+  try {
     // Deterministic honesty flags, computed in code (not left to the AI).
     // The 2nd arg (all flights) is intentional — it lets detectRisks spot a
     // possible mistake fare by comparing each price against the others.
@@ -36,7 +52,7 @@ export async function POST(request) {
   } catch (err) {
     console.error("explain route error:", err);
     return Response.json(
-      { error: "Could not generate an explanation. Check the server logs and your ANTHROPIC_API_KEY." },
+      { error: "We found flights but couldn't generate the plain-language read just now. Try again in a moment." },
       { status: 500 }
     );
   }

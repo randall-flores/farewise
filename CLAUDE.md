@@ -40,6 +40,25 @@ Each rule exists because a competitor's failure proved it matters. Breaking any 
 
 ---
 
+## Data sources (current implementation)
+
+The whole app reasons over the normalized `flightResult` shape (below) and does not care where data came from. `FAREWISE_DATA_SOURCE` selects the source in `lib/flight-source.js`:
+
+- **`serpapi` (default, the only REAL source).** SerpApi's Google Flights engine, called server-side only (`lib/serpapi.js`, `SERPAPI_KEY` is secret), normalized by `lib/normalize-serpapi.js`. **One-way only** for now (`type=2`); `currency=USD`, `hl=en`, `gl=us`. This is the production default.
+- **`demo` (LOCAL DEVELOPMENT ONLY).** Hand-written flights in `lib/demo-flights.js`, for building the UI. **Hard-blocked in production** (`getFlights` throws when `NODE_ENV==="production"`) so we can never serve data we can't stand behind.
+
+Rules that come straight from "honesty is the product":
+
+- **Duffel was removed entirely** (flight search *and* airport autocomplete). It was sandbox/test data and must never be a fallback.
+- **No fake fallback.** On any SerpApi failure *or* an empty result, we do **not** fall back to demo/fake data. The `/api/explain` route returns an honest down-state and the UI shows a brief on-brand message — we'd rather show nothing than prices we can't verify.
+- **Booking/seller links are NOT fetched on the results page.** `bookVia.url` stays `null`; the SerpApi `departure_token` is kept in `bookVia.token` for a later lazy fetch (on card expand / book click). The placeholder spot is marked in `search-experience.js` and `normalize-serpapi.js`.
+- **Unknowns are never invented.** SerpApi search gives no à-la-carte fees, baggage, refund rules, or other-cabin prices, so the normalizer marks them unknown (`feesKnown:false`, `baggage:{carryOn:null,checked:null}`, `refundable:null`, single-cabin `cabinOptions`).
+- **Airport autocomplete is offline/local.** A bundled dataset (`lib/airports.json`) filtered client-side by `lib/airport-search.js`. No API call per keystroke, no SerpApi quota burned on typing. Extend coverage by appending to `airports.json`.
+
+**Not built yet (don't build ahead):** round-trip (the `return_date` + second `departure_token` call), and the lazy booking-link fetch.
+
+---
+
 ## Current phase: Phase 1 — Demo prototype
 
 **Goal of this phase:** prove that Claude's plain-language explanation layer is genuinely useful. Nothing else matters yet.

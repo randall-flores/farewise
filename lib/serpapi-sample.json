@@ -1,0 +1,49 @@
+{
+  "_comment": "Hand-trimmed SerpApi google_flights response (MIA -> BER, one-way). Used ONLY by normalize-serpapi.test.js — never at runtime. Fields kept to what the normalizer reads.",
+  "best_flights": [
+    {
+      "flights": [
+        {
+          "departure_airport": { "name": "Miami International Airport", "id": "MIA", "time": "2026-07-10 18:40" },
+          "arrival_airport": { "name": "Humberto Delgado Airport", "id": "LIS", "time": "2026-07-11 07:10" },
+          "duration": 450,
+          "airline": "TAP Air Portugal",
+          "flight_number": "TP 202",
+          "travel_class": "Economy",
+          "airplane": "Airbus A330"
+        },
+        {
+          "departure_airport": { "name": "Humberto Delgado Airport", "id": "LIS", "time": "2026-07-11 09:00" },
+          "arrival_airport": { "name": "Berlin Brandenburg Airport", "id": "BER", "time": "2026-07-11 13:10" },
+          "duration": 190,
+          "airline": "TAP Air Portugal",
+          "flight_number": "TP 534",
+          "travel_class": "Economy"
+        }
+      ],
+      "layovers": [{ "duration": 110, "name": "Humberto Delgado Airport", "id": "LIS" }],
+      "total_duration": 750,
+      "price": 452,
+      "type": "One way",
+      "departure_token": "WyJDalJJVEFTAMPLE_TAP"
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": { "name": "Miami International Airport", "id": "MIA", "time": "2026-07-10 17:25" },
+          "arrival_airport": { "name": "Berlin Brandenburg Airport", "id": "BER", "time": "2026-07-11 08:20" },
+          "duration": 595,
+          "airline": "Lufthansa",
+          "flight_number": "LH 463",
+          "travel_class": "Economy",
+          "airplane": "Airbus A340"
+        }
+      ],
+      "total_duration": 595,
+      "price": 690,
+      "type": "One way",
+      "departure_token": "WyJDalJJVEFTAMPLE_LH"
+    }
+  ],
+  "other_flights": []
+}
