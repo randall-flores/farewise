@@ -382,24 +382,28 @@ export default function SearchExperience() {
       </form>
 
       {loading && (
-        <div className={styles.loading}>
+        <div className={styles.loading} role="status" aria-live="polite">
           <div className={styles.spinner} />
           <p>Reading the real options and the fine print…</p>
         </div>
       )}
 
-      {error && <p className={styles.error}>{error}</p>}
+      {error && (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      )}
 
       {data && (
         <section className={styles.results}>
-          <p className={styles.meta}>
+          <p className={styles.meta} role="status" aria-live="polite">
             <span className={styles.dot} /> Demo fares
             <span className={styles.sep}>·</span> {form.origin} → {form.destination}
             <span className={styles.sep}>·</span> {CABIN_LABEL[form.cabin] || form.cabin}
             <span className={styles.sep}>·</span> {data.flights.length} options
           </p>
 
-          {/* Layer 1: the short summary, amber left-rule. */}
+          {/* Layer 1: the short summary; amber verdict tag carries the accent. */}
           <section className={styles.verdict}>
             <div className={styles.verdictTag}>FareWise&apos;s honest read</div>
             {data.summary

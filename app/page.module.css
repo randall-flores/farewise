@@ -185,7 +185,7 @@
 }
 .suggestionType {
   flex: none;
-  color: var(--cream-40);
+  color: var(--cream-60);
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -194,14 +194,14 @@
   padding: 9px 12px;
   font-family: var(--mono);
   font-size: 12px;
-  color: var(--cream-40);
+  color: var(--cream-60);
 }
-.field input::placeholder { color: var(--cream-40); }
+.field input::placeholder { color: var(--cream-60); }
 
 /* Native date inputs on the dark theme: the format hint (mm/dd/yyyy) and the
    calendar icon are dark-on-dark by default, so an empty field looks blank.
    Show the hint muted, brighten a real value, and make the icon visible. */
-.field input[type="date"]::-webkit-datetime-edit { color: var(--cream-40); }
+.field input[type="date"]::-webkit-datetime-edit { color: var(--cream-60); }
 .field input[type="date"]:focus::-webkit-datetime-edit,
 .field input[type="date"]:valid::-webkit-datetime-edit { color: var(--cream); }
 .field input[type="date"]::-webkit-calendar-picker-indicator {
@@ -289,7 +289,7 @@
   70% { box-shadow: 0 0 0 7px rgba(121, 199, 154, 0); }
   100% { box-shadow: 0 0 0 0 rgba(121, 199, 154, 0); }
 }
-.sep { color: var(--cream-40); }
+.sep { color: var(--cream-40); } /* decorative separator dot — contrast-exempt */
 
 /* Honest-read summary */
 .verdict {
@@ -297,7 +297,6 @@
   margin-top: clamp(22px, 4vw, 32px);
   background: linear-gradient(180deg, var(--card-2), var(--card));
   border: 1px solid var(--cream-08);
-  border-left: 3px solid var(--amber);
   border-radius: var(--radius);
   padding: clamp(22px, 4vw, 30px) clamp(22px, 4vw, 34px);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
@@ -339,7 +338,7 @@
   font-size: 11px;
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--cream-40);
+  color: var(--cream-60);
 }
 .sectionLabel::after {
   content: "";
@@ -396,11 +395,11 @@
   line-height: 0.95;
   letter-spacing: -0.01em;
 }
-.price.dim { color: var(--cream-40); }
+.price.dim { color: var(--cream-60); }
 .allin {
   font-family: var(--mono);
   font-size: 12px;
-  color: var(--cream-40);
+  color: var(--cream-60);
   margin-top: 8px;
 }
 .allin b { color: var(--cream-60); font-weight: 500; }
@@ -462,7 +461,7 @@
 .warn_warn { background: rgba(239, 159, 39, 0.1); border-color: rgba(239, 159, 39, 0.3); color: #f3cf9a; }
 .warn_warn .warnLbl { color: var(--amber); }
 .warn_info { background: var(--cream-08); color: var(--cream-60); }
-.warn_info .warnLbl { color: var(--cream-40); }
+.warn_info .warnLbl { color: var(--cream-60); }
 
 .toggle {
   grid-column: 1 / -1;
@@ -555,6 +554,6 @@
   font-family: var(--mono);
   font-size: 11.5px;
   letter-spacing: 0.04em;
-  color: var(--cream-40);
+  color: var(--cream-60);
   line-height: 1.7;
 }

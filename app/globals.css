@@ -11,7 +11,7 @@
   --amber-soft: #f3b455;/* amber hover */
   --cream: #f6f1e7;     /* primary text */
   --cream-60: rgba(246, 241, 231, 0.62); /* secondary text */
-  --cream-40: rgba(246, 241, 231, 0.42); /* faint labels */
+  --cream-40: rgba(246, 241, 231, 0.42); /* decorative only (separators) — too faint for text, fails AA */
   --cream-12: rgba(246, 241, 231, 0.12); /* hairlines */
   --cream-08: rgba(246, 241, 231, 0.08); /* faintest borders */
 
