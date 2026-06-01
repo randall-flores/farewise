@@ -51,7 +51,22 @@ export async function POST(request) {
       };
     }
 
-    return Response.json({ flights, riskMap, summary: result.summary, verdicts, priceInsights, source });
+    // Echo the searched context so the client can request booking options later
+    // with the EXACT search that produced these results (not a since-edited form).
+    const searchContext = {
+      origin: search.origin,
+      destination: search.destination,
+      depart: search.depart,
+    };
+    return Response.json({
+      flights,
+      riskMap,
+      summary: result.summary,
+      verdicts,
+      priceInsights,
+      source,
+      search: searchContext,
+    });
   } catch (err) {
     console.error("explain route error:", err);
     return Response.json(

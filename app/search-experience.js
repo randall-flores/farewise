@@ -232,10 +232,160 @@ function dayOffset(departIso, arriveIso) {
   return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
 }
 
+// The booking redirect is a POST (Google's clk endpoint + post_data), not a GET
+// URL. Build a real form, decode each post_data field (the browser re-encodes on
+// submit so it matches the original), and open the result in a new tab. A plain
+// <a href> does NOT work here.
+function BookForm({ redirect, label }) {
+  if (!redirect?.url || !redirect?.postData) return null;
+  const fields = redirect.postData.split("&").map((pair) => {
+    const i = pair.indexOf("=");
+    const key = i === -1 ? pair : pair.slice(0, i);
+    let val = "";
+    try {
+      val = i === -1 ? "" : decodeURIComponent(pair.slice(i + 1));
+    } catch {
+      val = pair.slice(i + 1);
+    }
+    return [key, val];
+  });
+  return (
+    <form action={redirect.url} method="POST" target="_blank" className={styles.bookForm}>
+      {fields.map(([k, v]) => (
+        <input key={k} type="hidden" name={k} value={v} />
+      ))}
+      <button type="submit" className={styles.bookGo}>
+        {label} ↗
+      </button>
+    </form>
+  );
+}
+
+// Lazy "How to book": fetches real booking options ONLY when expanded (never on
+// results-page load). Honest states: loading, error, and a no-options message —
+// never a fabricated link or price.
+function BookOptions({ token, search }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [options, setOptions] = useState(null); // null = not fetched yet
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/book-options", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          departure_id: search?.origin,
+          arrival_id: search?.destination,
+          outbound_date: search?.depart,
+        }),
+      });
+      const json = await res.json();
+      if (json.error) setError(json.error);
+      else setOptions(json.options || []);
+    } catch {
+      setError("Couldn't load booking options. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && options === null && !loading) load();
+  }
+
+  return (
+    <div className={styles.bookWrap}>
+      <button type="button" className={styles.toggle} onClick={toggle} aria-expanded={open}>
+        <span>{open ? "Hide booking options" : "How to book"}</span>
+        <span className={styles.chev}>↓</span>
+      </button>
+
+      {open && (
+        <div className={styles.bookPanel}>
+          {loading && (
+            <p className={styles.bookNote} role="status">
+              Loading booking options…
+            </p>
+          )}
+          {error && (
+            <p className={styles.error} role="alert">
+              {error}
+            </p>
+          )}
+          {options && options.length === 0 && !loading && !error && (
+            <p className={styles.bookNote}>No booking options are listed for this flight right now.</p>
+          )}
+          {options && options.length > 0 && (
+            <>
+              <p className={styles.bookNote}>
+                Live bookable prices — these are what the seller charges and can differ from the
+                price above.
+              </p>
+              <ul className={styles.bookList}>
+                {options.map((o, i) => (
+                  <li key={i} className={styles.bookOption}>
+                    <div className={styles.bookOptionHead}>
+                      <span className={styles.bookSeller}>
+                        {o.seller}
+                        <span
+                          className={`${styles.bookTag} ${
+                            o.isAirlineDirect ? styles.bookTagDirect : styles.bookTagThird
+                          }`}
+                        >
+                          {o.isAirlineDirect ? "Direct" : "Third party"}
+                        </span>
+                        {o.optionTitle && <span className={styles.bookFare}>{o.optionTitle}</span>}
+                      </span>
+                      {o.price != null && (
+                        <span className={styles.bookPrice}>{formatMoney(o.price, "USD")}</span>
+                      )}
+                    </div>
+
+                    {o.ticketKind === "separate" && (
+                      <p className={styles.bookWarn}>
+                        Separate tickets booked together. If one flight is late, the other airline
+                        isn&apos;t obliged to rebook you.
+                      </p>
+                    )}
+
+                    {o.fareConditions.length > 0 && (
+                      <ul className={styles.bookConds}>
+                        {o.fareConditions.map((c, j) => (
+                          <li key={j}>{c}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {o.baggagePrices.length > 0 && (
+                      <p className={styles.bookBags}>{o.baggagePrices.join(" · ")}</p>
+                    )}
+
+                    {o.redirect ? (
+                      <BookForm redirect={o.redirect} label={`Continue to ${o.seller}`} />
+                    ) : (
+                      <p className={styles.bookNote}>No booking link provided for this option.</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // One flight result card.
 // At a glance: airline, route, verdict flag, price, all-in price, and ALWAYS-visible warnings.
 // Behind "Explain": the full reasoning (incl. cabin-upgrade note) and the segment breakdown.
-function FlightCard({ flight, risks, verdict }) {
+function FlightCard({ flight, risks, verdict, search }) {
   const [open, setOpen] = useState(false);
   const fees = totalExtraFees(flight);
   const allIn = allInPrice(flight);
@@ -339,7 +489,11 @@ function FlightCard({ flight, risks, verdict }) {
               ) : (
                 <p>No further detail available.</p>
               )}
-              {flight.bookVia?.url ? (
+              {flight.bookVia?.token ? (
+                // Real source: lazy-fetch booking options on demand (not on load).
+                <BookOptions token={flight.bookVia.token} search={search} />
+              ) : flight.bookVia?.url ? (
+                // Demo data carries a placeholder link.
                 <a
                   className={styles.book}
                   href={flight.bookVia.url}
@@ -349,14 +503,7 @@ function FlightCard({ flight, risks, verdict }) {
                   Book direct with {flight.bookVia.name} ↗
                 </a>
               ) : (
-                // We don't fetch seller/booking links on the results page. This is
-                // the clearly-marked spot to pull them lazily later — on expand or
-                // book click — using flight.bookVia.token (SerpApi booking_token).
-                // TODO(phase: booking links): fetch + render the real booking link.
-                <p className={styles.bookSoon}>
-                  We send you to {flight.bookVia.name} to book. We don&apos;t load
-                  seller links until you&apos;re ready, so prices stay the airline&apos;s own.
-                </p>
+                <p className={styles.bookSoon}>No booking link for this option yet.</p>
               )}
             </div>
           </div>
@@ -571,6 +718,7 @@ export default function SearchExperience() {
                     flight={f}
                     risks={data.riskMap[f.id] || []}
                     verdict={data.verdicts[f.id]}
+                    search={data.search}
                   />
                 ))}
               </div>

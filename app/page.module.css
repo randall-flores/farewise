@@ -738,8 +738,7 @@
 }
 .book:hover { background: var(--amber); color: #1a1613; }
 
-/* Placeholder shown when no booking link is fetched yet (results page never
-   fetches seller links — they load lazily on book click in a later phase). */
+/* Placeholder shown when there's no booking link/token for an option. */
 .bookSoon {
   margin: 20px 0 0;
   max-width: 60ch;
@@ -747,6 +746,114 @@
   line-height: 1.6;
   color: var(--cream-60);
 }
+
+/* ---------- "How to book": lazy booking options ---------- */
+.bookWrap { margin-top: 4px; }
+.bookPanel {
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cream-08);
+}
+.bookNote {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--cream-60);
+}
+
+/* Flat rows divided by hairlines — never nested cards. */
+.bookList { list-style: none; margin: 0; padding: 0; }
+.bookOption { padding: 16px 0; border-top: 1px solid var(--cream-08); }
+.bookOption:first-child { border-top: none; padding-top: 2px; }
+
+.bookOptionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.bookSeller {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cream);
+}
+/* Direct vs third-party, labeled plainly — never hidden. */
+.bookTag {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  transform: translateY(-1px);
+}
+.bookTagDirect { color: var(--good); background: rgba(121, 199, 154, 0.14); }
+.bookTagThird { color: var(--cream-60); background: var(--cream-08); }
+.bookFare {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cream-60);
+}
+.bookPrice {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--cream);
+  white-space: nowrap;
+}
+
+/* Separate tickets = a real risk. Full risk treatment, not a quiet note. */
+.bookWarn {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #f0b6a6;
+  background: rgba(232, 105, 74, 0.12);
+  border: 1px solid rgba(232, 105, 74, 0.35);
+  border-radius: 9px;
+}
+.bookConds {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--cream-60);
+}
+.bookBags {
+  margin: 9px 0 0;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--cream-60);
+}
+
+/* Quiet at rest, amber on intent — keeps amber scarce across many options. */
+.bookForm { margin-top: 14px; }
+.bookGo {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cream);
+  background: none;
+  border: 1px solid var(--cream-12);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.bookGo:hover { background: var(--amber); color: #1a1613; border-color: var(--amber); }
+.bookGo:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
 /* ---------- FOOTER ---------- */
 .foot {
