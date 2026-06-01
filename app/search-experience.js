@@ -42,6 +42,14 @@ function AirportField({ label, name, initial, onSelect }) {
     return () => clearTimeout(timer); // cancel the pending request if text changed
   }, [text]);
 
+  // Keep the arrow-key-highlighted option visible inside the scrollable dropdown.
+  // "nearest" only scrolls when it's actually off-screen, and stays within the list.
+  useEffect(() => {
+    if (active < 0) return;
+    const el = document.getElementById(`${name}-opt-${active}`);
+    if (el) el.scrollIntoView({ block: "nearest" });
+  }, [active, name]);
+
   function onChange(e) {
     const value = e.target.value;
     setText(value);
