@@ -489,30 +489,32 @@ function FlightCard({ flight, risks, verdict, search }) {
   return (
     <article className={`${styles.card} ${open ? styles.open : ""} ${level === "high-risk" ? styles.muted : ""}`}>
       <div className={styles.head}>
-        <div>
+        <div className={styles.headMain}>
           <h2 className={styles.airline}>{flight.bookVia.name}</h2>
-          {roundTrip ? (
-            <>
+          <div className={styles.legs}>
+            {roundTrip ? (
+              <>
+                <LegLine
+                  segments={flight.segments}
+                  stops={flight.stops}
+                  totalDuration={flight.totalDuration}
+                  label="Outbound"
+                />
+                <LegLine
+                  segments={flight.returnSegments}
+                  stops={flight.returnStops}
+                  totalDuration={flight.returnTotalDuration}
+                  label="Return"
+                />
+              </>
+            ) : (
               <LegLine
                 segments={flight.segments}
                 stops={flight.stops}
                 totalDuration={flight.totalDuration}
-                label="Outbound"
               />
-              <LegLine
-                segments={flight.returnSegments}
-                stops={flight.returnStops}
-                totalDuration={flight.returnTotalDuration}
-                label="Return"
-              />
-            </>
-          ) : (
-            <LegLine
-              segments={flight.segments}
-              stops={flight.stops}
-              totalDuration={flight.totalDuration}
-            />
-          )}
+            )}
+          </div>
         </div>
 
         <div className={styles.priceCol}>

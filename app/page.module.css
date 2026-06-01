@@ -525,6 +525,29 @@
   gap: 18px 20px;
 }
 
+/* Mobile only: stack the card header so the route summary gets the FULL card
+   width instead of a squeezed ~190px column. Top row = airline (left) + price
+   (right); the route + times drop to their own full-width row below. Desktop
+   (>640px) is untouched — headMain stays the left cell, price the right cell. */
+@media (max-width: 640px) {
+  .head {
+    grid-template-areas:
+      "airline price"
+      "legs    legs";
+    align-items: start;
+    column-gap: 14px;
+    row-gap: 12px;
+  }
+  /* dissolve the left wrapper so airline + legs become grid items we can place */
+  .headMain { display: contents; }
+  .airline { grid-area: airline; align-self: center; margin: 0; }
+  .priceCol { grid-area: price; }
+  .legs { grid-area: legs; }
+  /* IBM Plex Mono runs wide; ease the summary/stops/duration line on small
+     screens. The price stays mono at its size and prominent. */
+  .route { font-size: 12px; }
+}
+
 .airline {
   margin: 0 0 5px;
   font-family: var(--body);
@@ -549,6 +572,7 @@
   font-size: 15px;
   color: var(--cream);
   letter-spacing: 0.02em;
+  white-space: nowrap; /* never split the "18:25 → 16:40" pair across lines */
 }
 .timesArrow { color: var(--cream-40); margin: 0 2px; }
 .dayOffset {
