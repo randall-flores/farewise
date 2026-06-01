@@ -209,12 +209,22 @@
 .field input,
 .field select {
   width: 100%;
+  min-width: 0; /* let fields shrink to the card instead of forcing overflow */
+  max-width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--cream-12);
   border-radius: 10px;
   background: var(--page-2);
   color: var(--cream);
   font-family: var(--mono);
+}
+
+/* Date inputs carry a UA minimum width on iOS/WebKit that ignores width:100%
+   and pushes them past the card edge. Normalise the appearance so they size
+   to the field like every other input; the calendar indicator still renders. */
+.field input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 /* Airport autocomplete */
