@@ -122,7 +122,7 @@
   margin: 4px 0 0;
 }
 /* on-load sample route: present but clearly a placeholder */
-.boardGhost { opacity: 0.34; }
+.boardGhost { opacity: 0.5; }
 .code { display: flex; gap: 5px; }
 .flap {
   position: relative;
