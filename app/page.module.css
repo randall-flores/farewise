@@ -557,6 +557,24 @@
 }
 .route b { color: var(--cream); font-weight: 500; }
 
+/* Departure -> arrival clock times. The +N day-offset is amber so an overnight
+   / next-day arrival is never read as same-day. */
+.times {
+  margin: 7px 0 0;
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--cream);
+  letter-spacing: 0.02em;
+}
+.timesArrow { color: var(--cream-40); margin: 0 2px; }
+.dayOffset {
+  margin-left: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--amber);
+  vertical-align: super;
+}
+
 .priceCol {
   text-align: right;
   align-self: start;

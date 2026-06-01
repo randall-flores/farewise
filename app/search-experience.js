@@ -213,6 +213,25 @@ function priceInsightLine(pi) {
   return null;
 }
 
+// "2026-07-10T18:40" -> "18:40". Times are local wall-clock at each airport; we
+// read the string, never new Date() (which would shift by the browser's zone).
+function clockTime(iso) {
+  if (!iso) return "";
+  return (String(iso).split("T")[1] || "").slice(0, 5);
+}
+
+// Whole-calendar-day difference between departure and arrival, from the DATE
+// parts only (Date.UTC avoids any timezone shift). 0 = same day, 1 = next day,
+// etc. Honesty: this is what powers the "+1" so we never imply same-day arrival.
+function dayOffset(departIso, arriveIso) {
+  const d = String(departIso || "").split("T")[0];
+  const a = String(arriveIso || "").split("T")[0];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !/^\d{4}-\d{2}-\d{2}$/.test(a)) return 0;
+  const [y1, m1, d1] = d.split("-").map(Number);
+  const [y2, m2, d2] = a.split("-").map(Number);
+  return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
+}
+
 // One flight result card.
 // At a glance: airline, route, verdict flag, price, all-in price, and ALWAYS-visible warnings.
 // Behind "Explain": the full reasoning (incl. cabin-upgrade note) and the segment breakdown.
@@ -222,6 +241,12 @@ function FlightCard({ flight, risks, verdict }) {
   const allIn = allInPrice(flight);
   const feesKnown = flight.feesKnown !== false; // false only when the data source didn't itemize fees
   const level = verdict?.verdict ?? "caution";
+
+  // First flight's departure -> last flight's arrival, with an honest day offset.
+  const segs = flight.segments || [];
+  const depTime = clockTime(segs[0]?.depart);
+  const arrTime = clockTime(segs[segs.length - 1]?.arrive);
+  const offset = dayOffset(segs[0]?.depart, segs[segs.length - 1]?.arrive);
 
   return (
     <article className={`${styles.card} ${open ? styles.open : ""} ${level === "high-risk" ? styles.muted : ""}`}>
@@ -233,6 +258,19 @@ function FlightCard({ flight, risks, verdict }) {
             {flight.stops === 0 ? "no stops" : `${flight.stops} stop${flight.stops === 1 ? "" : "s"}`}{" "}
             &nbsp;·&nbsp; {flight.totalDuration}
           </p>
+          {depTime && arrTime && (
+            <p className={styles.times}>
+              {depTime} <span className={styles.timesArrow}>→</span> {arrTime}
+              {offset > 0 && (
+                <span
+                  className={styles.dayOffset}
+                  aria-label={offset === 1 ? "arrives the next day" : `arrives ${offset} days later`}
+                >
+                  +{offset}
+                </span>
+              )}
+            </p>
+          )}
         </div>
 
         <div className={styles.priceCol}>
