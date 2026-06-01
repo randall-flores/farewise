@@ -12,12 +12,18 @@ function AirportField({ label, name, initial, onSelect }) {
   const [loading, setLoading] = useState(false);
   const [active, setActive] = useState(-1); // highlighted suggestion for arrow-key nav
   const blurTimer = useRef(null);
+  const skipSearch = useRef(false); // true right after a pick, so we don't re-search the label
 
   // Debounce: every time `text` changes we (re)start a 300ms timer. If the user
   // types again before it fires, the cleanup clears it — so we only call the API
   // ~300ms AFTER they stop typing, not on every keystroke. All state updates live
   // inside the timer callback (never synchronously in the effect body).
   useEffect(() => {
+    // A pick just set the text to the chosen label — don't search for it.
+    if (skipSearch.current) {
+      skipSearch.current = false;
+      return;
+    }
     const q = text.trim();
     const timer = setTimeout(async () => {
       if (q.length < 2) {
@@ -60,11 +66,13 @@ function AirportField({ label, name, initial, onSelect }) {
   }
 
   function choose(place) {
+    skipSearch.current = true; // the upcoming text change is the label, not a query
     onSelect(place.code); // the parent stores the IATA code for the Duffel search
-    setText(place.label); // the box shows the friendly label, e.g. "Miami (MIA)"
+    setText(place.label); // the box shows the friendly label, e.g. "New York (NYC)"
     setResults([]);
     setActive(-1);
     setOpen(false);
+    clearTimeout(blurTimer.current);
   }
 
   // Keyboard: arrow up/down move the highlight, Enter picks it, Escape closes.
@@ -130,9 +138,9 @@ function AirportField({ label, name, initial, onSelect }) {
                 <button
                   type="button"
                   id={`${name}-opt-${i}`}
-                  className={`${styles.suggestion} ${p.underCity ? styles.suggestionUnderCity : ""} ${
-                    i === active ? styles.suggestionActive : ""
-                  }`}
+                  className={`${styles.suggestion} ${p.type === "city" ? styles.suggestionCity : ""} ${
+                    p.underCity ? styles.suggestionUnderCity : ""
+                  } ${i === active ? styles.suggestionActive : ""}`}
                   onMouseEnter={() => setActive(i)}
                   onClick={() => choose(p)}
                 >
@@ -291,7 +299,7 @@ export default function SearchExperience() {
   const [form, setForm] = useState({
     origin: "",
     destination: "",
-    depart: "2026-07-10",
+    depart: "",
     returnDate: "",
     cabin: "economy",
   });

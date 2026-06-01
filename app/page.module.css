@@ -160,11 +160,19 @@
   color: var(--amber-soft);
   outline: none;
 }
-/* airports listed under their city sit slightly indented, with a guide rule */
+/* a city header stands out above its airports */
+.suggestionCity {
+  font-weight: 600;
+  color: var(--cream);
+  border-bottom: 1px solid var(--cream-08);
+  border-radius: 7px 7px 0 0;
+}
+/* airports listed under their city sit indented, with a guide rule */
 .suggestionUnderCity {
-  padding-left: 24px;
-  border-left: 2px solid var(--cream-08);
-  margin-left: 6px;
+  padding-left: 26px;
+  border-left: 2px solid rgba(239, 159, 39, 0.35);
+  margin-left: 10px;
+  font-size: 12.5px;
   color: var(--cream-60);
 }
 .suggestionType {
