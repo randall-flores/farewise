@@ -336,12 +336,26 @@ export default function SearchExperience() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null); // { flights, riskMap, summary, verdicts }
   const [error, setError] = useState(null);
+  // Bumped on reset to remount the autocomplete fields (they hold their own
+  // visible text, so clearing form state alone wouldn't empty the boxes).
+  const [resetKey, setResetKey] = useState(0);
 
   // Today, as YYYY-MM-DD, for the date inputs' `min` and the submit-time guard.
   const today = new Date().toISOString().slice(0, 10);
 
   function update(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  function resetSearch() {
+    setForm({ origin: "", destination: "", depart: "", returnDate: "", cabin: "economy" });
+    setData(null);
+    setError(null);
+    setResetKey((k) => k + 1);
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   }
 
   async function onSubmit(e) {
@@ -406,12 +420,14 @@ export default function SearchExperience() {
             <p className={styles.formTitle}>Find your flight</p>
             <div className={styles.row}>
               <AirportField
+                key={`origin-${resetKey}`}
                 label="From"
                 name="origin"
                 initial={form.origin}
                 onSelect={(code) => setForm((f) => ({ ...f, origin: code }))}
               />
               <AirportField
+                key={`destination-${resetKey}`}
                 label="To"
                 name="destination"
                 initial={form.destination}
@@ -464,12 +480,17 @@ export default function SearchExperience() {
 
       {data && (
         <section className={styles.results}>
-          <p className={styles.meta} role="status" aria-live="polite">
-            <span className={styles.dot} /> Demo fares
-            <span className={styles.sep}>·</span> {form.origin} → {form.destination}
-            <span className={styles.sep}>·</span> {CABIN_LABEL[form.cabin] || form.cabin}
-            <span className={styles.sep}>·</span> {data.flights.length} options
-          </p>
+          <div className={styles.resultsHead}>
+            <p className={styles.meta} role="status" aria-live="polite">
+              <span className={styles.dot} /> Demo fares
+              <span className={styles.sep}>·</span> {form.origin} → {form.destination}
+              <span className={styles.sep}>·</span> {CABIN_LABEL[form.cabin] || form.cabin}
+              <span className={styles.sep}>·</span> {data.flights.length} options
+            </p>
+            <button type="button" className={styles.newSearch} onClick={resetSearch}>
+              New search
+            </button>
+          </div>
 
           {data.flights.length === 0 ? (
             <p className={styles.empty}>
