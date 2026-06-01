@@ -1,7 +1,141 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { formatMoney, totalExtraFees, allInPrice } from "@/lib/flight-helpers";
 import styles from "./page.module.css";
+
+// A From/To field with debounced airport/city autocomplete.
+// Shows what the user types; commits the chosen IATA code to the parent form.
+function AirportField({ label, name, initial, onSelect }) {
+  const [text, setText] = useState(initial); // what's visible in the box
+  const [results, setResults] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [active, setActive] = useState(-1); // highlighted suggestion for arrow-key nav
+  const blurTimer = useRef(null);
+
+  // Debounce: every time `text` changes we (re)start a 300ms timer. If the user
+  // types again before it fires, the cleanup clears it — so we only call the API
+  // ~300ms AFTER they stop typing, not on every keystroke. All state updates live
+  // inside the timer callback (never synchronously in the effect body).
+  useEffect(() => {
+    const q = text.trim();
+    const timer = setTimeout(async () => {
+      if (q.length < 2) {
+        setResults([]);
+        setActive(-1);
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/places?q=${encodeURIComponent(q)}`);
+        const json = await res.json();
+        setResults(json.places || []);
+        setActive(-1); // new list -> nothing highlighted yet
+        setOpen(true);
+      } catch {
+        setResults([]);
+        setActive(-1);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer); // cancel the pending request if text changed
+  }, [text]);
+
+  function onChange(e) {
+    const value = e.target.value;
+    setText(value);
+    setActive(-1);
+    // Let power users type a raw 3-letter code directly (e.g. "JFK").
+    const code = value.trim().toUpperCase();
+    if (/^[A-Z]{3}$/.test(code)) onSelect(code);
+  }
+
+  function choose(place) {
+    onSelect(place.code); // the parent stores the IATA code for the Duffel search
+    setText(place.label); // the box shows the friendly label, e.g. "Miami (MIA)"
+    setResults([]);
+    setActive(-1);
+    setOpen(false);
+  }
+
+  // Keyboard: arrow up/down move the highlight, Enter picks it, Escape closes.
+  function onKeyDown(e) {
+    if (e.key === "Escape") {
+      setOpen(false);
+      setActive(-1);
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      if (!open && results.length) {
+        setOpen(true);
+        return;
+      }
+      e.preventDefault();
+      setActive((i) => Math.min(i + 1, results.length - 1));
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((i) => Math.max(i - 1, 0));
+      return;
+    }
+    if (e.key === "Enter" && open && active >= 0 && results[active]) {
+      e.preventDefault(); // pick the highlighted suggestion instead of submitting
+      choose(results[active]);
+    }
+  }
+
+  return (
+    <label className={styles.field}>
+      <span>{label}</span>
+      <div className={styles.autocomplete}>
+        <input
+          name={name}
+          value={text}
+          onChange={onChange}
+          onFocus={() => {
+            clearTimeout(blurTimer.current);
+            if (results.length) setOpen(true);
+          }}
+          onBlur={() => {
+            // Delay closing so a click on a suggestion still registers.
+            blurTimer.current = setTimeout(() => setOpen(false), 120);
+          }}
+          onKeyDown={onKeyDown}
+          autoComplete="off"
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={`${name}-listbox`}
+          aria-activedescendant={active >= 0 ? `${name}-opt-${active}` : undefined}
+          aria-autocomplete="list"
+          required
+        />
+        {open && (results.length > 0 || loading) && (
+          <ul className={styles.suggestions} id={`${name}-listbox`} role="listbox">
+            {loading && results.length === 0 && (
+              <li className={styles.acStatus}>Searching…</li>
+            )}
+            {results.map((p, i) => (
+              <li key={`${p.type}-${p.code}-${p.label}`} role="option" aria-selected={i === active}>
+                <button
+                  type="button"
+                  id={`${name}-opt-${i}`}
+                  className={`${styles.suggestion} ${i === active ? styles.suggestionActive : ""}`}
+                  onMouseEnter={() => setActive(i)}
+                  onClick={() => choose(p)}
+                >
+                  {p.label}
+                  <span className={styles.suggestionType}>{p.type}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </label>
+  );
+}
 
 // Split-flap departure-board rendering of a route code (e.g. "MIA" -> three tiles).
 function FlapBoard({ origin, destination }) {
@@ -185,14 +319,18 @@ export default function SearchExperience() {
 
       <form className={styles.form} onSubmit={onSubmit}>
         <div className={styles.row}>
-          <label className={styles.field}>
-            <span>From</span>
-            <input name="origin" value={form.origin} onChange={update} required />
-          </label>
-          <label className={styles.field}>
-            <span>To</span>
-            <input name="destination" value={form.destination} onChange={update} required />
-          </label>
+          <AirportField
+            label="From"
+            name="origin"
+            initial={form.origin}
+            onSelect={(code) => setForm((f) => ({ ...f, origin: code }))}
+          />
+          <AirportField
+            label="To"
+            name="destination"
+            initial={form.destination}
+            onSelect={(code) => setForm((f) => ({ ...f, destination: code }))}
+          />
         </div>
         <div className={styles.row}>
           <label className={styles.field}>

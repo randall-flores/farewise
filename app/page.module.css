@@ -110,12 +110,68 @@
 }
 .field input,
 .field select {
+  width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--cream-12);
   border-radius: 10px;
   background: var(--page-2);
   color: var(--cream);
   font-family: var(--mono);
+}
+
+/* Airport autocomplete */
+.autocomplete { position: relative; }
+.suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--card-2);
+  border: 1px solid var(--cream-12);
+  border-radius: 10px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+  max-height: 264px;
+  overflow-y: auto;
+}
+.suggestion {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 12px;
+  border-radius: 7px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--cream);
+}
+.suggestion:hover,
+.suggestion:focus-visible,
+.suggestionActive {
+  background: rgba(239, 159, 39, 0.14);
+  color: var(--amber-soft);
+  outline: none;
+}
+.suggestionType {
+  flex: none;
+  color: var(--cream-40);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.acStatus {
+  padding: 9px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--cream-40);
 }
 .field input:focus,
 .field select:focus {
