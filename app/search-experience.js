@@ -598,10 +598,6 @@ export default function SearchExperience() {
             options, explain the trade-offs in plain language, then send you to book
             direct.
           </p>
-          <p className={styles.trust}>
-            <span className={styles.trustDot} aria-hidden="true" />
-            No commissions — we send you straight to the airline to book.
-          </p>
         </div>
 
         <div className={styles.heroForm}>
@@ -725,13 +721,9 @@ export default function SearchExperience() {
             </>
           )}
 
-          <p className={styles.foot}>
-            {data.source === "serpapi"
-              ? "Live fares from Google Flights. "
-              : "Demo fares — hand-written sample data, not live prices. "}
-            We don&apos;t take airline commissions; the explanation is what we&apos;d actually tell a
-            friend.
-          </p>
+          {data.source !== "serpapi" && (
+            <p className={styles.foot}>Demo fares — hand-written sample data, not live prices.</p>
+          )}
         </section>
       )}
     </>

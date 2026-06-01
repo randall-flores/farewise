@@ -94,25 +94,6 @@
   margin: 0;
 }
 
-/* short trust line under the pitch */
-.trust {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 18px 0 0;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.03em;
-  color: var(--cream-60);
-}
-.trustDot {
-  width: 6px;
-  height: 6px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--good);
-}
-
 /* split-flap route board */
 .board {
   display: flex;
