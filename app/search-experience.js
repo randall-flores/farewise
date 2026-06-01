@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { formatMoney, totalExtraFees, allInPrice } from "@/lib/flight-helpers";
-import { searchAirports } from "@/lib/airport-search";
+import { searchAirports, loadAirports } from "@/lib/airport-search";
 import styles from "./page.module.css";
 
 // A From/To field with debounced airport/city autocomplete.
@@ -46,7 +46,15 @@ function AirportField({ label, name, initial, onSelect }) {
       committed.current = false; // edited text no longer matches a chosen place
       onSelect(""); // tell the parent this field has no valid code right now
     }
-    runSearch(value);
+    if (value.trim().length >= 2) {
+      // The airport dataset loads once on first use; after that this resolves
+      // synchronously-fast and runSearch filters in memory.
+      loadAirports().then(() => runSearch(value));
+    } else {
+      setResults([]);
+      setOpen(false);
+      setActive(-1);
+    }
   }
 
   function choose(place) {
@@ -97,6 +105,7 @@ function AirportField({ label, name, initial, onSelect }) {
           onChange={onChange}
           onFocus={() => {
             clearTimeout(blurTimer.current);
+            loadAirports(); // warm the dataset before the user types
             if (results.length) setOpen(true);
           }}
           onBlur={() => {
@@ -133,7 +142,7 @@ function AirportField({ label, name, initial, onSelect }) {
                   onClick={() => choose(p)}
                 >
                   {p.label}
-                  <span className={styles.suggestionType}>{p.type}</span>
+                  <span className={styles.suggestionType}>{p.country || p.type}</span>
                 </button>
               </li>
             ))}
