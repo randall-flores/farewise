@@ -27,6 +27,25 @@ export async function POST(request) {
     );
   }
 
+  // Genuine empty result (SerpApi returned successfully but no flights for these
+  // dates): a calm empty-state, NOT the red error. Skip the AI layer entirely.
+  if (!flights || flights.length === 0) {
+    return Response.json({
+      flights: [],
+      riskMap: {},
+      summary: "",
+      verdicts: {},
+      priceInsights,
+      source,
+      search: {
+        origin: search.origin,
+        destination: search.destination,
+        depart: search.depart,
+        returnDate: search.returnDate || "",
+      },
+    });
+  }
+
   // 2) Explain. A failure here is different: we HAVE real flights, the AI layer
   // just didn't respond. Say so honestly, separately from a data outage.
   try {
