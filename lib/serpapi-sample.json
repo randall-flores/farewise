@@ -25,7 +25,7 @@
       "total_duration": 750,
       "price": 452,
       "type": "One way",
-      "departure_token": "WyJDalJJVEFTAMPLE_TAP"
+      "booking_token": "WyJDalJJVEFTAMPLE_TAP"
     },
     {
       "flights": [
@@ -42,7 +42,7 @@
       "total_duration": 595,
       "price": 690,
       "type": "One way",
-      "departure_token": "WyJDalJJVEFTAMPLE_LH"
+      "booking_token": "WyJDalJJVEFTAMPLE_LH"
     }
   ],
   "other_flights": []

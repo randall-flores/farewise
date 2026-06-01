@@ -290,7 +290,7 @@ function FlightCard({ flight, risks, verdict }) {
               ) : (
                 // We don't fetch seller/booking links on the results page. This is
                 // the clearly-marked spot to pull them lazily later — on expand or
-                // book click — using flight.bookVia.token (SerpApi departure_token).
+                // book click — using flight.bookVia.token (SerpApi booking_token).
                 // TODO(phase: booking links): fetch + render the real booking link.
                 <p className={styles.bookSoon}>
                   We send you to {flight.bookVia.name} to book. We don&apos;t load
