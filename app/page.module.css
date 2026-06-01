@@ -197,6 +197,17 @@
   color: var(--cream-40);
 }
 .field input::placeholder { color: var(--cream-40); }
+
+/* Native date inputs on the dark theme: the format hint (mm/dd/yyyy) and the
+   calendar icon are dark-on-dark by default, so an empty field looks blank.
+   Show the hint muted, brighten a real value, and make the icon visible. */
+.field input[type="date"]::-webkit-datetime-edit { color: var(--cream-40); }
+.field input[type="date"]:focus::-webkit-datetime-edit,
+.field input[type="date"]:valid::-webkit-datetime-edit { color: var(--cream); }
+.field input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+}
 .field input:focus,
 .field select:focus {
   outline: 2px solid var(--amber);
