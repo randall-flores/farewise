@@ -1,6 +1,6 @@
 // app/api/explain/route.js
 // The ONLY place Claude is called. Runs on the server — the API key never reaches the browser.
-import { demoFlights } from "@/lib/demo-flights";
+import { getFlights } from "@/lib/flight-source";
 import { detectRisks, reconcileVerdict } from "@/lib/flight-helpers";
 import { getComparison } from "@/lib/anthropic";
 
@@ -8,9 +8,9 @@ export async function POST(request) {
   try {
     const search = await request.json();
 
-    // Phase 1: data is the hardcoded demo set (no real flight API yet).
-    // We only ever reason over THIS data — nothing invented.
-    const flights = demoFlights;
+    // Where the flights come from depends on FAREWISE_DATA_SOURCE
+    // (demo | sample | live). We only ever reason over THIS data — nothing invented.
+    const flights = await getFlights(search);
 
     // Deterministic honesty flags, computed in code (not left to the AI).
     // The 2nd arg (all flights) is intentional — it lets detectRisks spot a

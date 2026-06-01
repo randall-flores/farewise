@@ -43,6 +43,7 @@ function FlightCard({ flight, risks, verdict }) {
   const [open, setOpen] = useState(false);
   const fees = totalExtraFees(flight);
   const allIn = allInPrice(flight);
+  const feesKnown = flight.feesKnown !== false; // false only when the data source didn't itemize fees
   const level = verdict?.verdict ?? "caution";
 
   return (
@@ -62,7 +63,9 @@ function FlightCard({ flight, risks, verdict }) {
             {formatMoney(flight.price, flight.currency)}
           </div>
           <div className={styles.allin}>
-            {fees > 0 ? (
+            {!feesKnown ? (
+              "fare only · fees not listed"
+            ) : fees > 0 ? (
               <>
                 <b>~{formatMoney(allIn, flight.currency)}</b> total
               </>
