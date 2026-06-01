@@ -14,29 +14,53 @@
 .hero {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
-  gap: clamp(28px, 5vw, 72px);
-  align-items: center;
+  grid-template-areas:
+    "intro form"
+    "pitch form";
+  gap: clamp(18px, 3vw, 30px) clamp(28px, 5vw, 72px);
+  align-content: center;
   min-height: min(78vh, 700px);
 }
 .heroCompact {
   min-height: 0;
   margin-bottom: clamp(8px, 2vw, 16px);
 }
-.heroLeft {
+.heroIntro {
+  grid-area: intro;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  min-width: 0; /* let the column shrink instead of overflowing on tablet */
+  align-self: end; /* hug the pitch around the vertical centre line */
+  min-width: 0;
 }
-.heroRight { width: 100%; }
+.heroPitch {
+  grid-area: pitch;
+  align-self: start;
+  min-width: 0;
+}
+.heroForm {
+  grid-area: form;
+  align-self: center;
+  width: 100%;
+}
 
+/* Mobile: identity first, then the form (primary action), then the pitch.
+   Areas drive the visual order; only the form holds focusable elements, so
+   keyboard/focus order is unaffected by the reorder. */
 @media (max-width: 880px) {
   .hero {
     grid-template-columns: 1fr;
-    align-items: stretch;
+    grid-template-areas:
+      "intro"
+      "form"
+      "pitch";
+    align-content: start;
     min-height: 0;
-    gap: 30px;
+    gap: 26px;
   }
+  .heroIntro,
+  .heroPitch,
+  .heroForm { align-self: stretch; }
 }
 
 /* ---------- HERO LEFT ---------- */
@@ -67,7 +91,7 @@
   font-size: 1.05rem;
   color: var(--cream-60);
   max-width: 46ch;
-  margin: 26px 0 0;
+  margin: 0;
 }
 
 /* short trust line under the pitch */

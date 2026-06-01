@@ -383,10 +383,13 @@ export default function SearchExperience() {
       {/* Split hero: pitch + live board on the left, the search form on the right.
           Collapses to a single column (and a tighter top margin) once a search runs. */}
       <div className={`${styles.hero} ${data || loading ? styles.heroCompact : ""}`}>
-        <div className={styles.heroLeft}>
+        <div className={styles.heroIntro}>
           <p className={styles.kicker}>Flight search that tells you the truth</p>
           <h1 className={styles.brand}>FareWise</h1>
           <FlapBoard origin={form.origin} destination={form.destination} />
+        </div>
+
+        <div className={styles.heroPitch}>
           <p className={styles.subtitle}>
             We don&apos;t book your flight or hide the catch. We compare the real
             options, explain the trade-offs in plain language, then send you to book
@@ -398,7 +401,7 @@ export default function SearchExperience() {
           </p>
         </div>
 
-        <div className={styles.heroRight}>
+        <div className={styles.heroForm}>
           <form className={styles.form} onSubmit={onSubmit}>
             <p className={styles.formTitle}>Find your flight</p>
             <div className={styles.row}>
