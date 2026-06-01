@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-01T00:00:00.000Z",
+  "title": "Design System: FareWise",
+  "extensions": {
+    "colorMeta": {
+      "amber": { "role": "primary", "displayName": "Board Amber", "canonical": "#ef9f27", "tonalRamp": ["#2b1c05", "#4d340a", "#704c0f", "#936415", "#b87d1c", "#dc9624", "#ef9f27", "#f3b455", "#f8cd8a", "#fbe3bf"] },
+      "page": { "role": "neutral", "displayName": "Concourse Charcoal", "canonical": "#1a1613", "tonalRamp": ["#0d0b09", "#16120f", "#1a1613", "#23201b", "#2a261f", "#3a342b", "#4d463a", "#6b6253", "#8f8674", "#bdb5a3"] },
+      "cream": { "role": "neutral", "displayName": "Cream", "canonical": "#f6f1e7", "tonalRamp": ["#3a352b", "#544e41", "#6f685a", "#8b8474", "#a8a090", "#c4bdad", "#dcd6c8", "#f6f1e7", "#fbf8f1", "#fffefb"] },
+      "good": { "role": "tertiary", "displayName": "Reassurance Green", "canonical": "#79c79a", "tonalRamp": ["#10261a", "#1a3d29", "#255639", "#31704b", "#3e8b5e", "#4ca672", "#79c79a", "#9ad6b3", "#bce5cd", "#ddf2e6"] },
+      "risk": { "role": "tertiary", "displayName": "High-Risk Red", "canonical": "#e8694a", "tonalRamp": ["#2e0f08", "#4d1c11", "#6e2a1b", "#8f3925", "#b04930", "#d1593c", "#e8694a", "#ef8e76", "#f5b3a2", "#fad6cc"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "FareWise wordmark and split-flap glyphs. Hero only." },
+      "headline": { "displayName": "Headline (Verdict)", "purpose": "The honest read, set in serif so it feels spoken." },
+      "title": { "displayName": "Title", "purpose": "Airline and card titles." },
+      "body": { "displayName": "Body", "purpose": "Explanations and subtitle. Cap ~54ch." },
+      "label": { "displayName": "Mono Label", "purpose": "Field labels, kickers, section rules, button text." },
+      "data": { "displayName": "Mono Data", "purpose": "Prices and big numbers; digits align like a board." }
+    },
+    "shadows": [
+      { "name": "card-lift", "value": "0 18px 40px rgba(0,0,0,0.28)", "purpose": "Form and verdict card; large soft downward lift." },
+      { "name": "card-rest", "value": "inset 0 1px 0 rgba(246,241,231,0.05), 0 6px 16px rgba(0,0,0,0.35)", "purpose": "Split-flap tiles; reads as physical hardware." },
+      { "name": "dropdown", "value": "0 16px 36px rgba(0,0,0,0.4)", "purpose": "Autocomplete suggestions floating above the form." }
+    ],
+    "motion": [
+      { "name": "state", "value": "0.15s ease", "purpose": "Button background and link hover transitions." },
+      { "name": "card", "value": "0.25s ease", "purpose": "Card border/transform on hover." },
+      { "name": "expand", "value": "grid-template-rows 0.4s ease", "purpose": "Detail expander via 0fr -> 1fr grid rows." },
+      { "name": "spin", "value": "0.8s linear infinite", "purpose": "Loading spinner." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "600px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The search submit. Solid amber board-light, charcoal text, mono uppercase.",
+      "html": "<button class=\"ds-btn-primary\">Search flights</button>",
+      "css": ".ds-btn-primary { background: #ef9f27; color: #1a1613; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 600; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; border: none; border-radius: 10px; padding: 13px 24px; cursor: pointer; transition: background 0.15s ease; } .ds-btn-primary:hover { background: #f3b455; } .ds-btn-primary:focus-visible { outline: 2px solid #ef9f27; outline-offset: 1px; } .ds-btn-primary:disabled { opacity: 0.55; cursor: default; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Text/airport field, inset into the surface, mono.",
+      "html": "<label class=\"ds-field\"><span>From</span><input class=\"ds-input\" placeholder=\"City or airport\" /></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 7px; } .ds-field span { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #f6f1e79e; } .ds-input { width: 100%; padding: 12px 14px; border: 1px solid #f6f1e71f; border-radius: 10px; background: #16120f; color: #f6f1e7; font-family: 'IBM Plex Mono', ui-monospace, monospace; } .ds-input::placeholder { color: #f6f1e76b; } .ds-input:focus { outline: 2px solid #ef9f27; outline-offset: 1px; border-color: transparent; }"
+    },
+    {
+      "name": "Flight Card",
+      "kind": "card",
+      "refersTo": "flight-card",
+      "description": "A single flight result with airline, route, and big mono price.",
+      "html": "<article class=\"ds-card\"><div><h3 class=\"ds-airline\">TAP Air Portugal</h3><p class=\"ds-route\"><b>MIA</b> &rarr; <b>BER</b> · 1 stop · 11h 30m</p></div><div class=\"ds-price\">$420</div></article>",
+      "css": ".ds-card { display: grid; grid-template-columns: 1fr auto; gap: 18px 20px; background: #23201b; border: 1px solid #f6f1e714; border-radius: 14px; padding: 26px 28px; box-shadow: 0 18px 40px rgba(0,0,0,0.28); transition: border-color 0.25s ease, transform 0.25s ease; } .ds-card:hover { border-color: #f6f1e71f; transform: translateY(-1px); } .ds-airline { margin: 0 0 5px; font-family: 'Figtree', system-ui, sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; color: #f6f1e7; } .ds-route { margin: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; color: #f6f1e79e; } .ds-route b { color: #f6f1e7; font-weight: 500; } .ds-price { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 40px; font-weight: 500; line-height: 0.95; letter-spacing: -0.01em; color: #f6f1e7; text-align: right; }"
+    },
+    {
+      "name": "Risk Warning",
+      "kind": "custom",
+      "refersTo": "warn_high",
+      "description": "High-risk honesty callout: red tint, mono label, full plain sentence. Color paired with label, never alone.",
+      "html": "<p class=\"ds-warn ds-warn-high\"><span class=\"ds-warn-lbl\">High risk</span>These are two separate tickets. If you miss the second flight, you lose that ticket and pay again.</p>",
+      "css": ".ds-warn { margin: 0; font-size: 14px; line-height: 1.5; padding: 10px 12px; border-radius: 9px; border: 1px solid; } .ds-warn-high { background: rgba(232,105,74,0.12); border-color: rgba(232,105,74,0.35); color: #f0b6a6; } .ds-warn-lbl { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; margin-right: 8px; color: #e8694a; }"
+    },
+    {
+      "name": "Verdict Tag",
+      "kind": "custom",
+      "refersTo": "verdict-card",
+      "description": "The honest-read summary header: mono uppercase amber tag with rotated-square bullet.",
+      "html": "<div class=\"ds-verdict-tag\">The honest read</div>",
+      "css": ".ds-verdict-tag { display: flex; align-items: center; gap: 9px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: #ef9f27; } .ds-verdict-tag::before { content: ''; width: 6px; height: 6px; background: #ef9f27; transform: rotate(45deg); }"
+    },
+    {
+      "name": "Book Link",
+      "kind": "button",
+      "refersTo": "book-link",
+      "description": "The redirect-to-book link; ghost amber that fills on hover. FareWise never books in-app.",
+      "html": "<a class=\"ds-book\" href=\"#\">Book via TAP &rarr;</a>",
+      "css": ".ds-book { display: inline-flex; align-items: center; min-height: 44px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #ef9f27; text-decoration: none; border: 1px solid rgba(239,159,39,0.4); border-radius: 9px; padding: 10px 16px; transition: background 0.15s ease, color 0.15s ease; } .ds-book:hover { background: #ef9f27; color: #1a1613; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Night Departure Board",
+    "overview": "FareWise looks like a warm charcoal airport terminal after midnight. The page is near-black with a faint amber glow bleeding down from the top, like board-light over an empty concourse. The hero is a real split-flap board spelling the route. Amber is the only accent and it earns its rarity. Cream text sits calm and legible on the dark. Mono labels tick along like gate listings. The authority comes from restraint and from telling the truth on screen. The system rejects the generic SaaS dashboard, booking-site urgency, and travel-blogger gloss. It is editorial and mechanical, not a control surface and not a brochure.",
+    "keyCharacteristics": [
+      "Dark warm-charcoal canvas, single amber accent, cream type",
+      "Three-font system: serif display, sans body, mono labels/data",
+      "Split-flap board as signature hero element",
+      "Honesty layer rendered as color-coded, icon-paired warnings — never color alone",
+      "Calm, authoritative, mechanical; restraint over decoration"
+    ],
+    "rules": [
+      { "name": "The One Board-Light Rule", "body": "Amber is the only accent and appears on a small fraction of any screen. Three amber buttons on one view means two too many. Its scarcity is what makes it read as 'act here.'", "section": "colors" },
+      { "name": "The Signal-Never-Alone Rule", "body": "Green / amber / red always ship with a text label and an icon. Color is the fast cue, never the only cue. A color-blind user must get the same warning from the words.", "section": "colors" },
+      { "name": "The Mono-for-Facts Rule", "body": "Anything that is data — a price, a time, a flight number, a label — is set in IBM Plex Mono. Anything that is a human sentence is serif or sans. The font tells the user whether they're reading a fact or a judgment.", "section": "typography" },
+      { "name": "The Hardware-Not-Glass Rule", "body": "Surfaces are opaque and warm. Shadows are dark and diffuse, never a bright glow or a frosted blur. If a panel looks like frosted glass, it's wrong.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep amber on ≤10% of any screen (The One Board-Light Rule).",
+      "Do pair every green/amber/red signal with an icon and a text label, so the warning survives color blindness and the WCAG 2.2 AA bar.",
+      "Do set every price, time, and flight number in IBM Plex Mono; set every human judgment in serif or sans.",
+      "Do write risk warnings as full, blunt, complete sentences.",
+      "Do surface total cost (bag + seat → ~total) in the card, never just the headline fare.",
+      "Do verify cream-40 (42% opacity) clears 4.5:1 before using it for any text that must be read."
+    ],
+    "donts": [
+      "Don't build a generic SaaS dashboard: no identical card grids, no gradient hero-metric, no blue-and-white tool chrome.",
+      "Don't add booking-site urgency: no red scarcity banners, no '2 seats left,' no countdowns.",
+      "Don't use travel-blogger gloss: no full-bleed beach photography, no wanderlust mood copy.",
+      "Don't use glassmorphism or frosted blur (The Hardware-Not-Glass Rule).",
+      "Don't introduce a second accent hue. Amber is the only voice; green/amber/red exist solely as the risk signal.",
+      "Don't rely on the border-left: 3px amber stripe on the verdict card — a colored side-stripe over 1px is a banned pattern."
+    ]
+  }
+}
