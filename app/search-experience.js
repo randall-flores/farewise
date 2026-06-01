@@ -111,6 +111,7 @@ function AirportField({ label, name, initial, onSelect }) {
             blurTimer.current = setTimeout(() => setOpen(false), 120);
           }}
           onKeyDown={onKeyDown}
+          placeholder="City or airport"
           autoComplete="off"
           role="combobox"
           aria-expanded={open}
@@ -129,7 +130,9 @@ function AirportField({ label, name, initial, onSelect }) {
                 <button
                   type="button"
                   id={`${name}-opt-${i}`}
-                  className={`${styles.suggestion} ${i === active ? styles.suggestionActive : ""}`}
+                  className={`${styles.suggestion} ${p.underCity ? styles.suggestionUnderCity : ""} ${
+                    i === active ? styles.suggestionActive : ""
+                  }`}
                   onMouseEnter={() => setActive(i)}
                   onClick={() => choose(p)}
                 >
@@ -147,6 +150,8 @@ function AirportField({ label, name, initial, onSelect }) {
 
 // Split-flap departure-board rendering of a route code (e.g. "MIA" -> three tiles).
 function FlapBoard({ origin, destination }) {
+  // Nothing chosen yet — don't show a lone arrow on the hero.
+  if (!origin && !destination) return null;
   const tiles = (code) =>
     String(code || "")
       .toUpperCase()
@@ -284,8 +289,8 @@ function FlightCard({ flight, risks, verdict }) {
 
 export default function SearchExperience() {
   const [form, setForm] = useState({
-    origin: "MIA",
-    destination: "BER",
+    origin: "",
+    destination: "",
     depart: "2026-07-10",
     returnDate: "",
     cabin: "economy",
@@ -301,6 +306,11 @@ export default function SearchExperience() {
 
   async function onSubmit(e) {
     e.preventDefault();
+    // Both fields must hold a real code (chosen from the list, or a typed 3-letter code).
+    if (!form.origin || !form.destination) {
+      setError("Pick a city or airport from the suggestions for both From and To.");
+      return;
+    }
     setLoading(true);
     setError(null);
     setData(null);

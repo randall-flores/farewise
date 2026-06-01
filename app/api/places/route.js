@@ -12,7 +12,8 @@ export async function GET(request) {
 
   try {
     const raw = await searchPlaces(q);
-    return Response.json({ places: normalizePlaces(raw).slice(0, 6) });
+    // A bit higher than before so a city plus its airports fit without being cut.
+    return Response.json({ places: normalizePlaces(raw).slice(0, 8) });
   } catch (err) {
     console.error("places route error:", err);
     // Fail soft: an empty list just means "no suggestions", not a broken form.
