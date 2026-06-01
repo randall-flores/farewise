@@ -193,10 +193,53 @@ const VERDICT_ICON = { good: "✓", caution: "!", "high-risk": "▲" };
 const CABIN_LABEL = { economy: "Economy", premium: "Premium economy", business: "Business" };
 
 // Build the board-style route line ("MIA — LIS — BER") from the segments.
-function routeCodes(flight) {
-  const first = flight.segments[0]?.from;
-  const rest = flight.segments.map((s) => s.to);
+function routeCodes(segments = []) {
+  const first = segments[0]?.from;
+  const rest = segments.map((s) => s.to);
   return [first, ...rest].filter(Boolean).join(" — ");
+}
+
+// One leg's line: route + stops + duration, then its clock times with day offset.
+// `label` ("Outbound"/"Return") is set on round trips; it also turns on the
+// per-leg airline (outbound and return can be different airlines).
+function LegLine({ segments, stops, totalDuration, label }) {
+  if (!segments?.length) return null;
+  const dep = clockTime(segments[0]?.depart);
+  const arr = clockTime(segments[segments.length - 1]?.arrive);
+  const off = dayOffset(segments[0]?.depart, segments[segments.length - 1]?.arrive);
+  const date = shortDate(segments[0]?.depart);
+  return (
+    <div className={styles.leg}>
+      {label && (
+        <span className={styles.legLabel}>
+          {label}
+          {date && <span className={styles.legDate}>{date}</span>}
+        </span>
+      )}
+      <p className={styles.route}>
+        <b>{routeCodes(segments)}</b> &nbsp;·&nbsp;{" "}
+        {stops === 0 ? "no stops" : `${stops} stop${stops === 1 ? "" : "s"}`}{" "}
+        &nbsp;·&nbsp; {totalDuration}
+        {label && segments[0]?.airline ? (
+          <span className={styles.legAirline}> · {segments[0].airline}</span>
+        ) : null}
+      </p>
+      {dep && arr && (
+        <p className={styles.times}>
+          {dep} <span className={styles.timesArrow}>→</span> {arr}
+          {off > 0 && (
+            <span
+              className={styles.dayOffset}
+              aria-label={off === 1 ? "arrives the next day" : `arrives ${off} days later`}
+            >
+              {" "}
+              +{off}
+            </span>
+          )}
+        </p>
+      )}
+    </div>
+  );
 }
 
 // On-brand price-context line from SerpApi price_insights (real, per search), or
@@ -218,6 +261,13 @@ function priceInsightLine(pi) {
 function clockTime(iso) {
   if (!iso) return "";
   return (String(iso).split("T")[1] || "").slice(0, 5);
+}
+
+// "2026-07-10T18:40" -> "Jul 10" (the leg's date, useful on round trips).
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function shortDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ""));
+  return m ? `${MONTHS[Number(m[2]) - 1]} ${Number(m[3])}` : "";
 }
 
 // Whole-calendar-day difference between departure and arrival, from the DATE
@@ -324,6 +374,7 @@ function BookOptions({ token, search }) {
           departure_id: search?.origin,
           arrival_id: search?.destination,
           outbound_date: search?.depart,
+          return_date: search?.returnDate || "", // round trip -> link covers both legs
         }),
       });
       const json = await res.json();
@@ -433,35 +484,34 @@ function FlightCard({ flight, risks, verdict, search }) {
   const allIn = allInPrice(flight);
   const feesKnown = flight.feesKnown !== false; // false only when the data source didn't itemize fees
   const level = verdict?.verdict ?? "caution";
-
-  // First flight's departure -> last flight's arrival, with an honest day offset.
-  const segs = flight.segments || [];
-  const depTime = clockTime(segs[0]?.depart);
-  const arrTime = clockTime(segs[segs.length - 1]?.arrive);
-  const offset = dayOffset(segs[0]?.depart, segs[segs.length - 1]?.arrive);
+  const roundTrip = flight.tripType === "round-trip";
 
   return (
     <article className={`${styles.card} ${open ? styles.open : ""} ${level === "high-risk" ? styles.muted : ""}`}>
       <div className={styles.head}>
         <div>
           <h2 className={styles.airline}>{flight.bookVia.name}</h2>
-          <p className={styles.route}>
-            <b>{routeCodes(flight)}</b> &nbsp;·&nbsp;{" "}
-            {flight.stops === 0 ? "no stops" : `${flight.stops} stop${flight.stops === 1 ? "" : "s"}`}{" "}
-            &nbsp;·&nbsp; {flight.totalDuration}
-          </p>
-          {depTime && arrTime && (
-            <p className={styles.times}>
-              {depTime} <span className={styles.timesArrow}>→</span> {arrTime}
-              {offset > 0 && (
-                <span
-                  className={styles.dayOffset}
-                  aria-label={offset === 1 ? "arrives the next day" : `arrives ${offset} days later`}
-                >
-                  +{offset}
-                </span>
-              )}
-            </p>
+          {roundTrip ? (
+            <>
+              <LegLine
+                segments={flight.segments}
+                stops={flight.stops}
+                totalDuration={flight.totalDuration}
+                label="Outbound"
+              />
+              <LegLine
+                segments={flight.returnSegments}
+                stops={flight.returnStops}
+                totalDuration={flight.returnTotalDuration}
+                label="Return"
+              />
+            </>
+          ) : (
+            <LegLine
+              segments={flight.segments}
+              stops={flight.stops}
+              totalDuration={flight.totalDuration}
+            />
           )}
         </div>
 
@@ -469,6 +519,7 @@ function FlightCard({ flight, risks, verdict, search }) {
           <div className={`${styles.price} ${level === "high-risk" ? styles.dim : ""}`}>
             {formatMoney(flight.price, flight.currency)}
           </div>
+          {roundTrip && <div className={styles.priceUnit}>round trip</div>}
           <div className={styles.allin}>
             {!feesKnown ? (
               "fare only · fees not listed"
@@ -517,11 +568,22 @@ function FlightCard({ flight, risks, verdict, search }) {
           <div className={styles.detailInner}>
             <div className={styles.detailPad}>
               <ul className={styles.segments}>
+                {roundTrip && <li className={styles.segHead}>Outbound</li>}
                 {flight.segments.map((s, i) => (
-                  <li key={i}>
+                  <li key={`o${i}`}>
                     <b>{s.from} → {s.to}</b> · {s.airline} {s.flightNo} · {s.duration}
                   </li>
                 ))}
+                {roundTrip && flight.returnSegments?.length > 0 && (
+                  <>
+                    <li className={styles.segHead}>Return</li>
+                    {flight.returnSegments.map((s, i) => (
+                      <li key={`r${i}`}>
+                        <b>{s.from} → {s.to}</b> · {s.airline} {s.flightNo} · {s.duration}
+                      </li>
+                    ))}
+                  </>
+                )}
               </ul>
               {verdict?.explanation ? (
                 verdict.explanation

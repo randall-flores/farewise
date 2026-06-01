@@ -559,6 +559,43 @@
   vertical-align: super;
 }
 
+/* Round-trip legs (Outbound / Return), divided by a hairline. */
+.leg + .leg {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cream-08);
+}
+.legLabel {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 0 0 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cream-40);
+}
+.legDate { letter-spacing: 0.04em; color: var(--cream-60); }
+.legAirline { color: var(--cream-60); }
+.priceUnit {
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cream-60);
+}
+.segHead {
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cream-40);
+}
+.segHead:first-child { margin-top: 0; }
+
 .priceCol {
   text-align: right;
   align-self: start;

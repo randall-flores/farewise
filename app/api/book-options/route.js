@@ -20,7 +20,7 @@ export async function POST(request) {
     return Response.json({ error: "Bad request." }, { status: 400 });
   }
 
-  const { token, departure_id, arrival_id, outbound_date } = body || {};
+  const { token, departure_id, arrival_id, outbound_date, return_date } = body || {};
   if (!token || !departure_id || !arrival_id || !outbound_date) {
     return Response.json({ error: "Missing booking token or search context." }, { status: 400 });
   }
@@ -38,6 +38,7 @@ export async function POST(request) {
       departureId: departure_id,
       arrivalId: arrival_id,
       outboundDate: outbound_date,
+      returnDate: return_date || "", // round trip -> seller link covers both legs
     });
   } catch (err) {
     console.error("book-options route error:", err);

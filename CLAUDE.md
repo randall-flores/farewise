@@ -44,7 +44,9 @@ Each rule exists because a competitor's failure proved it matters. Breaking any 
 
 The whole app reasons over the normalized `flightResult` shape (below) and does not care where data came from. `FAREWISE_DATA_SOURCE` selects the source in `lib/flight-source.js`:
 
-- **`serpapi` (default, the only REAL source).** SerpApi's Google Flights engine, called server-side only (`lib/serpapi.js`, `SERPAPI_KEY` is secret), normalized by `lib/normalize-serpapi.js`. **One-way only** for now (`type=2`); `currency=USD`, `hl=en`, `gl=us`. This is the production default.
+- **`serpapi` (default, the only REAL source).** SerpApi's Google Flights engine, called server-side only (`lib/serpapi.js`, `SERPAPI_KEY` is secret), normalized by `lib/normalize-serpapi.js`. `currency=USD`, `hl=en`, `gl=us`. Production default.
+  - **One-way** (no return date): one call, `type=2`.
+  - **Round-trip** (return date set): two calls, `type=1`. Call 1 returns outbound options (each with a `departure_token` and the round-trip total). We take the **cheapest outbound** and call again with its `departure_token`; call 2's returns (in `other_flights`) are paired with that one outbound into full round trips (`normalizeRoundTrip`). So v1 round-trip shares one outbound and varies the return — a future improvement is multiple outbounds. The headline price is the **round-trip total**, labeled "round trip" on the card. The return option's `booking_token` covers **both legs** (verified: the booking call's `selected_flights` has 2 legs), so the seller link books the whole itinerary.
 - **`demo` (LOCAL DEVELOPMENT ONLY).** Hand-written flights in `lib/demo-flights.js`, for building the UI. **Hard-blocked in production** (`getFlights` throws when `NODE_ENV==="production"`) so we can never serve data we can't stand behind.
 
 Rules that come straight from "honesty is the product":
@@ -55,7 +57,7 @@ Rules that come straight from "honesty is the product":
 - **Unknowns are never invented.** SerpApi search gives no à-la-carte fees, baggage, refund rules, other-cabin prices, **or any separate-ticket / self-transfer signal**, so the normalizer marks them unknown: `feesKnown:false`, `baggage:{carryOn:null,checked:null}`, `refundable:null`, **`bookingType:null`, `protected:null`**, single-cabin `cabinOptions`. We never assert protection (or single-ticket) we haven't verified. The airport-change risk is still derived honestly from the segment list.
 - **Airport autocomplete is offline/local.** A bundled dataset (`lib/airports.json`) filtered client-side by `lib/airport-search.js`. No API call per keystroke, no SerpApi quota burned on typing. Extend coverage by appending to `airports.json`.
 
-**Not built yet (don't build ahead):** round-trip (the `return_date` + second `departure_token` call).
+**Possible future improvement (not required):** round-trip currently fixes one (cheapest) outbound and varies the return; showing multiple outbounds would cost more calls.
 
 ---
 

@@ -57,6 +57,7 @@ export async function POST(request) {
       origin: search.origin,
       destination: search.destination,
       depart: search.depart,
+      returnDate: search.returnDate || "", // present -> booking uses the round-trip path
     };
     return Response.json({
       flights,
