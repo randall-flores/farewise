@@ -1,37 +1,75 @@
 /* ---- FareWise design tokens ----
+   "Airport departure board at night": warm charcoal, amber accent, cream text.
    One place for color + type so the whole app stays consistent. */
 :root {
-  --paper: #f7f5ef;      /* warm off-white background */
-  --ink: #14181f;        /* near-black text */
-  --ink-soft: #4b5563;   /* secondary text */
-  --line: #e4e0d6;       /* hairline borders */
-  --card: #ffffff;       /* card surface */
+  --page: #1a1613;      /* charcoal page */
+  --page-2: #16120f;    /* deeper inset (callouts, inputs) */
+  --card: #23201b;      /* card surface */
+  --card-2: #2a261f;    /* lighter card top (gradient) */
 
-  --accent: #0f766e;     /* trust teal — primary actions */
-  --accent-ink: #0b5048; /* darker teal for hover */
+  --amber: #ef9f27;     /* board accent — primary actions, caution */
+  --amber-soft: #f3b455;/* amber hover */
+  --cream: #f6f1e7;     /* primary text */
+  --cream-60: rgba(246, 241, 231, 0.62); /* secondary text */
+  --cream-40: rgba(246, 241, 231, 0.42); /* faint labels */
+  --cream-12: rgba(246, 241, 231, 0.12); /* hairlines */
+  --cream-08: rgba(246, 241, 231, 0.08); /* faintest borders */
 
-  --warn: #b45309;       /* amber — caution risk */
-  --danger: #b91c1c;     /* red — high risk */
-  --safe: #15803d;       /* green — reassurance */
+  --good: #79c79a;      /* green — reassurance / good verdict */
+  --warn: #ef9f27;      /* amber — caution */
+  --risk: #e8694a;      /* red — high risk */
+
+  --serif: var(--font-display), Georgia, serif;
+  --body: var(--font-body), system-ui, sans-serif;
+  --mono: var(--font-mono), ui-monospace, monospace;
 
   --radius: 14px;
-  --shadow: 0 1px 2px rgba(20, 24, 31, 0.06), 0 8px 24px rgba(20, 24, 31, 0.06);
 }
 
 * { box-sizing: border-box; }
 
-html, body {
+html {
+  -webkit-text-size-adjust: 100%;
+  color-scheme: dark; /* native controls (date picker, select) render dark */
+}
+
+body {
   margin: 0;
-  padding: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-body), system-ui, sans-serif;
-  line-height: 1.6;
+  background: var(--page);
+  color: var(--cream);
+  font-family: var(--body);
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+
+/* atmosphere: warm amber glow from the top */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(239, 159, 39, 0.1), transparent 60%),
+    radial-gradient(90% 50% at 85% 0%, rgba(239, 159, 39, 0.05), transparent 55%);
+}
+/* atmosphere: barely-there board scanlines */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.35;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
+  mix-blend-mode: soft-light;
 }
 
 h1, h2, h3 {
-  font-family: var(--font-display), Georgia, serif;
+  font-family: var(--serif);
+  font-weight: 400;
   line-height: 1.1;
   letter-spacing: -0.01em;
   margin: 0;
@@ -40,3 +78,7 @@ h1, h2, h3 {
 a { color: inherit; }
 
 button, input, select { font: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
