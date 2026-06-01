@@ -45,5 +45,10 @@
       "booking_token": "WyJDalJJVEFTAMPLE_LH"
     }
   ],
-  "other_flights": []
+  "other_flights": [],
+  "price_insights": {
+    "lowest_price": 452,
+    "price_level": "typical",
+    "typical_price_range": [430, 760]
+  }
 }

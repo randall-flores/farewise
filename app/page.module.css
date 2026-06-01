@@ -441,6 +441,30 @@
 }
 .sep { color: var(--cream-40); } /* decorative separator dot — contrast-exempt */
 
+/* Real per-search price context (SerpApi price_insights). Quiet, factual —
+   not an amber call-to-action; amber stays reserved for actions. */
+.priceInsight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: clamp(18px, 3vw, 26px) 0 0;
+  padding: 12px 16px;
+  background: var(--cream-08);
+  border: 1px solid var(--cream-12);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cream-60);
+  text-wrap: pretty;
+}
+.priceInsightDot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--good);
+}
+
 /* Honest-read summary */
 .verdict {
   position: relative;

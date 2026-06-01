@@ -199,6 +199,20 @@ function routeCodes(flight) {
   return [first, ...rest].filter(Boolean).join(" — ");
 }
 
+// On-brand price-context line from SerpApi price_insights (real, per search), or
+// null. Honest: if a piece is missing we just don't say it.
+function priceInsightLine(pi) {
+  if (!pi) return null;
+  const money = (n) => formatMoney(n, "USD");
+  const range = pi.typicalPriceRange;
+  if (pi.priceLevel && range) {
+    return `Prices for this route are currently ${pi.priceLevel} — typical range ${money(range[0])}–${money(range[1])}.`;
+  }
+  if (pi.priceLevel) return `Prices for this route are currently ${pi.priceLevel}.`;
+  if (range) return `Typical price for this route: ${money(range[0])}–${money(range[1])}.`;
+  return null;
+}
+
 // One flight result card.
 // At a glance: airline, route, verdict flag, price, all-in price, and ALWAYS-visible warnings.
 // Behind "Explain": the full reasoning (incl. cabin-upgrade note) and the segment breakdown.
@@ -472,7 +486,8 @@ export default function SearchExperience() {
         <section className={styles.results}>
           <div className={styles.resultsHead}>
             <p className={styles.meta} role="status" aria-live="polite">
-              <span className={styles.dot} /> Demo fares
+              {/* Factual label from the actual data source — never call real fares "demo". */}
+              <span className={styles.dot} /> {data.source === "serpapi" ? "Live fares" : "Demo fares"}
               <span className={styles.sep}>·</span> {form.origin} → {form.destination}
               <span className={styles.sep}>·</span> {CABIN_LABEL[form.cabin] || form.cabin}
               <span className={styles.sep}>·</span> {data.flights.length} options
@@ -488,6 +503,15 @@ export default function SearchExperience() {
             </p>
           ) : (
             <>
+              {/* Real per-search price context from SerpApi (price_insights).
+                  Only rendered when the data exists — never invented. */}
+              {priceInsightLine(data.priceInsights) && (
+                <p className={styles.priceInsight}>
+                  <span className={styles.priceInsightDot} aria-hidden="true" />
+                  {priceInsightLine(data.priceInsights)}
+                </p>
+              )}
+
               {/* Layer 1: the short summary; amber verdict tag carries the accent. */}
               <section className={styles.verdict}>
                 <h2 className={styles.verdictTag}>FareWise&apos;s honest read</h2>
@@ -516,8 +540,11 @@ export default function SearchExperience() {
           )}
 
           <p className={styles.foot}>
-            Phase 1 — prices are hand-written demo data, not live fares. We don&apos;t take airline
-            commissions; the explanation is what we&apos;d actually tell a friend.
+            {data.source === "serpapi"
+              ? "Live fares from Google Flights. "
+              : "Demo fares — hand-written sample data, not live prices. "}
+            We don&apos;t take airline commissions; the explanation is what we&apos;d actually tell a
+            friend.
           </p>
         </section>
       )}

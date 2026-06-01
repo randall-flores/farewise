@@ -12,8 +12,10 @@ export async function POST(request) {
   // empty result we DO NOT fall back to demo/fake data: we return an honest
   // down-state. FareWise would rather show nothing than fares it can't verify.
   let flights;
+  let priceInsights = null;
+  let source = "serpapi";
   try {
-    flights = await getFlights(search);
+    ({ flights, priceInsights, source } = await getFlights(search));
   } catch (err) {
     console.error("flight source error:", err);
     return Response.json(
@@ -35,7 +37,8 @@ export async function POST(request) {
     for (const f of flights) riskMap[f.id] = detectRisks(f, flights);
 
     // ONE Claude call: summary + per-flight verdict tags + explanations.
-    const result = await getComparison(flights, search, riskMap);
+    // priceInsights (per-search, real or null) lets Claude ground its read.
+    const result = await getComparison(flights, search, riskMap, priceInsights);
 
     // Map Claude's per-flight output by id, and clamp each verdict against OUR flags
     // so a model slip can only make a card more cautious, never hide a risk.
@@ -48,7 +51,7 @@ export async function POST(request) {
       };
     }
 
-    return Response.json({ flights, riskMap, summary: result.summary, verdicts });
+    return Response.json({ flights, riskMap, summary: result.summary, verdicts, priceInsights, source });
   } catch (err) {
     console.error("explain route error:", err);
     return Response.json(
