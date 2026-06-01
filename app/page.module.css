@@ -2,12 +2,44 @@
 .wrap {
   position: relative;
   z-index: 1;
-  max-width: 880px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: clamp(28px, 6vw, 64px) clamp(18px, 5vw, 32px) 80px;
+  padding: clamp(24px, 4vw, 48px) clamp(18px, 5vw, 40px) 80px;
 }
 
-/* ---------- HERO ---------- */
+/* ---------- SPLIT HERO ---------- */
+/* Two columns: pitch + live board (left), search form (right). The min-height
+   pulls the block toward the vertical centre of the first screen so the page
+   reads as composed, not top-stranded. Collapses to one column on narrow views. */
+.hero {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(28px, 5vw, 72px);
+  align-items: center;
+  min-height: min(78vh, 700px);
+}
+.heroCompact {
+  min-height: 0;
+  margin-bottom: clamp(8px, 2vw, 16px);
+}
+.heroLeft {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0; /* let the column shrink instead of overflowing on tablet */
+}
+.heroRight { width: 100%; }
+
+@media (max-width: 880px) {
+  .hero {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    min-height: 0;
+    gap: 30px;
+  }
+}
+
+/* ---------- HERO LEFT ---------- */
 .kicker {
   font-family: var(--mono);
   font-size: 12px;
@@ -27,15 +59,34 @@
 }
 
 .brand {
-  font-size: clamp(3rem, 9vw, 5rem);
-  margin: 0 0 12px;
+  font-size: clamp(2.8rem, 6vw, 4.4rem);
+  margin: 0 0 22px;
 }
 
 .subtitle {
-  font-size: 1.08rem;
+  font-size: 1.05rem;
   color: var(--cream-60);
-  max-width: 54ch;
-  margin: 0 0 30px;
+  max-width: 46ch;
+  margin: 26px 0 0;
+}
+
+/* short trust line under the pitch */
+.trust {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 18px 0 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--cream-60);
+}
+.trustDot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--good);
 }
 
 /* split-flap route board */
@@ -44,8 +95,10 @@
   align-items: center;
   gap: clamp(12px, 3vw, 26px);
   flex-wrap: wrap;
-  margin: 0 0 30px;
+  margin: 4px 0 0;
 }
+/* on-load sample route: present but clearly a placeholder */
+.boardGhost { opacity: 0.34; }
 .code { display: flex; gap: 5px; }
 .flap {
   position: relative;
@@ -85,13 +138,24 @@
 /* ---------- FORM ---------- */
 .form {
   background: linear-gradient(180deg, var(--card-2), var(--card));
-  border: 1px solid var(--cream-08);
+  border: 1px solid var(--cream-12);
   border-radius: var(--radius);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
-  padding: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
+  padding: clamp(22px, 3vw, 28px);
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+/* form card header: gives the card a defined top edge */
+.formTitle {
+  margin: 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--cream-08);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cream-60);
 }
 .row { display: flex; gap: 16px; flex-wrap: wrap; }
 .field {
@@ -275,7 +339,8 @@
 }
 
 /* ---------- RESULTS ---------- */
-.results { margin-top: 8px; }
+/* Capped and centred so line lengths stay readable under the wider hero shell. */
+.results { margin: 8px auto 0; max-width: 880px; }
 
 /* Zero-result state: an answer, not an empty page. */
 .empty {
