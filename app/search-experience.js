@@ -210,7 +210,7 @@ export default function SearchExperience() {
           </label>
         </div>
         <button className={styles.submit} type="submit" disabled={loading}>
-          {loading ? "Comparing…" : "Compare honestly →"}
+          {loading ? "Searching…" : "Search flights →"}
         </button>
       </form>
 
@@ -235,7 +235,12 @@ export default function SearchExperience() {
           {/* Layer 1: the short summary, amber left-rule. */}
           <section className={styles.verdict}>
             <div className={styles.verdictTag}>FareWise&apos;s honest read</div>
-            <p>{data.summary}</p>
+            {data.summary
+              .split("\n")
+              .filter(Boolean)
+              .map((line, i) => (
+                <p key={i} className={styles.summaryLine}>{line}</p>
+              ))}
           </section>
 
           <div className={styles.sectionLabel}>{data.flights.length} options found</div>

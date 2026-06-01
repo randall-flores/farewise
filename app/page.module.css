@@ -236,6 +236,8 @@
   color: var(--cream);
   text-wrap: pretty;
 }
+/* headline-style summary: one tight line per flight */
+.summaryLine + .summaryLine { margin-top: 8px; }
 
 .sectionLabel {
   display: flex;
