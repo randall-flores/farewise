@@ -232,6 +232,48 @@ function dayOffset(departIso, arriveIso) {
   return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
 }
 
+// Render one honest-read line with the airline (bold) and price (mono) pulled
+// out as an emphasized lead-in. We key off the REAL data (the flights' airline
+// names + a $ token), not a fixed prose template, so the wording can vary freely
+// and we still emphasize the two things people scan for. No amber (reserved for
+// actions). Falls back to plain text when nothing matches.
+function renderHonestLine(line, flights) {
+  const nodes = [];
+  let rest = line;
+
+  // Bold a leading airline name (try longest first so "Air France" beats "Air").
+  const names = (flights || [])
+    .map((f) => f.bookVia?.name)
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+  for (const n of names) {
+    if (rest.toLowerCase().startsWith(n.toLowerCase())) {
+      nodes.push(
+        <b key="airline" className={styles.leadAirline}>
+          {rest.slice(0, n.length)}
+        </b>
+      );
+      rest = rest.slice(n.length);
+      break;
+    }
+  }
+
+  // Mono the first price token (e.g. "$420" or "~$467").
+  const m = rest.match(/~?\$[\d,]+/);
+  if (m) {
+    nodes.push(rest.slice(0, m.index));
+    nodes.push(
+      <span key="price" className={styles.leadPrice}>
+        {m[0]}
+      </span>
+    );
+    nodes.push(rest.slice(m.index + m[0].length));
+  } else {
+    nodes.push(rest);
+  }
+  return nodes;
+}
+
 // The booking redirect is a POST (Google's clk endpoint + post_data), not a GET
 // URL. Build a real form, decode each post_data field (the browser re-encodes on
 // submit so it matches the original), and open the result in a new tab. A plain
@@ -700,7 +742,9 @@ export default function SearchExperience() {
                   .split("\n")
                   .filter(Boolean)
                   .map((line, i) => (
-                    <p key={i} className={styles.summaryLine}>{line}</p>
+                    <p key={i} className={styles.summaryLine}>
+                      {renderHonestLine(line, data.flights)}
+                    </p>
                   ))}
               </section>
 

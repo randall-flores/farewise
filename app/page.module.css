@@ -483,6 +483,9 @@
 }
 /* headline-style summary: one tight line per flight */
 .summaryLine + .summaryLine { margin-top: 8px; }
+/* Scannable lead-in: airline by weight, price by the mono face. No amber. */
+.leadAirline { font-weight: 700; color: var(--cream); }
+.leadPrice { font-family: var(--mono); font-weight: 500; color: var(--cream); }
 
 .sectionLabel {
   display: flex;
@@ -526,7 +529,7 @@
   margin: 0 0 5px;
   font-family: var(--body);
   font-size: clamp(19px, 2.6vw, 22px);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 .route {
