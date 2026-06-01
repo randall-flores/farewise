@@ -108,6 +108,8 @@
 @media (max-width: 600px) {
   .row { flex-direction: column; gap: 14px; }
   .field { min-width: 0; width: 100%; }
+  /* Full-width submit sits in the thumb zone for one-handed phone use. */
+  .submit { align-self: stretch; width: 100%; text-align: center; }
 }
 .field span {
   font-family: var(--mono);
@@ -156,6 +158,7 @@
   border: none;
   cursor: pointer;
   padding: 10px 12px;
+  min-height: 44px; /* comfortable touch target */
   border-radius: 7px;
   font-family: var(--mono);
   font-size: 13px;
@@ -197,6 +200,14 @@
   color: var(--cream-60);
 }
 .field input::placeholder { color: var(--cream-60); }
+
+/* Inline "pick from the list" error under an autocomplete field. */
+.fieldError {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  color: var(--risk);
+}
 
 /* Native date inputs on the dark theme: the format hint (mm/dd/yyyy) and the
    calendar icon are dark-on-dark by default, so an empty field looks blank.
@@ -265,6 +276,19 @@
 
 /* ---------- RESULTS ---------- */
 .results { margin-top: 8px; }
+
+/* Zero-result state: an answer, not an empty page. */
+.empty {
+  margin-top: clamp(22px, 4vw, 32px);
+  background: var(--card);
+  border: 1px solid var(--cream-08);
+  border-radius: var(--radius);
+  padding: clamp(22px, 4vw, 30px);
+  color: var(--cream-60);
+  font-size: 16px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
 
 .meta {
   font-family: var(--mono);

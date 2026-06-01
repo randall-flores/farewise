@@ -11,8 +11,11 @@ function AirportField({ label, name, initial, onSelect }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [active, setActive] = useState(-1); // highlighted suggestion for arrow-key nav
+  const [invalid, setInvalid] = useState(false); // typed something but never picked a real place
   const blurTimer = useRef(null);
   const skipSearch = useRef(false); // true right after a pick, so we don't re-search the label
+  const committed = useRef(Boolean(initial)); // a valid code is currently chosen for this field
+  const errorId = `${name}-error`;
 
   // Debounce: every time `text` changes we (re)start a 300ms timer. If the user
   // types again before it fires, the cleanup clears it — so we only call the API
@@ -60,18 +63,27 @@ function AirportField({ label, name, initial, onSelect }) {
     const value = e.target.value;
     setText(value);
     setActive(-1);
+    setInvalid(false); // clear the error while they're still typing
     // Let power users type a raw 3-letter code directly (e.g. "JFK").
     const code = value.trim().toUpperCase();
-    if (/^[A-Z]{3}$/.test(code)) onSelect(code);
+    if (/^[A-Z]{3}$/.test(code)) {
+      committed.current = true;
+      onSelect(code);
+    } else {
+      committed.current = false; // edited text no longer matches a chosen place
+      onSelect(""); // tell the parent this field has no valid code right now
+    }
   }
 
   function choose(place) {
     skipSearch.current = true; // the upcoming text change is the label, not a query
+    committed.current = true;
     onSelect(place.code); // the parent stores the IATA code for the Duffel search
     setText(place.label); // the box shows the friendly label, e.g. "New York (NYC)"
     setResults([]);
     setActive(-1);
     setOpen(false);
+    setInvalid(false);
     clearTimeout(blurTimer.current);
   }
 
@@ -115,8 +127,12 @@ function AirportField({ label, name, initial, onSelect }) {
             if (results.length) setOpen(true);
           }}
           onBlur={() => {
-            // Delay closing so a click on a suggestion still registers.
-            blurTimer.current = setTimeout(() => setOpen(false), 120);
+            // Delay so a click on a suggestion still registers before we close
+            // and judge validity. A pick cancels this timer.
+            blurTimer.current = setTimeout(() => {
+              setOpen(false);
+              setInvalid(text.trim() !== "" && !committed.current);
+            }, 120);
           }}
           onKeyDown={onKeyDown}
           placeholder="City or airport"
@@ -126,6 +142,8 @@ function AirportField({ label, name, initial, onSelect }) {
           aria-controls={`${name}-listbox`}
           aria-activedescendant={active >= 0 ? `${name}-opt-${active}` : undefined}
           aria-autocomplete="list"
+          aria-invalid={invalid}
+          aria-describedby={invalid ? errorId : undefined}
           required
         />
         {open && (results.length > 0 || loading) && (
@@ -152,6 +170,11 @@ function AirportField({ label, name, initial, onSelect }) {
           </ul>
         )}
       </div>
+      {invalid && (
+        <span className={styles.fieldError} id={errorId} role="alert">
+          Pick a city or airport from the list.
+        </span>
+      )}
     </label>
   );
 }
@@ -180,7 +203,7 @@ function FlapBoard({ origin, destination }) {
 
 // Verdict level → flag color class + glyph (color is never the only signal; the tag text carries meaning).
 const VERDICT_CLASS = { good: "flagGood", caution: "flagCaution", "high-risk": "flagRisk" };
-const VERDICT_ICON = { good: "✓", caution: "!", "high-risk": "!" };
+const VERDICT_ICON = { good: "✓", caution: "!", "high-risk": "▲" };
 
 const CABIN_LABEL = { economy: "Economy", premium: "Premium economy", business: "Business" };
 
@@ -233,7 +256,7 @@ function FlightCard({ flight, risks, verdict }) {
         {/* Always-visible verdict flag (color-coded). */}
         {verdict?.tag && (
           <div className={`${styles.flag} ${styles[VERDICT_CLASS[level]]}`}>
-            <span className={styles.ic}>{VERDICT_ICON[level]}</span>
+            <span className={styles.ic} aria-hidden="true">{VERDICT_ICON[level]}</span>
             <span>{verdict.tag}</span>
           </div>
         )}
@@ -308,6 +331,9 @@ export default function SearchExperience() {
   const [data, setData] = useState(null); // { flights, riskMap, summary, verdicts }
   const [error, setError] = useState(null);
 
+  // Today, as YYYY-MM-DD, for the date inputs' `min` and the submit-time guard.
+  const today = new Date().toISOString().slice(0, 10);
+
   function update(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
@@ -317,6 +343,14 @@ export default function SearchExperience() {
     // Both fields must hold a real code (chosen from the list, or a typed 3-letter code).
     if (!form.origin || !form.destination) {
       setError("Pick a city or airport from the suggestions for both From and To.");
+      return;
+    }
+    if (form.depart && form.depart < today) {
+      setError("Departure date is in the past. Pick today or a later date.");
+      return;
+    }
+    if (form.returnDate && form.returnDate < form.depart) {
+      setError("Return date is before departure. Set a return on or after your departure date.");
       return;
     }
     setLoading(true);
@@ -361,11 +395,17 @@ export default function SearchExperience() {
         <div className={styles.row}>
           <label className={styles.field}>
             <span>Depart</span>
-            <input type="date" name="depart" value={form.depart} onChange={update} required />
+            <input type="date" name="depart" value={form.depart} onChange={update} min={today} required />
           </label>
           <label className={styles.field}>
             <span>Return (optional)</span>
-            <input type="date" name="returnDate" value={form.returnDate} onChange={update} />
+            <input
+              type="date"
+              name="returnDate"
+              value={form.returnDate}
+              onChange={update}
+              min={form.depart || today}
+            />
           </label>
           <label className={styles.field}>
             <span>Cabin</span>
@@ -403,30 +443,38 @@ export default function SearchExperience() {
             <span className={styles.sep}>·</span> {data.flights.length} options
           </p>
 
-          {/* Layer 1: the short summary; amber verdict tag carries the accent. */}
-          <section className={styles.verdict}>
-            <div className={styles.verdictTag}>FareWise&apos;s honest read</div>
-            {data.summary
-              .split("\n")
-              .filter(Boolean)
-              .map((line, i) => (
-                <p key={i} className={styles.summaryLine}>{line}</p>
-              ))}
-          </section>
+          {data.flights.length === 0 ? (
+            <p className={styles.empty}>
+              No flights found for this route on these dates. Try different dates, or a nearby airport.
+            </p>
+          ) : (
+            <>
+              {/* Layer 1: the short summary; amber verdict tag carries the accent. */}
+              <section className={styles.verdict}>
+                <h2 className={styles.verdictTag}>FareWise&apos;s honest read</h2>
+                {data.summary
+                  .split("\n")
+                  .filter(Boolean)
+                  .map((line, i) => (
+                    <p key={i} className={styles.summaryLine}>{line}</p>
+                  ))}
+              </section>
 
-          <div className={styles.sectionLabel}>{data.flights.length} options found</div>
+              <div className={styles.sectionLabel}>{data.flights.length} options found</div>
 
-          {/* Layer 2 + 3: one card per flight. */}
-          <div className={styles.cards}>
-            {data.flights.map((f) => (
-              <FlightCard
-                key={f.id}
-                flight={f}
-                risks={data.riskMap[f.id] || []}
-                verdict={data.verdicts[f.id]}
-              />
-            ))}
-          </div>
+              {/* Layer 2 + 3: one card per flight. */}
+              <div className={styles.cards}>
+                {data.flights.map((f) => (
+                  <FlightCard
+                    key={f.id}
+                    flight={f}
+                    risks={data.riskMap[f.id] || []}
+                    verdict={data.verdicts[f.id]}
+                  />
+                ))}
+              </div>
+            </>
+          )}
 
           <p className={styles.foot}>
             Phase 1 — prices are hand-written demo data, not live fares. We don&apos;t take airline
