@@ -4,6 +4,19 @@ import { getFlights } from "@/lib/flight-source";
 import { detectRisks, reconcileVerdict } from "@/lib/flight-helpers";
 import { getComparison } from "@/lib/anthropic";
 
+// Defensive: a model slip can leak an internal id (fw_serp_rt_1) into prose Claude
+// writes. The prompt forbids it, but trust is the product — never let one reach the
+// UI. Strip the id plus any now-orphaned parens/whitespace/punctuation it leaves.
+function stripInternalIds(text) {
+  if (typeof text !== "string") return text;
+  return text
+    .replace(/\s*\(\s*fw_[a-z0-9_]+\s*\)/gi, "") // "(fw_serp_rt_1)"
+    .replace(/\s*\bfw_[a-z0-9_]+\b/gi, "")        // bare "fw_serp_rt_1"
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([,.;:])/g, "$1")
+    .trim();
+}
+
 export async function POST(request) {
   const search = await request.json();
 
@@ -65,8 +78,8 @@ export async function POST(request) {
     for (const item of result.flights || []) {
       verdicts[item.id] = {
         verdict: reconcileVerdict(item.verdict, riskMap[item.id] || []),
-        tag: item.tag,
-        explanation: item.explanation,
+        tag: stripInternalIds(item.tag),
+        explanation: stripInternalIds(item.explanation),
       };
     }
 
@@ -81,7 +94,7 @@ export async function POST(request) {
     return Response.json({
       flights,
       riskMap,
-      summary: result.summary,
+      summary: stripInternalIds(result.summary),
       verdicts,
       priceInsights,
       source,
