@@ -282,6 +282,21 @@ function dayOffset(departIso, arriveIso) {
   return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
 }
 
+// Whole nights between depart and return (both YYYY-MM-DD), or null when there's
+// no valid positive span: one-way (no return), same-day return, return before
+// departure, or a missing/invalid date. Returning null means the caller omits the
+// segment entirely — never "0 nights" or "NaN". UTC date math avoids any timezone
+// shift, same as dayOffset.
+function nightsBetween(depart, returnDate) {
+  const d = String(depart || "").split("T")[0];
+  const r = String(returnDate || "").split("T")[0];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !/^\d{4}-\d{2}-\d{2}$/.test(r)) return null;
+  const [y1, m1, d1] = d.split("-").map(Number);
+  const [y2, m2, d2] = r.split("-").map(Number);
+  const nights = Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
+  return nights > 0 ? nights : null;
+}
+
 // Render one honest-read line with the airline (bold) and price (mono) pulled
 // out as an emphasized lead-in. We key off the REAL data (the flights' airline
 // names + a $ token), not a fixed prose template, so the wording can vary freely
@@ -778,6 +793,16 @@ export default function SearchExperience() {
               <span className={styles.sep}>·</span> {form.origin} → {form.destination}
               <span className={styles.sep}>·</span> {CABIN_LABEL[form.cabin] || form.cabin}
               <span className={styles.sep}>·</span> {data.flights.length} options
+              {(() => {
+                // Round trip only: show trip length in nights (what travelers book
+                // around). null => one-way / same-day / bad date => no segment at all.
+                const nights = nightsBetween(form.depart, form.returnDate);
+                return nights ? (
+                  <>
+                    <span className={styles.sep}>·</span> {nights} {nights === 1 ? "night" : "nights"}
+                  </>
+                ) : null;
+              })()}
             </p>
             <button type="button" className={styles.newSearch} onClick={resetSearch}>
               New search
