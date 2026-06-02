@@ -598,7 +598,7 @@
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--cream-40);
+  color: var(--cream-60); /* was cream-40 — meaningful leg label, must clear AA */
 }
 .legDate { letter-spacing: 0.04em; color: var(--cream-60); }
 .legAirline { color: var(--cream-60); }
@@ -609,6 +609,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--cream-60);
+  white-space: nowrap;
 }
 .segHead {
   margin-top: 8px;
@@ -616,21 +617,24 @@
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--cream-40);
+  color: var(--cream-60); /* was cream-40 — meaningful section label, must clear AA */
 }
 .segHead:first-child { margin-top: 0; }
 
 .priceCol {
   text-align: right;
   align-self: start;
-  white-space: nowrap;
 }
+/* Only the price digits + unit stay on one line. The all-in line is free to
+   wrap so its copy ("fare only · fees not listed") never forces the column
+   wide and crushes the airline name on narrow screens. */
 .price {
   font-family: var(--mono);
   font-size: clamp(30px, 5vw, 40px);
   font-weight: 500;
   line-height: 0.95;
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 .price.dim { color: var(--cream-60); }
 .allin {

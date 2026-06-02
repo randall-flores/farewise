@@ -681,7 +681,7 @@ export default function SearchExperience() {
       if (json.error) setError(json.error);
       else setData(json);
     } catch {
-      setError("Network error. Is the dev server running?");
+      setError("Couldn't reach FareWise. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
