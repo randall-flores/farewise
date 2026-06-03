@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { formatMoney, totalExtraFees, allInPrice } from "@/lib/flight-helpers";
 import { searchAirports, loadAirports } from "@/lib/airport-search";
+import { PASSENGER_DEFAULTS, passengerSummary, adjust, canIncrement, canDecrement } from "@/lib/passengers";
 import styles from "./page.module.css";
 
 // A From/To field with debounced airport/city autocomplete.
@@ -634,6 +635,100 @@ function FlightCard({ flight, risks, verdict, search }) {
   );
 }
 
+// Travelers selector: a button showing the party summary that opens a popover of
+// four counter rows. Controlled — counts live in the parent form state; this owns
+// only the open/closed state. All count rules live in lib/passengers (adjust /
+// canIncrement / canDecrement), so the buttons just call them.
+const TRAVELER_ROWS = [
+  { type: "adults", label: "Adults" },
+  { type: "children", label: "Children", hint: "2–11" },
+  { type: "infantsInSeat", label: "Infants in seat" },
+  { type: "infantsOnLap", label: "Infants on lap" },
+];
+
+function TravelersControl({ counts, onChange }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  // Close on click/tap outside the popover, and on Escape.
+  useEffect(() => {
+    if (!open) return;
+    function onDocPointer(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    }
+    function onKey(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const summary = passengerSummary(counts);
+
+  return (
+    <div className={styles.travelersWrap} ref={wrapRef}>
+      <button
+        type="button"
+        className={styles.travelers}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label={`Travelers: ${summary}`}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <svg className={styles.travelersIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span className={styles.travelersCount}>{summary}</span>
+        <svg className={styles.travelersChev} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className={styles.travelersPanel} role="dialog" aria-label="Travelers">
+          {TRAVELER_ROWS.map((r) => (
+            <div key={r.type} className={styles.counterRow}>
+              <div className={styles.counterLabel}>
+                {r.label}
+                {r.hint && <span className={styles.counterHint}>{r.hint}</span>}
+              </div>
+              <div className={styles.counter}>
+                <button
+                  type="button"
+                  className={styles.counterBtn}
+                  onClick={() => onChange(adjust(counts, r.type, -1))}
+                  disabled={!canDecrement(counts, r.type)}
+                  aria-label={`Remove one ${r.label.toLowerCase()}`}
+                >
+                  −
+                </button>
+                <span className={styles.counterValue}>{counts[r.type]}</span>
+                <button
+                  type="button"
+                  className={styles.counterBtn}
+                  onClick={() => onChange(adjust(counts, r.type, 1))}
+                  disabled={!canIncrement(counts, r.type)}
+                  aria-label={`Add one ${r.label.toLowerCase()}`}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          ))}
+          <button type="button" className={styles.travelersDone} onClick={() => setOpen(false)}>
+            Done
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SearchExperience() {
   const [form, setForm] = useState({
     origin: "",
@@ -642,6 +737,7 @@ export default function SearchExperience() {
     depart: "",
     returnDate: "",
     cabin: "economy",
+    ...PASSENGER_DEFAULTS,
   });
 
   const [loading, setLoading] = useState(false);
@@ -666,7 +762,7 @@ export default function SearchExperience() {
   }
 
   function resetSearch() {
-    setForm({ origin: "", destination: "", tripType: "round-trip", depart: "", returnDate: "", cabin: "economy" });
+    setForm({ origin: "", destination: "", tripType: "round-trip", depart: "", returnDate: "", cabin: "economy", ...PASSENGER_DEFAULTS });
     setData(null);
     setError(null);
     setResetKey((k) => k + 1);
@@ -759,17 +855,16 @@ export default function SearchExperience() {
                 </button>
               </div>
 
-              {/* Travelers — PLACEHOLDER ONLY. No state, no panel, no wiring yet. Reserves the slot. */}
-              <button type="button" className={styles.travelers} aria-label="Travelers — coming soon">
-                <svg className={styles.travelersIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                <span className={styles.travelersCount}>1</span>
-                <svg className={styles.travelersChev} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
+              {/* Travelers — opens the passenger counter popover. */}
+              <TravelersControl
+                counts={{
+                  adults: form.adults,
+                  children: form.children,
+                  infantsInSeat: form.infantsInSeat,
+                  infantsOnLap: form.infantsOnLap,
+                }}
+                onChange={(c) => setForm((f) => ({ ...f, ...c }))}
+              />
 
               {/* Cabin — existing select, restyled to match the strip. */}
               <select className={styles.cabinSelect} name="cabin" value={form.cabin} onChange={update} aria-label="Cabin">

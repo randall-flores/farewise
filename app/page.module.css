@@ -389,6 +389,94 @@
 .travelersIcon,
 .travelersChev { flex: none; color: var(--cream-60); }
 .travelersCount { font-weight: 500; }
+.travelers { white-space: nowrap; }
+
+/* Travelers popover — floating layer (gets the dropdown shadow like the airport
+   suggestions; the flat-card rule is about the form surface, not popovers). */
+.travelersWrap { position: relative; }
+.travelersPanel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  width: 290px;
+  max-width: calc(100vw - 40px);
+  padding: 8px;
+  background: var(--card-2);
+  border: 1px solid var(--cream-12);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.counterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px;
+}
+.counterLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  color: var(--cream);
+}
+.counterHint {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cream-60);
+}
+.counter { display: inline-flex; align-items: center; gap: 6px; }
+.counterBtn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: var(--page-2);
+  border: 1px solid var(--cream-12);
+  border-radius: 9px;
+  color: var(--amber);
+  font-family: var(--mono);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.counterBtn:hover:not(:disabled) { border-color: rgba(239, 159, 39, 0.4); }
+.counterBtn:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.counterBtn:disabled { opacity: 0.35; color: var(--cream-60); cursor: default; }
+.counterValue {
+  min-width: 26px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--cream);
+}
+.travelersDone {
+  margin-top: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px;
+  background: var(--amber);
+  color: var(--page);
+  border: none;
+  border-radius: 9px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.travelersDone:hover { background: var(--amber-soft); }
+.travelersDone:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
 /* Cabin — native select restyled to the dark theme with a custom chevron
    (appearance:none + inline SVG), matching the date-input treatment. */
