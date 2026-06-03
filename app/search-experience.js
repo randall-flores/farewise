@@ -190,7 +190,7 @@ function FlapBoard({ origin, destination }) {
 const VERDICT_CLASS = { good: "flagGood", caution: "flagCaution", "high-risk": "flagRisk" };
 const VERDICT_ICON = { good: "✓", caution: "!", "high-risk": "▲" };
 
-const CABIN_LABEL = { economy: "Economy", premium: "Premium economy", business: "Business" };
+const CABIN_LABEL = { economy: "Economy", premium: "Premium economy", business: "Business", first: "First class" };
 
 // Build the board-style route line ("MIA — LIS — BER") from the segments.
 function routeCodes(segments = []) {
@@ -638,6 +638,7 @@ export default function SearchExperience() {
   const [form, setForm] = useState({
     origin: "",
     destination: "",
+    tripType: "round-trip",
     depart: "",
     returnDate: "",
     cabin: "economy",
@@ -657,8 +658,16 @@ export default function SearchExperience() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
+  // Trip type drives which date fields show. Switching to One way clears any
+  // return date already entered, so a stale return can never reach the search
+  // (the field is also hidden, but we clear state too — belt and suspenders).
+  function onTripTypeChange(e) {
+    const tripType = e.target.value;
+    setForm((f) => ({ ...f, tripType, returnDate: tripType === "one-way" ? "" : f.returnDate }));
+  }
+
   function resetSearch() {
-    setForm({ origin: "", destination: "", depart: "", returnDate: "", cabin: "economy" });
+    setForm({ origin: "", destination: "", tripType: "round-trip", depart: "", returnDate: "", cabin: "economy" });
     setData(null);
     setError(null);
     setResetKey((k) => k + 1);
@@ -681,6 +690,10 @@ export default function SearchExperience() {
     }
     if (form.returnDate && form.returnDate < form.depart) {
       setError("Return date is before departure. Set a return on or after your departure date.");
+      return;
+    }
+    if (form.tripType === "round-trip" && !form.returnDate) {
+      setError("Add a return date, or switch to One way.");
       return;
     }
     setLoading(true);
@@ -742,25 +755,35 @@ export default function SearchExperience() {
             </div>
             <div className={styles.row}>
               <label className={styles.field}>
+                <span>Trip</span>
+                <select name="tripType" value={form.tripType} onChange={onTripTypeChange}>
+                  <option value="round-trip">Round trip</option>
+                  <option value="one-way">One way</option>
+                </select>
+              </label>
+              <label className={styles.field}>
                 <span>Depart</span>
                 <input type="date" name="depart" value={form.depart} onChange={update} min={today} required />
               </label>
-              <label className={styles.field}>
-                <span>Return (optional)</span>
-                <input
-                  type="date"
-                  name="returnDate"
-                  value={form.returnDate}
-                  onChange={update}
-                  min={form.depart || today}
-                />
-              </label>
+              {form.tripType === "round-trip" && (
+                <label className={styles.field}>
+                  <span>Return</span>
+                  <input
+                    type="date"
+                    name="returnDate"
+                    value={form.returnDate}
+                    onChange={update}
+                    min={form.depart || today}
+                  />
+                </label>
+              )}
               <label className={styles.field}>
                 <span>Cabin</span>
                 <select name="cabin" value={form.cabin} onChange={update}>
                   <option value="economy">Economy</option>
                   <option value="premium">Premium economy</option>
                   <option value="business">Business</option>
+                  <option value="first">First class</option>
                 </select>
               </label>
             </div>
