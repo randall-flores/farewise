@@ -141,15 +141,16 @@
 }
 
 /* ---------- FORM ---------- */
+/* Flat card — no gradient, no shadow (focus rings are the only lift). Calmer
+   and more minimal: solid surface, quiet hairline, generous row spacing. */
 .form {
-  background: linear-gradient(180deg, var(--card-2), var(--card));
+  background: var(--card);
   border: 1px solid var(--cream-12);
   border-radius: var(--radius);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
   padding: clamp(22px, 3vw, 28px);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 /* form card header: gives the card a defined top edge */
 .formTitle {
@@ -299,9 +300,10 @@
   border-color: transparent;
 }
 .submit {
-  align-self: flex-start;
+  width: 100%;
   margin-top: 4px;
   padding: 13px 24px;
+  text-align: center;
   border: none;
   border-radius: 10px;
   background: var(--amber);
@@ -316,6 +318,89 @@
 }
 .submit:hover { background: var(--amber-soft); }
 .submit:disabled { opacity: 0.55; cursor: default; }
+
+/* ---------- CONTEXT STRIP (trip type · travelers · cabin) ---------- */
+/* Three self-evident controls, left-aligned, no field labels. Flat inset fills,
+   hairline borders, equal 44px height. Wraps on narrow screens. */
+.contextStrip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Segmented trip-type toggle: two pills in a hairline container. Active pill is
+   filled amber with dark text; inactive is transparent, muted cream. */
+.segmented {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  background: var(--page-2);
+  border: 1px solid var(--cream-12);
+  border-radius: 10px;
+}
+.segment {
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  min-height: 38px;
+  padding: 9px 16px;
+  border-radius: 7px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cream-60);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.segment:hover { color: var(--cream); }
+.segmentActive,
+.segmentActive:hover { background: var(--amber); color: var(--page); }
+.segment:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+/* Travelers button + cabin select share the inset fill, hairline, height. */
+.travelers,
+.cabinSelect {
+  min-height: 44px;
+  background: var(--page-2);
+  border: 1px solid var(--cream-12);
+  border-radius: 10px;
+  color: var(--cream);
+  font-family: var(--mono);
+  font-size: 13px;
+  cursor: pointer;
+}
+.travelers:focus-visible,
+.cabinSelect:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+/* Travelers — placeholder; non-functional until the counter is built. */
+.travelers {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+}
+.travelersIcon,
+.travelersChev { flex: none; color: var(--cream-60); }
+.travelersCount { font-weight: 500; }
+
+/* Cabin — native select restyled to the dark theme with a custom chevron
+   (appearance:none + inline SVG), matching the date-input treatment. */
+.cabinSelect {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 10px 36px 10px 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23f6f1e7' stroke-opacity='0.6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px;
+}
 
 /* ---------- LOADING / ERROR ---------- */
 .loading {

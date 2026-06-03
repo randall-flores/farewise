@@ -661,8 +661,7 @@ export default function SearchExperience() {
   // Trip type drives which date fields show. Switching to One way clears any
   // return date already entered, so a stale return can never reach the search
   // (the field is also hidden, but we clear state too — belt and suspenders).
-  function onTripTypeChange(e) {
-    const tripType = e.target.value;
+  function setTripType(tripType) {
     setForm((f) => ({ ...f, tripType, returnDate: tripType === "one-way" ? "" : f.returnDate }));
   }
 
@@ -737,6 +736,51 @@ export default function SearchExperience() {
         <div className={styles.heroForm}>
           <form className={styles.form} onSubmit={onSubmit}>
             <p className={styles.formTitle}>Find your flight</p>
+
+            {/* Context strip: trip type · travelers · cabin. Self-evident — no labels. */}
+            <div className={styles.contextStrip}>
+              {/* Trip type — segmented toggle. Same behavior: One way hides + clears Return. */}
+              <div className={styles.segmented} role="group" aria-label="Trip type">
+                <button
+                  type="button"
+                  className={`${styles.segment} ${form.tripType === "round-trip" ? styles.segmentActive : ""}`}
+                  aria-pressed={form.tripType === "round-trip"}
+                  onClick={() => setTripType("round-trip")}
+                >
+                  Round trip
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.segment} ${form.tripType === "one-way" ? styles.segmentActive : ""}`}
+                  aria-pressed={form.tripType === "one-way"}
+                  onClick={() => setTripType("one-way")}
+                >
+                  One way
+                </button>
+              </div>
+
+              {/* Travelers — PLACEHOLDER ONLY. No state, no panel, no wiring yet. Reserves the slot. */}
+              <button type="button" className={styles.travelers} aria-label="Travelers — coming soon">
+                <svg className={styles.travelersIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span className={styles.travelersCount}>1</span>
+                <svg className={styles.travelersChev} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+
+              {/* Cabin — existing select, restyled to match the strip. */}
+              <select className={styles.cabinSelect} name="cabin" value={form.cabin} onChange={update} aria-label="Cabin">
+                <option value="economy">Economy</option>
+                <option value="premium">Premium economy</option>
+                <option value="business">Business</option>
+                <option value="first">First class</option>
+              </select>
+            </div>
+
+            {/* From / To — two equal columns, mono FROM/TO labels (from AirportField). */}
             <div className={styles.row}>
               <AirportField
                 key={`origin-${resetKey}`}
@@ -753,14 +797,9 @@ export default function SearchExperience() {
                 onSelect={(code) => setForm((f) => ({ ...f, destination: code }))}
               />
             </div>
+
+            {/* Depart / Return — two equal columns. Return only on round trip. */}
             <div className={styles.row}>
-              <label className={styles.field}>
-                <span>Trip</span>
-                <select name="tripType" value={form.tripType} onChange={onTripTypeChange}>
-                  <option value="round-trip">Round trip</option>
-                  <option value="one-way">One way</option>
-                </select>
-              </label>
               <label className={styles.field}>
                 <span>Depart</span>
                 <input type="date" name="depart" value={form.depart} onChange={update} min={today} required />
@@ -777,15 +816,6 @@ export default function SearchExperience() {
                   />
                 </label>
               )}
-              <label className={styles.field}>
-                <span>Cabin</span>
-                <select name="cabin" value={form.cabin} onChange={update}>
-                  <option value="economy">Economy</option>
-                  <option value="premium">Premium economy</option>
-                  <option value="business">Business</option>
-                  <option value="first">First class</option>
-                </select>
-              </label>
             </div>
             <button className={styles.submit} type="submit" disabled={loading}>
               {loading ? "Searching…" : "Search flights →"}
