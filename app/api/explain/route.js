@@ -90,6 +90,13 @@ export async function POST(request) {
       destination: search.destination,
       depart: search.depart,
       returnDate: search.returnDate || "", // present -> booking uses the round-trip path
+      // Carry the party + cabin so "How to book" prices booking options for the
+      // same travelers/cabin as the results — not SerpApi's 1-adult, economy default.
+      cabin: search.cabin,
+      adults: search.adults,
+      children: search.children,
+      infantsInSeat: search.infantsInSeat,
+      infantsOnLap: search.infantsOnLap,
     };
     return Response.json({
       flights,

@@ -20,13 +20,17 @@ export async function POST(request) {
     return Response.json({ error: "Bad request." }, { status: 400 });
   }
 
-  const { token, departure_id, arrival_id, outbound_date, return_date } = body || {};
+  const { token, departure_id, arrival_id, outbound_date, return_date,
+    cabin, adults, children, infants_in_seat, infants_on_lap } = body || {};
   if (!token || !departure_id || !arrival_id || !outbound_date) {
     return Response.json({ error: "Missing booking token or search context." }, { status: 400 });
   }
 
-  // Cache hit (still fresh) -> no API call.
-  const hit = cache.get(token);
+  // Cache key includes the party + cabin: booking-option prices are per-party,
+  // per-cabin totals, so a cached economy/1-adult result must never be served to
+  // a different party or cabin.
+  const cacheKey = [token, cabin, adults, children, infants_in_seat, infants_on_lap].join("|");
+  const hit = cache.get(cacheKey);
   if (hit && Date.now() - hit.at < TTL_MS) {
     return Response.json({ options: hit.options, cached: true });
   }
@@ -39,6 +43,11 @@ export async function POST(request) {
       arrivalId: arrival_id,
       outboundDate: outbound_date,
       returnDate: return_date || "", // round trip -> seller link covers both legs
+      cabin,
+      adults,
+      children,
+      infantsInSeat: infants_in_seat,
+      infantsOnLap: infants_on_lap,
     });
   } catch (err) {
     console.error("book-options route error:", err);
@@ -52,6 +61,6 @@ export async function POST(request) {
   }
 
   const options = normalizeBookingOptions(json);
-  cache.set(token, { at: Date.now(), options });
+  cache.set(cacheKey, { at: Date.now(), options });
   return Response.json({ options, cached: false });
 }

@@ -391,6 +391,11 @@ function BookOptions({ token, search }) {
           arrival_id: search?.destination,
           outbound_date: search?.depart,
           return_date: search?.returnDate || "", // round trip -> link covers both legs
+          cabin: search?.cabin,
+          adults: search?.adults,
+          children: search?.children,
+          infants_in_seat: search?.infantsInSeat,
+          infants_on_lap: search?.infantsOnLap,
         }),
       });
       const json = await res.json();
