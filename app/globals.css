@@ -15,7 +15,7 @@
   --amber: #ff7a1a;     /* SIGNAL ORANGE — the single accent: actions, prices, flap arrow, active */
   --amber-soft: #ffb070;/* accent hover */
   --cream: #eaeef6;     /* primary text */
-  --cream-60: #6f7c93;  /* muted / secondary text */
+  --cream-60: #76849c;  /* muted / secondary text — passes WCAG AA (>=4.5:1) on both page and card surfaces */
   --cream-40: rgba(234, 238, 246, 0.34); /* decorative only (separators) — too faint for text */
   --cream-12: rgba(234, 238, 246, 0.10); /* hairlines */
   --cream-08: rgba(234, 238, 246, 0.06); /* faintest borders */
