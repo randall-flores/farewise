@@ -1,5 +1,7 @@
 # FareWise
 
+**Live demo:** https://farewise-mu.vercel.app
+
 Honest flight search that explains the catch in plain language, then sends you to book direct.
 
 ## Overview
