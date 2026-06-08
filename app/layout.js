@@ -1,18 +1,22 @@
-import { Instrument_Serif, Figtree, IBM_Plex_Mono } from "next/font/google";
+import { Fraunces, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 // The departure-board type trio. Each becomes a CSS variable used in globals.css.
-const display = Instrument_Serif({
+// Fraunces (display): the FareWise wordmark and airline names — a high-contrast
+// serif that reads like the destination text on a real board.
+const display = Fraunces({
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
   variable: "--font-display",
   display: "swap",
 });
-const body = Figtree({ subsets: ["latin"], variable: "--font-body", display: "swap" });
-const mono = IBM_Plex_Mono({
+// Hanken Grotesk (body): plain, legible running text.
+const body = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-body", display: "swap" });
+// JetBrains Mono (mono): all metadata, labels, times, and prices — the gate-listing face.
+const mono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-mono",
   display: "swap",
 });

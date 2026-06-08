@@ -1,23 +1,28 @@
 /* ---- FareWise design tokens ----
-   "Airport departure board at night": warm charcoal, amber accent, cream text.
-   One place for color + type so the whole app stays consistent. */
+   "Departure Board at night": deep navy night-tarmac, signal-orange accent,
+   near-white text. One place for color + type so the whole app stays consistent.
+
+   NOTE on names: the token names are historical (--amber, --cream, --page) but
+   now carry the Departure Board palette. --amber is the single SIGNAL ORANGE
+   accent, --cream is the near-white text, --page is the night-navy background.
+   Names kept stable so the whole app re-themes from this one block. */
 :root {
-  --page: #1a1613;      /* charcoal page */
-  --page-2: #16120f;    /* deeper inset (callouts, inputs) */
-  --card: #23201b;      /* card surface */
-  --card-2: #2a261f;    /* lighter card top (gradient) */
+  --page: #070b14;      /* night tarmac — page background */
+  --page-2: #0b1322;    /* recessed inset (inputs, callouts) — cut into the surface */
+  --card: #0f1626;      /* raised surface — cards, form */
+  --card-2: #16203a;    /* lighter surface top (gradients, flap highlight) */
 
-  --amber: #ef9f27;     /* board accent — primary actions, caution */
-  --amber-soft: #f3b455;/* amber hover */
-  --cream: #f6f1e7;     /* primary text */
-  --cream-60: rgba(246, 241, 231, 0.62); /* secondary text */
-  --cream-40: rgba(246, 241, 231, 0.42); /* decorative only (separators) — too faint for text, fails AA */
-  --cream-12: rgba(246, 241, 231, 0.12); /* hairlines */
-  --cream-08: rgba(246, 241, 231, 0.08); /* faintest borders */
+  --amber: #ff7a1a;     /* SIGNAL ORANGE — the single accent: actions, prices, flap arrow, active */
+  --amber-soft: #ffb070;/* accent hover */
+  --cream: #eaeef6;     /* primary text */
+  --cream-60: #6f7c93;  /* muted / secondary text */
+  --cream-40: rgba(234, 238, 246, 0.34); /* decorative only (separators) — too faint for text */
+  --cream-12: rgba(234, 238, 246, 0.10); /* hairlines */
+  --cream-08: rgba(234, 238, 246, 0.06); /* faintest borders */
 
-  --good: #79c79a;      /* green — reassurance / good verdict */
-  --warn: #ef9f27;      /* amber — caution */
-  --risk: #e8694a;      /* red — high risk */
+  --good: #3dd68c;      /* success green — reassurance / good verdict */
+  --warn: #e8b84b;      /* caution amber-yellow (distinct from the orange accent) */
+  --risk: #ff6b6b;      /* red — high risk */
 
   --serif: var(--font-display), Georgia, serif;
   --body: var(--font-body), system-ui, sans-serif;
@@ -44,7 +49,7 @@ body {
   min-height: 100vh;
 }
 
-/* atmosphere: warm amber glow from the top */
+/* atmosphere: signal-orange board-light bleeding down from the top */
 body::before {
   content: "";
   position: fixed;
@@ -52,8 +57,8 @@ body::before {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(120% 70% at 50% -10%, rgba(239, 159, 39, 0.1), transparent 60%),
-    radial-gradient(90% 50% at 85% 0%, rgba(239, 159, 39, 0.05), transparent 55%);
+    radial-gradient(120% 70% at 50% -10%, rgba(255, 122, 26, 0.1), transparent 60%),
+    radial-gradient(90% 50% at 85% 0%, rgba(255, 122, 26, 0.05), transparent 55%);
 }
 /* atmosphere: barely-there board scanlines */
 body::after {

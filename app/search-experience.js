@@ -5,6 +5,97 @@ import { searchAirports, loadAirports } from "@/lib/airport-search";
 import { PASSENGER_DEFAULTS, passengerSummary, adjust, canIncrement, canDecrement } from "@/lib/passengers";
 import styles from "./page.module.css";
 
+// True when the user asked the OS to reduce motion. Every animated piece below
+// reads this and falls back to an instant, final state. (globals.css also kills
+// CSS animation globally under the same query — this is the JS-side guard.)
+function usePrefersReducedMotion() {
+  const [reduce, setReduce] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReduce(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return reduce;
+}
+
+// Count a whole number up to `target` on mount (ease-out, ~0.85s). Reduced motion
+// jumps straight to the final value. Used for the big card price.
+function useCountUp(target, duration = 850) {
+  const reduce = usePrefersReducedMotion();
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (reduce) return; // reduced motion: the hook returns `target` directly below
+    let raf;
+    let start = null;
+    const tick = (t) => {
+      if (start === null) start = t;
+      const p = Math.min((t - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 4); // ease-out-quart
+      setVal(Math.round(target * eased)); // set inside the rAF callback, not the effect body
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, reduce, duration]);
+  return reduce ? target : val;
+}
+
+// Belt-and-suspenders: the generation prompt forbids em dashes, but if one ever
+// slips through we never render it. Turn an em dash (or "--") into a comma break
+// so the plain-spoken voice holds in the UI too.
+function noEmDash(text) {
+  if (typeof text !== "string") return text;
+  return text
+    .replace(/\s*[—–]\s*/g, ", ")
+    .replace(/\s*--\s*/g, ", ")
+    .replace(/\s+([,.;:])/g, "$1")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+// Split-flap reveal: render the final string in board tiles and, on mount, flip
+// each character into place with a stagger (the hero board's mechanic, reused on
+// results). The final text is always in the DOM and carried on aria-label, so
+// reduced-motion and headless renders read the real value; only the entrance moves.
+function FlapText({ text, className }) {
+  const reduce = usePrefersReducedMotion();
+  const str = String(text ?? "");
+  return (
+    <span className={`${styles.flapText} ${className || ""}`} aria-label={str}>
+      {str.split("").map((ch, i) => (
+        <span
+          key={i}
+          className={styles.flapChar}
+          aria-hidden="true"
+          data-flap={reduce ? "off" : "in"}
+          style={reduce ? undefined : { animationDelay: `${i * 45}ms` }}
+        >
+          {ch === " " ? " " : ch}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+// Big card price: the currency symbol in accent orange, the number counting up.
+// aria-label carries the formatted price so screen readers announce it once, whole.
+function CountUpPrice({ amount, currency = "USD" }) {
+  const n = useCountUp(amount);
+  const symbol =
+    new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 })
+      .formatToParts(0)
+      .find((p) => p.type === "currency")?.value || "$";
+  const digits = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n);
+  return (
+    <span className={styles.priceValue} aria-label={formatMoney(amount, currency)}>
+      <span className={styles.priceCurrency} aria-hidden="true">{symbol}</span>
+      <span aria-hidden="true">{digits}</span>
+    </span>
+  );
+}
+
 // A From/To field with debounced airport/city autocomplete.
 // Shows what the user types; commits the chosen IATA code to the parent form.
 function AirportField({ label, name, initial, onSelect }) {
@@ -227,7 +318,7 @@ function LegLine({ segments, stops, totalDuration, label }) {
       </p>
       {dep && arr && (
         <p className={styles.times}>
-          {dep} <span className={styles.timesArrow}>→</span> {arr}
+          <FlapText text={dep} /> <span className={styles.timesArrow}>→</span> <FlapText text={arr} />
           {off > 0 && (
             <span
               className={styles.dayOffset}
@@ -496,11 +587,13 @@ function BookOptions({ token, search }) {
   );
 }
 
-// One flight result card.
-// At a glance: airline, route, verdict flag, price, all-in price, and ALWAYS-visible warnings.
-// Behind "Explain": the full reasoning (incl. cabin-upgrade note) and the segment breakdown.
-function FlightCard({ flight, risks, verdict, search }) {
+// One flight result, rendered as a boarding-pass ticket.
+// Body (left): airline, the flight(s), the trade-off note, and ALWAYS-visible warnings.
+// Stub (right, perforated): the price counting up. Foot: "Explain" -> full
+// reasoning + segment breakdown + booking.
+function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 0 }) {
   const [open, setOpen] = useState(false);
+  const reduce = usePrefersReducedMotion();
   const fees = totalExtraFees(flight);
   const allIn = allInPrice(flight);
   const feesKnown = flight.feesKnown !== false; // false only when the data source didn't itemize fees
@@ -508,10 +601,22 @@ function FlightCard({ flight, risks, verdict, search }) {
   const roundTrip = flight.tripType === "round-trip";
 
   return (
-    <article className={`${styles.card} ${open ? styles.open : ""} ${level === "high-risk" ? styles.muted : ""}`}>
-      <div className={styles.head}>
-        <div className={styles.headMain}>
-          <h2 className={styles.airline}>{flight.bookVia.name}</h2>
+    <article
+      className={`${styles.card} ${styles.ticket} ${open ? styles.open : ""} ${level === "high-risk" ? styles.muted : ""}`}
+      style={reduce ? undefined : { animationDelay: `${index * 70}ms` }}
+    >
+      <div className={styles.ticketMain}>
+        {/* ---- Ticket body ---- */}
+        <div className={styles.ticketBody}>
+          <div className={styles.bodyHead}>
+            <h2 className={styles.airline}>{flight.bookVia.name}</h2>
+            {cheapest && (
+              <span className={styles.cheapTag}>
+                <span className={styles.cheapIc} aria-hidden="true">✓</span> Cheapest
+              </span>
+            )}
+          </div>
+
           <div className={styles.legs}>
             {roundTrip ? (
               <>
@@ -536,13 +641,34 @@ function FlightCard({ flight, risks, verdict, search }) {
               />
             )}
           </div>
+
+          {/* Trade-off note: the one-line verdict, color + icon paired (never color alone). */}
+          {verdict?.tag && (
+            <p className={`${styles.tradeoff} ${styles[VERDICT_CLASS[level]]}`}>
+              <span className={styles.ic} aria-hidden="true">{VERDICT_ICON[level]}</span>
+              <span>{noEmDash(verdict.tag)}</span>
+            </p>
+          )}
+
+          {/* Warnings ALWAYS show — even collapsed. Deterministic, from code, not the AI. */}
+          {risks.length > 0 && (
+            <div className={styles.warnings}>
+              {risks.map((r, i) => (
+                <p key={i} className={`${styles.warn} ${styles[`warn_${r.severity}`]}`}>
+                  <span className={styles.warnLbl}>{r.severity === "info" ? "Note" : "Warning"}</span>
+                  {r.message}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className={styles.priceCol}>
+        {/* ---- Perforated price stub ---- */}
+        <div className={styles.ticketStub}>
           <div className={`${styles.price} ${level === "high-risk" ? styles.dim : ""}`}>
-            {formatMoney(flight.price, flight.currency)}
+            <CountUpPrice amount={flight.price} currency={flight.currency} />
           </div>
-          {roundTrip && <div className={styles.priceUnit}>round trip</div>}
+          <div className={styles.priceUnit}>{roundTrip ? "round trip" : "one way"}</div>
           <div className={styles.allin}>
             {!feesKnown ? (
               "fare only · fees not listed"
@@ -551,31 +677,14 @@ function FlightCard({ flight, risks, verdict, search }) {
                 <b>~{formatMoney(allIn, flight.currency)}</b> total
               </>
             ) : (
-              "no extra fees"
+              "fare only · no extra fees"
             )}
           </div>
         </div>
+      </div>
 
-        {/* Always-visible verdict flag (color-coded). */}
-        {verdict?.tag && (
-          <div className={`${styles.flag} ${styles[VERDICT_CLASS[level]]}`}>
-            <span className={styles.ic} aria-hidden="true">{VERDICT_ICON[level]}</span>
-            <span>{verdict.tag}</span>
-          </div>
-        )}
-
-        {/* Warnings ALWAYS show — even collapsed. Deterministic, from code, not the AI. */}
-        {risks.length > 0 && (
-          <div className={styles.warnings}>
-            {risks.map((r, i) => (
-              <p key={i} className={`${styles.warn} ${styles[`warn_${r.severity}`]}`}>
-                <span className={styles.warnLbl}>{r.severity === "info" ? "Note" : "Warning"}</span>
-                {r.message}
-              </p>
-            ))}
-          </div>
-        )}
-
+      {/* ---- Foot: Explain toggle + on-demand detail (spans the full ticket width) ---- */}
+      <div className={styles.ticketFoot}>
         <button
           type="button"
           className={styles.toggle}
@@ -609,7 +718,7 @@ function FlightCard({ flight, risks, verdict, search }) {
                 )}
               </ul>
               {verdict?.explanation ? (
-                verdict.explanation
+                noEmDash(verdict.explanation)
                   .split("\n")
                   .filter(Boolean)
                   .map((p, i) => <p key={i}>{p}</p>)
@@ -977,33 +1086,53 @@ export default function SearchExperience() {
                 </p>
               )}
 
-              {/* Layer 1: the short summary; amber verdict tag carries the accent. */}
-              <section className={styles.verdict}>
-                <h2 className={styles.verdictTag}>FareWise&apos;s honest read</h2>
-                {data.summary
-                  .split("\n")
-                  .filter(Boolean)
-                  .map((line, i) => (
-                    <p key={i} className={styles.summaryLine}>
-                      {renderHonestLine(line, data.flights)}
-                    </p>
-                  ))}
+              {/* Layer 1: the honest read — one airline/insight per line, as a
+                  bulleted list with small accent dots (never a wall of prose). */}
+              <section className={styles.verdict} aria-labelledby="honest-read-title">
+                <h2 id="honest-read-title" className={styles.verdictTag}>
+                  FareWise&apos;s honest read
+                </h2>
+                <ul className={styles.readList}>
+                  {data.summary
+                    .split("\n")
+                    .filter(Boolean)
+                    .map((line, i) => (
+                      <li key={i} className={styles.readItem}>
+                        <span className={styles.readDot} aria-hidden="true" />
+                        <span className={styles.readText}>
+                          {renderHonestLine(noEmDash(line), data.flights)}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
               </section>
 
               <div className={styles.sectionLabel}>{data.flights.length} options found</div>
 
-              {/* Layer 2 + 3: one card per flight. */}
-              <div className={styles.cards}>
-                {data.flights.map((f) => (
-                  <FlightCard
-                    key={f.id}
-                    flight={f}
-                    risks={data.riskMap[f.id] || []}
-                    verdict={data.verdicts[f.id]}
-                    search={data.search}
-                  />
-                ))}
-              </div>
+              {/* Layer 2 + 3: one boarding-pass ticket per flight. The single
+                  cheapest fare gets the green "Cheapest" tag; cards reveal with
+                  a slight stagger (index drives the delay). */}
+              {(() => {
+                const cheapestId = data.flights.reduce(
+                  (min, f) => (f.price < min.price ? f : min),
+                  data.flights[0]
+                )?.id;
+                return (
+                  <div className={styles.cards}>
+                    {data.flights.map((f, i) => (
+                      <FlightCard
+                        key={f.id}
+                        flight={f}
+                        risks={data.riskMap[f.id] || []}
+                        verdict={data.verdicts[f.id]}
+                        search={data.search}
+                        cheapest={f.id === cheapestId}
+                        index={i}
+                      />
+                    ))}
+                  </div>
+                );
+              })()}
             </>
           )}
 

@@ -109,7 +109,7 @@
   position: relative;
   width: clamp(42px, 11vw, 62px);
   height: clamp(56px, 15vw, 84px);
-  background: linear-gradient(180deg, #1d1916 0 50%, #141110 50% 100%);
+  background: linear-gradient(180deg, #16203a 0 50%, #0a1120 50% 100%);
   border: 1px solid var(--cream-08);
   border-radius: 7px;
   display: flex;
@@ -119,7 +119,7 @@
   font-size: clamp(40px, 11vw, 60px);
   color: var(--cream);
   line-height: 1;
-  box-shadow: inset 0 1px 0 rgba(246, 241, 231, 0.05), 0 6px 16px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 1px 0 rgba(234, 238, 246, 0.05), 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 .flap::before {
   content: "";
@@ -137,7 +137,7 @@
   line-height: 1;
   position: relative;
   top: -2px;
-  filter: drop-shadow(0 0 10px rgba(239, 159, 39, 0.4));
+  filter: drop-shadow(0 0 10px rgba(255, 122, 26, 0.4));
 }
 
 /* ---------- FORM ---------- */
@@ -247,7 +247,7 @@
 .suggestion:hover,
 .suggestion:focus-visible,
 .suggestionActive {
-  background: rgba(239, 159, 39, 0.14);
+  background: rgba(255, 122, 26, 0.14);
   color: var(--amber-soft);
   outline: none;
 }
@@ -261,7 +261,7 @@
 /* airports listed under their city sit indented, with a guide rule */
 .suggestionUnderCity {
   padding-left: 26px;
-  border-left: 1px solid rgba(239, 159, 39, 0.45); /* 1px hairline guide, not a side-stripe */
+  border-left: 1px solid rgba(255, 122, 26, 0.45); /* 1px hairline guide, not a side-stripe */
   margin-left: 10px;
   font-size: 12.5px;
   color: var(--cream-60);
@@ -307,7 +307,7 @@
   border: none;
   border-radius: 10px;
   background: var(--amber);
-  color: #1a1613;
+  color: #070b14;
   font-family: var(--mono);
   font-weight: 600;
   font-size: 13px;
@@ -447,7 +447,7 @@
   cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
-.counterBtn:hover:not(:disabled) { border-color: rgba(239, 159, 39, 0.4); }
+.counterBtn:hover:not(:disabled) { border-color: rgba(255, 122, 26, 0.4); }
 .counterBtn:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 .counterBtn:disabled { opacity: 0.35; color: var(--cream-60); cursor: default; }
 .counterValue {
@@ -513,9 +513,9 @@
 
 .error {
   margin-top: 24px;
-  background: rgba(232, 105, 74, 0.08);
-  border: 1px solid rgba(232, 105, 74, 0.35);
-  color: #f0b6a6;
+  background: rgba(255, 107, 107, 0.08);
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  color: #ffb3b3;
   padding: 16px;
   border-radius: var(--radius);
 }
@@ -574,7 +574,7 @@
 }
 .newSearch:hover {
   color: var(--amber);
-  border-color: rgba(239, 159, 39, 0.4);
+  border-color: rgba(255, 122, 26, 0.4);
 }
 .newSearch:focus-visible {
   outline: 2px solid var(--amber);
@@ -585,13 +585,13 @@
   height: 7px;
   border-radius: 50%;
   background: var(--good);
-  box-shadow: 0 0 0 0 rgba(121, 199, 154, 0.5);
+  box-shadow: 0 0 0 0 rgba(61, 214, 140, 0.5);
   animation: pulse 2.4s ease-out infinite;
 }
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(121, 199, 154, 0.5); }
-  70% { box-shadow: 0 0 0 7px rgba(121, 199, 154, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(121, 199, 154, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(61, 214, 140, 0.5); }
+  70% { box-shadow: 0 0 0 7px rgba(61, 214, 140, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(61, 214, 140, 0); }
 }
 .sep { color: var(--cream-40); } /* decorative separator dot — contrast-exempt */
 
@@ -647,17 +647,39 @@
   background: var(--amber);
   transform: rotate(45deg);
 }
-.verdict p {
+/* Honest read as a bulleted list: one airline/insight per line, small accent
+   dots, never a wall of prose. */
+.readList {
+  list-style: none;
   margin: 0;
-  font-size: clamp(17px, 2.4vw, 19px);
-  line-height: 1.62;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.readItem {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+}
+.readDot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: 0.5em;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 8px rgba(255, 122, 26, 0.5);
+}
+.readText {
+  margin: 0;
+  font-size: clamp(16px, 2.2vw, 18px);
+  line-height: 1.55;
   color: var(--cream);
   text-wrap: pretty;
 }
-/* headline-style summary: one tight line per flight */
-.summaryLine + .summaryLine { margin-top: 8px; }
-/* Scannable lead-in: airline by weight, price by the mono face. No amber. */
-.leadAirline { font-weight: 700; color: var(--cream); }
+/* Scannable lead-in: airline in Fraunces, price in the mono face. */
+.leadAirline { font-family: var(--serif); font-weight: 600; color: var(--cream); }
 .leadPrice { font-family: var(--mono); font-weight: 500; color: var(--cream); }
 
 .sectionLabel {
@@ -678,9 +700,13 @@
   background: var(--cream-08);
 }
 
-/* ---------- FLIGHT CARDS ---------- */
-.cards { display: flex; flex-direction: column; gap: 16px; }
+/* ---------- FLIGHT CARDS (boarding-pass tickets) ---------- */
+.cards { display: flex; flex-direction: column; gap: 18px; }
 
+/* The ticket: a raised navy surface. On results it reveals with a slight,
+   index-staggered rise (animation-delay set inline per card). fill-mode is
+   `backwards` so the card rests at its natural, VISIBLE state if the animation
+   never runs (reduced-motion, headless render) — content never ships blank. */
 .card {
   position: relative;
   background: var(--card);
@@ -689,44 +715,57 @@
   transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 .card:hover { border-color: var(--cream-12); transform: translateY(-1px); }
-.muted { opacity: 0.92; }
+.muted { opacity: 0.94; }
 
-.head {
-  padding: clamp(20px, 3.4vw, 26px) clamp(20px, 3.4vw, 28px);
+.ticket { animation: ticketIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+@keyframes ticketIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Body | perforated price stub. */
+.ticketMain {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 18px 20px;
+  grid-template-columns: 1fr clamp(150px, 24%, 200px);
+}
+.ticketBody { padding: clamp(20px, 3.4vw, 26px) clamp(20px, 3.4vw, 28px); min-width: 0; }
+
+.bodyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
 }
 
-/* Mobile only: stack the card header so the route summary gets the FULL card
-   width instead of a squeezed ~190px column. Top row = airline (left) + price
-   (right); the route + times drop to their own full-width row below. Desktop
-   (>640px) is untouched — headMain stays the left cell, price the right cell. */
-@media (max-width: 640px) {
-  .head {
-    grid-template-areas:
-      "airline price"
-      "legs    legs";
-    align-items: start;
-    column-gap: 14px;
-    row-gap: 12px;
-  }
-  /* dissolve the left wrapper so airline + legs become grid items we can place */
-  .headMain { display: contents; }
-  .airline { grid-area: airline; align-self: center; margin: 0; }
-  .priceCol { grid-area: price; }
-  .legs { grid-area: legs; }
-  /* IBM Plex Mono runs wide; ease the summary/stops/duration line on small
-     screens. The price stays mono at its size and prominent. */
-  .route { font-size: 12px; }
+/* The one green tag the brief asks for: the single cheapest fare. */
+.cheapTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--good);
+  background: rgba(61, 214, 140, 0.13);
+  border: 1px solid rgba(61, 214, 140, 0.32);
+  border-radius: 999px;
+  padding: 5px 11px;
 }
+.cheapIc { font-size: 11px; }
 
+/* Airline names render in Fraunces (the destination-text face of the board). */
 .airline {
-  margin: 0 0 5px;
-  font-family: var(--body);
-  font-size: clamp(19px, 2.6vw, 22px);
-  font-weight: 700;
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(22px, 3vw, 27px);
+  font-weight: 600;
   letter-spacing: -0.01em;
+  line-height: 1.05;
 }
 .route {
   margin: 0;
@@ -735,9 +774,9 @@
   color: var(--cream-60);
   letter-spacing: 0.02em;
 }
-.route b { color: var(--cream); font-weight: 500; }
+.route b { color: var(--cream); font-weight: 600; }
 
-/* Departure -> arrival clock times. The +N day-offset is amber so an overnight
+/* Departure -> arrival clock times. The +N day-offset is accent so an overnight
    / next-day arrival is never read as same-day. */
 .times {
   margin: 7px 0 0;
@@ -747,7 +786,7 @@
   letter-spacing: 0.02em;
   white-space: nowrap; /* never split the "18:25 → 16:40" pair across lines */
 }
-.timesArrow { color: var(--cream-40); margin: 0 2px; }
+.timesArrow { color: var(--cream-40); margin: 0 4px; }
 .dayOffset {
   margin-left: 3px;
   font-size: 11px;
@@ -771,12 +810,79 @@
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--cream-60); /* was cream-40 — meaningful leg label, must clear AA */
+  color: var(--cream-60);
 }
 .legDate { letter-spacing: 0.04em; color: var(--cream-60); }
 .legAirline { color: var(--cream-60); }
+.segHead {
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cream-60);
+}
+.segHead:first-child { margin-top: 0; }
+
+/* ----- split-flap reveal for the key times ----- */
+/* The board mechanic, reused on results: each character flips into place with a
+   stagger. The final text is always in the DOM (carried on aria-label), so this
+   only animates the entrance. globals.css disables it under reduced-motion. */
+.flapText { display: inline-flex; }
+.flapChar {
+  display: inline-block;
+  transform-origin: center;
+  backface-visibility: hidden;
+}
+.flapChar[data-flap="in"] {
+  animation: flapIn 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+@keyframes flapIn {
+  0%   { transform: rotateX(-90deg); opacity: 0; }
+  60%  { transform: rotateX(12deg);  opacity: 1; }
+  100% { transform: rotateX(0deg);   opacity: 1; }
+}
+
+/* ----- the perforated price stub ----- */
+.ticketStub {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  text-align: right;
+  gap: 6px;
+  padding: clamp(20px, 3.4vw, 26px) clamp(18px, 3vw, 24px);
+  border-left: 2px dashed var(--cream-12);
+}
+/* notch cut-outs punched into the ticket edge at each end of the perforation */
+.ticketStub::before,
+.ticketStub::after {
+  content: "";
+  position: absolute;
+  left: -9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--page);
+  border: 1px solid var(--cream-08);
+}
+.ticketStub::before { top: -9px; }
+.ticketStub::after  { bottom: -9px; }
+
+.price {
+  font-family: var(--mono);
+  font-size: clamp(30px, 5vw, 40px);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: var(--cream);
+}
+.priceValue { display: inline-flex; align-items: baseline; }
+.priceCurrency { color: var(--amber); margin-right: 1px; } /* the $ in accent orange */
+.price.dim { color: var(--cream-60); }
 .priceUnit {
-  margin-top: 4px;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.08em;
@@ -784,47 +890,38 @@
   color: var(--cream-60);
   white-space: nowrap;
 }
-.segHead {
-  margin-top: 8px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--cream-60); /* was cream-40 — meaningful section label, must clear AA */
-}
-.segHead:first-child { margin-top: 0; }
-
-.priceCol {
-  text-align: right;
-  align-self: start;
-}
-/* Only the price digits + unit stay on one line. The all-in line is free to
-   wrap so its copy ("fare only · fees not listed") never forces the column
-   wide and crushes the airline name on narrow screens. */
-.price {
-  font-family: var(--mono);
-  font-size: clamp(30px, 5vw, 40px);
-  font-weight: 500;
-  line-height: 0.95;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-}
-.price.dim { color: var(--cream-60); }
 .allin {
   font-family: var(--mono);
   font-size: 12px;
   color: var(--cream-60);
-  margin-top: 8px;
 }
-.allin b { color: var(--cream-60); font-weight: 500; }
+.allin b { color: var(--cream); font-weight: 600; }
 
-/* always-visible verdict flag */
-.flag {
-  grid-column: 1 / -1;
+/* Mobile: the stub drops BELOW the body; the perforation flips horizontal and
+   the notches move to the left and right edges. */
+@media (max-width: 560px) {
+  .ticketMain { grid-template-columns: 1fr; }
+  .ticketStub {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    text-align: left;
+    gap: 4px 14px;
+    padding-top: clamp(16px, 4vw, 20px);
+    border-left: none;
+    border-top: 2px dashed var(--cream-12);
+  }
+  .ticketStub::before { left: -9px; top: -9px; bottom: auto; }
+  .ticketStub::after  { left: auto; right: -9px; top: -9px; bottom: auto; }
+}
+
+/* ----- trade-off note: the one-line verdict, color + icon paired (never color alone) ----- */
+.tradeoff {
   display: flex;
   align-items: flex-start;
   gap: 11px;
-  margin-top: 2px;
+  margin: 14px 0 0;
   font-size: 15px;
   line-height: 1.5;
 }
@@ -841,19 +938,18 @@
   margin-top: 1px;
 }
 .flagGood { color: var(--cream); }
-.flagGood .ic { background: rgba(121, 199, 154, 0.16); color: var(--good); }
+.flagGood .ic { background: rgba(61, 214, 140, 0.16); color: var(--good); }
 .flagCaution { color: var(--cream); }
-.flagCaution .ic { background: rgba(239, 159, 39, 0.16); color: var(--amber); }
-.flagRisk { color: #f0b6a6; }
-.flagRisk .ic { background: rgba(232, 105, 74, 0.18); color: var(--risk); }
+.flagCaution .ic { background: rgba(232, 184, 75, 0.18); color: var(--warn); }
+.flagRisk { color: #ffb3b3; }
+.flagRisk .ic { background: rgba(255, 107, 107, 0.18); color: var(--risk); }
 
 /* always-visible deterministic warnings */
 .warnings {
-  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 2px;
+  margin-top: 12px;
 }
 .warn {
   margin: 0;
@@ -870,15 +966,20 @@
   text-transform: uppercase;
   margin-right: 8px;
 }
-.warn_high { background: rgba(232, 105, 74, 0.12); border-color: rgba(232, 105, 74, 0.35); color: #f0b6a6; }
+.warn_high { background: rgba(255, 107, 107, 0.12); border-color: rgba(255, 107, 107, 0.35); color: #ffb3b3; }
 .warn_high .warnLbl { color: var(--risk); }
-.warn_warn { background: rgba(239, 159, 39, 0.1); border-color: rgba(239, 159, 39, 0.3); color: #f3cf9a; }
+.warn_warn { background: rgba(255, 122, 26, 0.1); border-color: rgba(255, 122, 26, 0.3); color: #f0d99b; }
 .warn_warn .warnLbl { color: var(--amber); }
 .warn_info { background: var(--cream-08); color: var(--cream-60); }
 .warn_info .warnLbl { color: var(--cream-60); }
 
+/* Foot: spans the full ticket width below the body + stub; holds Explain + detail. */
+.ticketFoot {
+  padding: 4px clamp(20px, 3.4vw, 28px) clamp(10px, 2vw, 14px);
+  border-top: 1px solid var(--cream-08);
+}
+
 .toggle {
-  grid-column: 1 / -1;
   margin-top: 4px;
   background: none;
   border: none;
@@ -926,7 +1027,7 @@
   margin: 18px 0 0;
   font-size: 15.5px;
   line-height: 1.66;
-  color: rgba(246, 241, 231, 0.92);
+  color: rgba(234, 238, 246, 0.92);
   text-wrap: pretty;
 }
 .detailPad p b { color: var(--cream); font-weight: 600; }
@@ -953,12 +1054,12 @@
   text-transform: uppercase;
   color: var(--amber);
   text-decoration: none;
-  border: 1px solid rgba(239, 159, 39, 0.4);
+  border: 1px solid rgba(255, 122, 26, 0.4);
   border-radius: 9px;
   padding: 10px 16px;
   transition: background 0.15s ease, color 0.15s ease;
 }
-.book:hover { background: var(--amber); color: #1a1613; }
+.book:hover { background: var(--amber); color: #070b14; }
 
 /* Placeholder shown when there's no booking link/token for an option. */
 .bookSoon {
@@ -1015,7 +1116,7 @@
   border-radius: 5px;
   transform: translateY(-1px);
 }
-.bookTagDirect { color: var(--good); background: rgba(121, 199, 154, 0.14); }
+.bookTagDirect { color: var(--good); background: rgba(61, 214, 140, 0.14); }
 .bookTagThird { color: var(--cream-60); background: var(--cream-08); }
 .bookFare {
   font-family: var(--mono);
@@ -1037,9 +1138,9 @@
   padding: 10px 12px;
   font-size: 13.5px;
   line-height: 1.5;
-  color: #f0b6a6;
-  background: rgba(232, 105, 74, 0.12);
-  border: 1px solid rgba(232, 105, 74, 0.35);
+  color: #ffb3b3;
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.35);
   border-radius: 9px;
 }
 .bookConds {
@@ -1074,7 +1175,7 @@
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-.bookGo:hover { background: var(--amber); color: #1a1613; border-color: var(--amber); }
+.bookGo:hover { background: var(--amber); color: #070b14; border-color: var(--amber); }
 .bookGo:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
 /* ---------- FOOTER ---------- */
