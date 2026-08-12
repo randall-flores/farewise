@@ -1059,9 +1059,13 @@ export default function SearchExperience() {
         </div>
 
         <p className={styles.promise}>
-          <b>We don&apos;t inflate prices based on your search history.</b> The airline&apos;s
-          price at checkout can still move with market and currency — that part is outside
-          our control.
+          {/* JSX collapses the whitespace between a closing tag and same-line text at the
+              start of the next source line, so a plain space here silently disappears
+              (verified: it rendered as "history.The airline's" with no gap). {" "} forces
+              a real space that survives the collapse. */}
+          <b>We don&apos;t inflate prices based on your search history.</b>{" "}
+          The airline&apos;s price at checkout can still move with market and currency — that
+          part is outside our control.
         </p>
 
         <button className={styles.submit} type="submit" disabled={loading}>

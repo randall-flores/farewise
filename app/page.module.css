@@ -78,6 +78,11 @@
 }
 .fieldInput {
   width: 100%;
+  /* Flex items default to min-width: auto (their content's own natural
+     minimum), so a wide-enough child (a long airport label, or — see
+     .fieldSplit below — a native date input's own intrinsic minimum width)
+     refuses to shrink below it and forces its row past the card edge. */
+  min-width: 0;
   border: none;
   background: none;
   color: var(--ink);
@@ -91,7 +96,25 @@
 .fieldInput:focus { outline: none; }
 .field:focus-within { background: var(--navy-tint); }
 .fieldSplit { display: flex; border-bottom: 1px solid var(--line); }
-.fieldSplit .field { flex: 1; border-bottom: none; }
+/* Out/Back share the row's width 50/50. A native input[type=date] carries its
+   own intrinsic minimum width; next to a fixed-width side label (as .field
+   normally lays out From/To/Who) there isn't enough room at 390px for it to
+   shrink into without min-width:0 letting it get squeezed down to an
+   unreadably narrow, cramped box. Stack the key above the value instead —
+   the same top-to-bottom relationship the approved mockup uses for this row
+   (it prints "Fri 10 Jul" over "2026") — which frees the full half-width for
+   the input instead of splitting it with a side label. */
+.fieldSplit .field {
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  border-bottom: none;
+}
+.fieldSplit .fieldKey { width: auto; }
+.fieldSplit .fieldInput { font-size: 17px; }
 .fieldSplit .field + .field { border-left: 1px solid var(--line); }
 .fieldRow {
   display: flex;
@@ -191,7 +214,10 @@
 }
 
 /* Airport autocomplete */
-.autocomplete { position: relative; }
+/* min-width:0 for the same reason as .fieldInput above: without it, a long
+   picked label (e.g. a city name) can refuse to shrink and push this flex
+   item past the card edge. */
+.autocomplete { position: relative; min-width: 0; }
 .suggestions {
   position: absolute;
   top: calc(100% + 6px);
