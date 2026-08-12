@@ -20,28 +20,6 @@ function usePrefersReducedMotion() {
   return reduce;
 }
 
-// Count a whole number up to `target` on mount (ease-out, ~0.85s). Reduced motion
-// jumps straight to the final value. Used for the big card price.
-function useCountUp(target, duration = 850) {
-  const reduce = usePrefersReducedMotion();
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    if (reduce) return; // reduced motion: the hook returns `target` directly below
-    let raf;
-    let start = null;
-    const tick = (t) => {
-      if (start === null) start = t;
-      const p = Math.min((t - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - p, 4); // ease-out-quart
-      setVal(Math.round(target * eased)); // set inside the rAF callback, not the effect body
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, reduce, duration]);
-  return reduce ? target : val;
-}
-
 // Belt-and-suspenders: the generation prompt forbids em dashes, but if one ever
 // slips through we never render it. Turn an em dash (or "--") into a comma break
 // so the plain-spoken voice holds in the UI too.
@@ -75,23 +53,6 @@ function FlapText({ text, className }) {
           {ch === " " ? " " : ch}
         </span>
       ))}
-    </span>
-  );
-}
-
-// Big card price: the currency symbol in accent orange, the number counting up.
-// aria-label carries the formatted price so screen readers announce it once, whole.
-function CountUpPrice({ amount, currency = "USD" }) {
-  const n = useCountUp(amount);
-  const symbol =
-    new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 })
-      .formatToParts(0)
-      .find((p) => p.type === "currency")?.value || "$";
-  const digits = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n);
-  return (
-    <span className={styles.priceValue} aria-label={formatMoney(amount, currency)}>
-      <span className={styles.priceCurrency} aria-hidden="true">{symbol}</span>
-      <span aria-hidden="true">{digits}</span>
     </span>
   );
 }
@@ -644,10 +605,10 @@ function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 
         </div>
 
         {/* ---- Perforated price stub ---- */}
+        {/* Plain mono price, no count-up (Task 4 removed the animation). Card
+            styling belongs to Task 5 — this is unstyled on purpose until then. */}
         <div className={styles.ticketStub}>
-          <div className={`${styles.price} ${level === "high-risk" ? styles.dim : ""}`}>
-            <CountUpPrice amount={flight.price} currency={flight.currency} />
-          </div>
+          <div>{formatMoney(flight.price, flight.currency)}</div>
           <div className={styles.priceUnit}>{roundTrip ? "round trip" : "one way"}</div>
           <div className={styles.allin}>
             {!feesKnown ? (
@@ -1093,26 +1054,26 @@ export default function SearchExperience() {
 
       {data && (
         <section className={styles.results}>
-          <div className={styles.resultsHead}>
-            <p className={styles.meta} role="status" aria-live="polite">
-              {/* Factual label from the actual data source — never call real fares "demo". */}
-              <span className={styles.dot} /> {data.source === "serpapi" ? "Live fares" : "Demo fares"}
-              <span className={styles.sep}>·</span> {form.origin} → {form.destination}
-              <span className={styles.sep}>·</span> {CABIN_LABEL[form.cabin] || form.cabin}
-              <span className={styles.sep}>·</span> {data.flights.length} options
-              {(() => {
-                // Round trip only: show trip length in nights (what travelers book
-                // around). null => one-way / same-day / bad date => no segment at all.
-                const nights = nightsBetween(form.depart, form.returnDate);
-                return nights ? (
-                  <>
-                    <span className={styles.sep}>·</span> {nights} {nights === 1 ? "night" : "nights"}
-                  </>
-                ) : null;
-              })()}
-            </p>
+          <div className={styles.searchbar}>
+            <div>
+              <p className={styles.searchRoute}>
+                {form.origin} → {form.destination}
+              </p>
+              <p className={styles.searchMeta} role="status" aria-live="polite">
+                {(() => {
+                  const nights = nightsBetween(form.depart, form.returnDate);
+                  return [
+                    CABIN_LABEL[form.cabin] || form.cabin,
+                    nights ? `${nights} ${nights === 1 ? "night" : "nights"}` : null,
+                    `${data.flights.length} ${data.source === "serpapi" ? "live fares" : "demo fares"} read`,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ");
+                })()}
+              </p>
+            </div>
             <button type="button" className={styles.newSearch} onClick={resetSearch}>
-              New search
+              Edit
             </button>
           </div>
 
@@ -1122,35 +1083,31 @@ export default function SearchExperience() {
             </p>
           ) : (
             <>
-              {/* Real per-search price context from SerpApi (price_insights).
-                  Only rendered when the data exists — never invented. */}
-              {priceInsightLine(data.priceInsights) && (
-                <p className={styles.priceInsight}>
-                  <span className={styles.priceInsightDot} aria-hidden="true" />
-                  {priceInsightLine(data.priceInsights)}
-                </p>
-              )}
-
-              {/* Layer 1: the honest read — one airline/insight per line, as a
-                  bulleted list with small accent dots (never a wall of prose). */}
-              <section className={styles.verdict} aria-labelledby="honest-read-title">
-                <h2 id="honest-read-title" className={styles.verdictTag}>
-                  FareWise&apos;s honest read
+              {/* Layer 1: the honest read, printed as a solid block in record navy
+                  so it reads as one finding, not a list of bullet points. */}
+              <section className={styles.read} aria-labelledby="honest-read-title">
+                <h2 id="honest-read-title" className={styles.readKicker}>
+                  The honest read
                 </h2>
-                <ul className={styles.readList}>
-                  {data.summary
-                    .split("\n")
-                    .filter(Boolean)
-                    .map((line, i) => (
-                      <li key={i} className={styles.readItem}>
-                        <span className={styles.readDot} aria-hidden="true" />
-                        <span className={styles.readText}>
-                          {renderHonestLine(noEmDash(line), data.flights)}
-                        </span>
-                      </li>
-                    ))}
-                </ul>
+                {data.summary
+                  .split("\n")
+                  .filter(Boolean)
+                  .map((line, i) => (
+                    <p key={i} className={styles.readLine}>
+                      {renderHonestLine(noEmDash(line), data.flights)}
+                    </p>
+                  ))}
+                <p className={styles.readFine}>
+                  Ranked by what these fares actually cost you. Never by what anyone pays us.
+                </p>
               </section>
+
+              {/* Real per-search price context from SerpApi (price_insights).
+                  Only rendered when the data exists — never invented. Sits below
+                  the read, quiet grey, not part of the finding itself. */}
+              {priceInsightLine(data.priceInsights) && (
+                <p className={styles.insight}>{priceInsightLine(data.priceInsights)}</p>
+              )}
 
               <div className={styles.sectionLabel}>{data.flights.length} options found</div>
 
