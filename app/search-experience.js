@@ -98,16 +98,19 @@ function CountUpPrice({ amount, currency = "USD" }) {
 
 // A From/To field with debounced airport/city autocomplete.
 // Shows what the user types; commits the chosen IATA code to the parent form.
-function AirportField({ label, name, initial, onSelect }) {
+function AirportField({ label, name, initial, initialCommitted, onSelect }) {
   const [text, setText] = useState(initial); // what's visible in the box
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1); // highlighted suggestion for arrow-key nav
   const [invalid, setInvalid] = useState(false); // typed something but never picked a real place
   const blurTimer = useRef(null);
-  // `initial` is now the friendly label (not the bare code), so this still reads
-  // correctly: a non-empty label means a real place was already chosen for this field.
-  const committed = useRef(Boolean(initial));
+  // `initial` is a LABEL (display text), not proof of a real pick — the parent
+  // also tracks uncommitted, partially-typed text as a label (see onChange
+  // below) so a swap can restore it. Only the caller's `initialCommitted`
+  // (derived from whether the parent's CODE is set) says whether this field
+  // actually holds a real, chosen place.
+  const committed = useRef(Boolean(initialCommitted));
   const errorId = `${name}-error`;
 
   // Local, instant autocomplete over the bundled airport dataset — no network,
@@ -958,6 +961,7 @@ export default function SearchExperience() {
             label="From"
             name="origin"
             initial={form.originLabel}
+            initialCommitted={Boolean(form.origin)}
             onSelect={(code, label) => setForm((f) => ({ ...f, origin: code, originLabel: label }))}
           />
           <div className={styles.swap}>
@@ -982,6 +986,7 @@ export default function SearchExperience() {
             label="To"
             name="destination"
             initial={form.destinationLabel}
+            initialCommitted={Boolean(form.destination)}
             onSelect={(code, label) => setForm((f) => ({ ...f, destination: code, destinationLabel: label }))}
           />
 

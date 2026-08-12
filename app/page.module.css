@@ -49,8 +49,9 @@
    (that would clip the autocomplete dropdown), so whatever paints the corner
    position must be rounded itself, or a `:focus-within` tint squares it off.
    Covers both shapes a corner slot can take: a `.field` sitting there directly,
-   and a background-less wrapper (`.fieldSplit`, and `.swap` if it ever lands
-   there) whose actual painted `.field` is one level down. */
+   and a background-less wrapper (`.fieldSplit`) whose actual painted `.field`
+   is one level down. Doesn't cover `.swap` — its only child is a `<button>`,
+   not a `.field`, and it never lands first/last in the current markup anyway. */
 .fields > :first-child { border-top-left-radius: var(--r); border-top-right-radius: var(--r); }
 .fields > :last-child { border-bottom-left-radius: var(--r); border-bottom-right-radius: var(--r); }
 .fields > :first-child .field:first-child { border-top-left-radius: var(--r); }
