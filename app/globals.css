@@ -1,88 +1,74 @@
-/* ---- FareWise design tokens ----
-   "Departure Board at night": deep navy night-tarmac, signal-orange accent,
-   near-white text. One place for color + type so the whole app stays consistent.
-
-   NOTE on names: the token names are historical (--amber, --cream, --page) but
-   now carry the Departure Board palette. --amber is the single SIGNAL ORANGE
-   accent, --cream is the near-white text, --page is the night-navy background.
-   Names kept stable so the whole app re-themes from this one block. */
+/* ---- FareWise design tokens — "Record" ----
+   A light, high-contrast record: cool paper grey page, white cards, deep record
+   navy for the verdict and primary actions, one alert red for the catch.
+   This file holds tokens and base resets ONLY. Component styles live in
+   page.module.css. Adding a dark theme later means adding one media block here
+   that redefines these same names — nothing downstream changes. */
 :root {
-  --page: #070b14;      /* night tarmac — page background */
-  --page-2: #0b1322;    /* recessed inset (inputs, callouts) — cut into the surface */
-  --card: #0f1626;      /* raised surface — cards, form */
-  --card-2: #16203a;    /* lighter surface top (gradients, flap highlight) */
+  /* surfaces */
+  --bg: #eef0ee;          /* page — cool paper grey, no yellow in it */
+  --card: #ffffff;        /* raised surface: search card, fare card */
+  --sunk: #e4e7e5;        /* recessed: the "say" line, summary rows */
 
-  --amber: #ff7a1a;     /* SIGNAL ORANGE — the single accent: actions, prices, flap arrow, active */
-  --amber-soft: #ffb070;/* accent hover */
-  --cream: #eaeef6;     /* primary text */
-  --cream-60: #76849c;  /* muted / secondary text — passes WCAG AA (>=4.5:1) on both page and card surfaces */
-  --cream-40: rgba(234, 238, 246, 0.34); /* decorative only (separators) — too faint for text */
-  --cream-12: rgba(234, 238, 246, 0.10); /* hairlines */
-  --cream-08: rgba(234, 238, 246, 0.06); /* faintest borders */
+  /* ink */
+  --ink: #12171a;         /* primary text — 15.8:1 on --card */
+  --ink-2: #586267;       /* secondary text — 5.4:1 on --card, 4.9:1 on --bg */
+  --line: #d5d9d7;        /* hairlines inside cards */
+  --line-2: #c3c9c6;      /* stronger edge: card borders, control borders */
 
-  --good: #3dd68c;      /* success green — reassurance / good verdict */
-  --warn: #e8b84b;      /* caution amber-yellow (distinct from the orange accent) */
-  --risk: #ff6b6b;      /* red — high risk */
+  /* the record ink — verdict block, primary action, chosen state */
+  --navy: #1e3f77;        /* 8.4:1 with white text on it */
+  --navy-2: #16305c;      /* pressed */
+  --navy-tint: #e8eef8;   /* tag background */
+  --navy-on: #a8c0e6;     /* secondary text ON the navy block — 5.1:1 */
 
-  --serif: var(--font-display), Georgia, serif;
+  /* signals — always paired with an icon and a word, never colour alone */
+  --alert: #9c2028;       /* the catch: separate tickets, tight connection */
+  --alert-bg: #fbeeee;
+  --ok: #1c6b52;          /* one ticket, protected */
+  --ok-tint: #e2efe9;
+
   --body: var(--font-body), system-ui, sans-serif;
   --mono: var(--font-mono), ui-monospace, monospace;
 
-  --radius: 14px;
+  --r: 16px;              /* cards */
+  --r-sm: 10px;           /* chips, tags, small controls */
+  --tap: 44px;            /* minimum touch target */
 }
 
 * { box-sizing: border-box; }
 
 html {
   -webkit-text-size-adjust: 100%;
-  color-scheme: dark; /* native controls (date picker, select) render dark */
+  color-scheme: light; /* native date picker and select render light */
 }
 
 body {
   margin: 0;
-  background: var(--page);
-  color: var(--cream);
+  background: var(--bg);
+  color: var(--ink);
   font-family: var(--body);
-  line-height: 1.55;
+  font-size: 17px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  min-height: 100vh;
-}
-
-/* atmosphere: signal-orange board-light bleeding down from the top */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(120% 70% at 50% -10%, rgba(255, 122, 26, 0.1), transparent 60%),
-    radial-gradient(90% 50% at 85% 0%, rgba(255, 122, 26, 0.05), transparent 55%);
-}
-/* atmosphere: barely-there board scanlines */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-  opacity: 0.35;
-  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
-  mix-blend-mode: soft-light;
+  min-height: 100dvh;
 }
 
 h1, h2, h3 {
-  font-family: var(--serif);
-  font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  font-family: var(--body);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
 a { color: inherit; }
 
 button, input, select { font: inherit; }
+
+/* Digits that sit in a column must not wobble as they change. */
+.tabular, input[type="date"] { font-variant-numeric: tabular-nums; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
