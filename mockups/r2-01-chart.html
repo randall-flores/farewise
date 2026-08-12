@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FareWise R2 — A: Chart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1a21;          /* deep chart ink */
+    --surface:#14262f;     /* panel */
+    --surface-2:#1b323d;   /* raised / pressed */
+    --line:#26454f;        /* structural hairline — visible, not a whisper */
+    --text:#eaf2f5;        /* primary */
+    --text-2:#a9c1cb;      /* secondary — 6.4:1 on --bg */
+    --nav:#63b0dd;         /* chart blue: navigation, the recommended course */
+    --nav-ink:#08222f;
+    --caution:#e2739f;     /* chart magenta: the catch */
+    --caution-bg:#3a1f2c;
+    --ok:#69c2a3;
+    --r:18px;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#070f13;color:var(--text);
+    font-family:Archivo,system-ui,sans-serif;font-size:17px;line-height:1.5;
+    font-variant-numeric:tabular-nums}
+
+  /* ---------- mockup chrome ---------- */
+  .banner{background:var(--surface);border-bottom:1px solid var(--line);padding:18px 28px}
+  .banner .n{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-2);font-weight:600}
+  .banner .t{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+  .banner .d{color:var(--text-2);font-size:15px;max-width:78ch;margin-top:6px}
+  .sw{display:flex;gap:6px;margin-top:12px}
+  .sw i{width:30px;height:16px;display:block;border-radius:3px}
+  .stage{display:flex;gap:34px;padding:40px 28px 70px;overflow-x:auto;align-items:flex-start}
+  .col{flex:none}
+  .cap{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#7f97a1;
+    font-weight:600;margin:0 0 12px 4px}
+
+  /* ---------- phone ---------- */
+  .phone{width:390px;background:var(--bg);border-radius:42px;padding:10px;
+    box-shadow:0 0 0 1.5px #2b4a56, 0 30px 70px rgba(0,0,0,.55)}
+  .screen{background:var(--bg);border-radius:33px;overflow:hidden;min-height:812px;
+    display:flex;flex-direction:column;position:relative}
+  .status{display:flex;justify-content:space-between;align-items:center;
+    padding:14px 24px 6px;font-size:14px;font-weight:600;color:var(--text)}
+  .status .icons{display:flex;gap:6px;align-items:center;opacity:.9}
+  .pad{padding:0 22px}
+  .grow{flex:1}
+  .homebar{height:5px;width:134px;background:#ffffff59;border-radius:3px;margin:14px auto 10px}
+
+  /* ---------- type ---------- */
+  h1{font-size:30px;line-height:1.15;letter-spacing:-.03em;font-weight:700;margin:18px 0 6px}
+  h2{font-size:20px;line-height:1.25;letter-spacing:-.02em;font-weight:600;margin:0}
+  .lead{color:var(--text-2);font-size:16px;margin:0}
+  .eyebrow{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;
+    color:var(--nav)}
+
+  /* ---------- search screen ---------- */
+  .brandrow{display:flex;align-items:center;justify-content:space-between;padding-top:8px}
+  .brand{font-size:19px;font-weight:700;letter-spacing:-.02em}
+  .brand span{color:var(--nav)}
+  .avatar{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+    display:grid;place-items:center;color:var(--text-2);font-size:14px;font-weight:600}
+
+  .fields{margin-top:22px;background:var(--surface);border-radius:var(--r);
+    border:1px solid var(--line);overflow:hidden}
+  .field{display:flex;align-items:center;gap:14px;padding:16px 18px;min-height:68px;
+    border-bottom:1px solid var(--line);cursor:pointer}
+  .field:last-child{border-bottom:none}
+  .field .k{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-2);
+    font-weight:600;width:52px;flex:none}
+  .field .v{font-size:19px;font-weight:600;letter-spacing:-.01em}
+  .field .v small{display:block;font-size:14px;font-weight:400;color:var(--text-2);letter-spacing:0}
+  .field .code{margin-left:auto;font-size:24px;font-weight:700;letter-spacing:.02em;color:var(--nav)}
+  .swap{position:relative;height:0}
+  .swap button{position:absolute;right:18px;top:-24px;width:48px;height:48px;border-radius:50%;
+    background:var(--surface-2);border:1px solid var(--line);color:var(--text);
+    display:grid;place-items:center;cursor:pointer}
+  .half{display:flex}
+  .half .field{flex:1;border-bottom:none}
+  .half .field+.field{border-left:1px solid var(--line)}
+
+  .chips{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
+  .chip{padding:11px 16px;border-radius:999px;border:1px solid var(--line);color:var(--text-2);
+    font-size:15px;font-weight:500;background:none;cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--nav);border-color:var(--nav);color:var(--nav-ink);font-weight:600}
+
+  .promise{margin-top:auto;padding:20px 0 0}
+  .promise p{margin:0;color:var(--text-2);font-size:15px;line-height:1.5}
+  .promise b{color:var(--text);font-weight:600}
+
+  .cta{display:block;width:100%;min-height:56px;border:none;border-radius:15px;
+    background:var(--nav);color:var(--nav-ink);font-family:inherit;font-size:18px;font-weight:700;
+    letter-spacing:-.01em;cursor:pointer;margin-top:18px}
+  .cta:active{background:#4f9bc9}
+
+  /* ---------- results ---------- */
+  .topbar{display:flex;align-items:center;gap:12px;padding:8px 22px 14px;border-bottom:1px solid var(--line)}
+  .topbar .back{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);
+    display:grid;place-items:center;flex:none;color:var(--text)}
+  .topbar .route{font-size:18px;font-weight:700;letter-spacing:-.01em}
+  .topbar .sub{font-size:14px;color:var(--text-2)}
+  .topbar .edit{margin-left:auto;color:var(--nav);font-size:15px;font-weight:600}
+
+  .read{margin:18px 0 0;background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--r);padding:20px}
+  .read .eyebrow{margin-bottom:12px;display:block}
+  .read p{margin:0 0 10px;font-size:19px;line-height:1.42;letter-spacing:-.015em}
+  .read p:last-of-type{margin-bottom:0}
+  .read .fine{font-size:14.5px;color:var(--text-2);margin-top:14px;padding-top:14px;
+    border-top:1px solid var(--line);line-height:1.45}
+
+  .sechead{display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 10px}
+  .sechead h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .sechead span{font-size:14px;color:var(--text-2)}
+
+  .fare{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:18px;margin-bottom:14px;position:relative}
+  .fare.pick{border-color:var(--nav)}
+  .tagrow{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+    letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border-radius:7px}
+  .tag.nav{background:var(--nav);color:var(--nav-ink)}
+  .tag.caution{background:var(--caution-bg);color:var(--caution);border:1px solid #6b3247}
+  .farehead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+  .amt{font-size:32px;font-weight:700;letter-spacing:-.03em;line-height:1}
+  .amt small{display:block;font-size:13px;font-weight:500;color:var(--text-2);letter-spacing:0;
+    margin-top:5px}
+
+  /* mini course line */
+  .course{margin:16px 0 0;display:flex;align-items:center;gap:10px}
+  .course .pt{width:9px;height:9px;border-radius:50%;background:var(--text);flex:none}
+  .course .pt.mid{width:7px;height:7px;background:var(--nav);border:none}
+  .course .pt.mid.warn{background:var(--caution)}
+  .course .seg{flex:1;height:2px;background:var(--line);position:relative}
+  .course .seg.on{background:var(--nav)}
+  .course .seg.warnseg{background:linear-gradient(90deg,var(--caution) 50%,transparent 0) repeat-x;
+    background-size:9px 2px;height:2px}
+  .courselbl{display:flex;justify-content:space-between;margin-top:7px;font-size:13.5px;color:var(--text-2)}
+  .courselbl b{color:var(--text);font-weight:600}
+
+  .fact{margin:14px 0 0;font-size:16px;line-height:1.5;color:var(--text-2)}
+  .fact b{color:var(--text);font-weight:600}
+  .total{margin-top:14px;padding-top:13px;border-top:1px solid var(--line);
+    font-size:15px;color:var(--text-2)}
+  .total b{color:var(--text);font-weight:600}
+
+  /* ---------- detail ---------- */
+  .hero{padding:20px 22px 22px}
+  .hero .amt{font-size:40px}
+  .warn{margin:0 22px;background:var(--caution-bg);border:1px solid #74374e;border-radius:var(--r);
+    padding:18px}
+  .warn .hd{display:flex;align-items:center;gap:9px;color:var(--caution);font-weight:700;
+    font-size:15px;letter-spacing:-.01em;margin-bottom:10px}
+  .warn p{margin:0;font-size:16px;line-height:1.5;color:#f6dde6}
+  .warn p+p{margin-top:10px}
+
+  .timeline{margin:22px 22px 0;position:relative;padding-left:26px}
+  .timeline::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:2px;
+    background:var(--line)}
+  .stop{position:relative;padding:0 0 20px}
+  .stop::before{content:"";position:absolute;left:-26px;top:6px;width:12px;height:12px;
+    border-radius:50%;background:var(--bg);border:2px solid var(--nav)}
+  .stop.warnstop::before{border-color:var(--caution)}
+  .stop .t{font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .stop .p{font-size:15px;color:var(--text-2);margin-top:2px}
+  .gap{position:relative;margin:0 0 20px;padding:12px 14px;background:var(--surface);
+    border:1px solid var(--line);border-radius:12px;font-size:15px;color:var(--text-2)}
+  .gap b{color:var(--text);font-weight:600}
+  .gap.warngap{border-color:#74374e;color:#f0cdd9}
+
+  .costs{margin:22px 22px 0;border-top:1px solid var(--line)}
+  .cost{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);
+    font-size:16px;color:var(--text-2)}
+  .cost b{color:var(--text);font-weight:600}
+  .cost.sum{font-size:18px;color:var(--text);font-weight:600;border-bottom:none}
+
+  .dock{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 22%);
+    padding:24px 22px 0}
+  .dock .cta{margin-top:0}
+  .dock .note{text-align:center;color:var(--text-2);font-size:13.5px;margin:10px 0 0}
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="n">Round 2 · Direction A</div>
+  <div class="t">Chart</div>
+  <div class="d">The navigation chart, promoted from costume to app. Deep chart ink, one blue for the course you should take and one magenta for the catch — the same two-colour logic a real chart uses, now doing UI work. The route is drawn on every screen: a course line on the cards, a full waypoint timeline in detail. Solid colour, no textures, 17px floor.</div>
+  <div class="sw">
+    <i style="background:#0d1a21"></i><i style="background:#14262f"></i><i style="background:#eaf2f5"></i>
+    <i style="background:#63b0dd"></i><i style="background:#e2739f"></i>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- ============ SEARCH ============ -->
+  <div class="col">
+    <p class="cap">Search</p>
+    <div class="phone"><div class="screen">
+      <div class="status"><span>9:41</span><span class="icons">▮▮▯ ⌁ ▰</span></div>
+      <div class="pad" style="display:flex;flex-direction:column;flex:1;padding-bottom:0">
+        <div class="brandrow">
+          <div class="brand">Fare<span>Wise</span></div>
+          <div class="avatar">R</div>
+        </div>
+
+        <h1>Where to?</h1>
+        <p class="lead">We read every fare that comes back, then tell you what the cheap one costs you.</p>
+
+        <div class="fields">
+          <div class="field">
+            <span class="k">From</span>
+            <span class="v">Miami<small>All airports</small></span>
+            <span class="code">MIA</span>
+          </div>
+          <div class="swap"><button aria-label="Swap origin and destination">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 20l-3-3M17 20V4M17 4l3 3"/></svg>
+          </button></div>
+          <div class="field">
+            <span class="k">To</span>
+            <span class="v">Berlin<small>Brandenburg</small></span>
+            <span class="code">BER</span>
+          </div>
+          <div class="half">
+            <div class="field"><span class="k" style="width:auto">Out</span>
+              <span class="v" style="margin-left:auto;text-align:right">Fri 10 Jul<small>2026</small></span></div>
+            <div class="field"><span class="k" style="width:auto">Back</span>
+              <span class="v" style="margin-left:auto;text-align:right">Fri 24 Jul<small>2026</small></span></div>
+          </div>
+          <div class="field">
+            <span class="k" style="width:auto">Who</span>
+            <span class="v" style="margin-left:auto">1 adult · Economy</span>
+          </div>
+        </div>
+
+        <div class="chips">
+          <button class="chip" aria-pressed="true">Round trip</button>
+          <button class="chip" aria-pressed="false">One way</button>
+        </div>
+
+        <div class="promise">
+          <p><b>We don't inflate prices based on your search history.</b> The airline's price at checkout can still move with market and currency — that part is outside our control.</p>
+          <button class="cta">Search flights</button>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ============ RESULTS ============ -->
+  <div class="col">
+    <p class="cap">Results</p>
+    <div class="phone"><div class="screen">
+      <div class="status"><span>9:41</span><span class="icons">▮▮▯ ⌁ ▰</span></div>
+      <div class="topbar">
+        <div class="back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div>
+          <div class="route">MIA → BER</div>
+          <div class="sub">10–24 Jul · 1 adult · 14 fares read</div>
+        </div>
+        <div class="edit">Edit</div>
+      </div>
+
+      <div class="pad">
+        <section class="read">
+          <span class="eyebrow">The honest read</span>
+          <p>The $318 is real. It's also two separate tickets, and nobody owns the trip but you.</p>
+          <p>Pay the $102 more. TAP carries you the whole way, so a late first flight is their problem.</p>
+          <p class="fine">Ranked by what these fares actually cost you. Never by what anyone pays us.</p>
+        </section>
+
+        <div class="sechead"><h3>All 14 fares</h3><span>Sorted by value</span></div>
+
+        <article class="fare pick">
+          <div class="tagrow"><span class="tag nav">Best buy</span></div>
+          <div class="farehead">
+            <h2>TAP Air Portugal</h2>
+            <div class="amt">$420<small>round trip</small></div>
+          </div>
+          <div class="course">
+            <span class="pt"></span><span class="seg on"></span>
+            <span class="pt mid"></span><span class="seg on"></span><span class="pt"></span>
+          </div>
+          <div class="courselbl"><span><b>MIA</b> 18:40</span><span>LIS · 1h 50m wait</span><span><b>BER</b> 13:10</span></div>
+          <p class="fact"><b>One ticket, both flights.</b> Miss the connection and TAP puts you on the next one.</p>
+          <p class="total">Bag +$35 · Seat +$12 → total <b>~$467</b></p>
+        </article>
+
+        <article class="fare">
+          <div class="tagrow"><span class="tag caution">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5" stroke-linecap="round"/></svg>
+            Separate tickets</span></div>
+          <div class="farehead">
+            <h2>Vueling + Ryanair</h2>
+            <div class="amt">$318<small>round trip</small></div>
+          </div>
+          <div class="course">
+            <span class="pt"></span><span class="seg warnseg"></span>
+            <span class="pt mid warn"></span><span class="seg warnseg"></span>
+            <span class="pt mid warn"></span><span class="seg warnseg"></span><span class="pt"></span>
+          </div>
+          <div class="courselbl"><span><b>MIA</b> 21:15</span><span>BCN · LGW</span><span><b>BER</b> 21:50</span></div>
+          <p class="fact"><b>Two bookings, two airlines.</b> If the first flight is late you lose the second ticket and pay again.</p>
+          <p class="total">Bag +$35 · Second bag +$41 → total <b>~$394</b></p>
+        </article>
+        <div style="height:14px"></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+  </div>
+
+  <!-- ============ DETAIL ============ -->
+  <div class="col">
+    <p class="cap">The cheap one, opened</p>
+    <div class="phone"><div class="screen">
+      <div class="status"><span>9:41</span><span class="icons">▮▮▯ ⌁ ▰</span></div>
+      <div class="topbar">
+        <div class="back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div><div class="route">Cheapest fare</div><div class="sub">21h 05m · 2 stops</div></div>
+      </div>
+
+      <div class="hero">
+        <div class="farehead">
+          <h2 style="font-size:24px">Vueling + Ryanair</h2>
+          <div class="amt">$318<small>round trip</small></div>
+        </div>
+      </div>
+
+      <div class="warn">
+        <div class="hd">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5" stroke-linecap="round"/><circle cx="12" cy="17.6" r="1.2" fill="currentColor" stroke="none"/></svg>
+          High risk — two separate tickets
+        </div>
+        <p>These are two separate tickets booked with two airlines. If your first flight is late and you miss the second, you lose that ticket and pay for a new one. Nobody is required to rebook you.</p>
+        <p>Your bag is not checked through. You collect it in Barcelona and check it in again yourself.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="stop warnstop">
+          <div class="t">18:40 &nbsp;Miami</div>
+          <div class="p">MIA · Vueling VY6402 · 9h 50m</div>
+        </div>
+        <div class="gap warngap">Ticket 1 ends here. <b>4h 20m wait</b> in Barcelona — collect your bag and check in again.</div>
+        <div class="stop warnstop">
+          <div class="t">13:05 &nbsp;Barcelona</div>
+          <div class="p">BCN · Ryanair FR8817 · 2h 15m</div>
+        </div>
+        <div class="gap warngap">Ticket 2. <b>3h 40m wait</b> in London Gatwick.</div>
+        <div class="stop warnstop">
+          <div class="t">21:50 &nbsp;Berlin</div>
+          <div class="p">BER · arrives next day</div>
+        </div>
+      </div>
+
+      <div class="costs">
+        <div class="cost"><span>Fare</span><b>$318</b></div>
+        <div class="cost"><span>Bag, first airline</span><b>+$35</b></div>
+        <div class="cost"><span>Bag, second airline</span><b>+$41</b></div>
+        <div class="cost sum"><span>What you'd actually pay</span><b>~$394</b></div>
+      </div>
+
+      <div class="grow"></div>
+      <div class="dock">
+        <button class="cta" style="background:none;border:1px solid var(--line);color:var(--text)">Book anyway on Vueling</button>
+        <p class="note">FareWise never takes your payment. You book with the airline.</p>
+        <div class="homebar"></div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+</body>
+</html>

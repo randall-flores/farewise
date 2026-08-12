@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FareWise — Direction 2: Dispatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --stock:#e6e7e4;      /* machine paper — cool grey, no yellow in it */
+    --stock-hi:#eff0ed;
+    --ink:#14171a;
+    --ink-60:#5c6469;
+    --ink-30:#9aa1a4;
+    --ribbon:#9e2f28;     /* typewriter ribbon red — warnings only */
+    --stamp:#2c4b7c;      /* rubber-stamp blue — the verdict, the release */
+    --rule:#c3c6c1;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:#d7d9d5;color:var(--ink);
+    font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px;line-height:1.6;
+    -webkit-font-smoothing:antialiased;padding:0 0 80px;
+  }
+  .prose{font-family:"IBM Plex Sans",system-ui,sans-serif}
+
+  /* the printout: tractor-feed paper with perforated edges */
+  .print{
+    max-width:960px;margin:0 auto;background:var(--stock);
+    box-shadow:0 2px 0 rgba(0,0,0,.10),0 18px 40px rgba(0,0,0,.16);
+    position:relative;padding:44px 74px 52px;
+    background-image:repeating-linear-gradient(180deg,transparent 0 27px,rgba(0,0,0,.022) 27px 54px);
+  }
+  .print::before,.print::after{
+    content:"";position:absolute;top:0;bottom:0;width:34px;
+    background-image:radial-gradient(circle,#d7d9d5 3.6px,transparent 3.8px);
+    background-size:34px 34px;background-position:center 16px;
+    border-right:1px dashed var(--rule);
+  }
+  .print::before{left:0}
+  .print::after{right:0;border-right:none;border-left:1px dashed var(--rule)}
+
+  .hr{border:0;border-top:1px solid var(--ink);margin:18px 0}
+  .hr.thin{border-top:1px solid var(--rule)}
+  .hr.dbl{border-top:3px double var(--ink)}
+
+  /* header block */
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:28px;flex-wrap:wrap}
+  .word{font-family:"IBM Plex Sans",sans-serif;font-weight:600;font-size:27px;letter-spacing:-.02em;line-height:1}
+  .word em{font-style:normal;color:var(--stamp)}
+  .sub{text-transform:uppercase;letter-spacing:.2em;font-size:10.5px;color:var(--ink-60);margin-top:7px}
+  .meta{font-size:12.5px;line-height:1.85;text-align:right}
+  .meta b{font-weight:600}
+  .meta span{color:var(--ink-60);display:inline-block;min-width:96px;text-align:left}
+
+  h2.sec{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.22em;
+    margin:30px 0 10px;color:var(--ink)}
+  h2.sec::after{content:"";display:block;border-top:1px solid var(--ink);margin-top:6px}
+
+  /* the stamped verdict */
+  .stamp{border:2px solid var(--stamp);color:var(--stamp);padding:16px 20px;margin:6px 0 0;
+    position:relative;transform:rotate(-.35deg);background:rgba(44,75,124,.045)}
+  .stamp .kick{text-transform:uppercase;letter-spacing:.22em;font-size:10.5px;font-weight:600;margin-bottom:9px}
+  .stamp p{font-family:"IBM Plex Sans",sans-serif;font-size:18px;line-height:1.45;
+    margin:0 0 7px;max-width:60ch;color:var(--ink)}
+  .stamp p:last-child{margin:0}
+  .stamp p b{color:var(--stamp);font-weight:600}
+
+  /* option blocks — fixed-width report rows */
+  .opt{margin-top:24px}
+  .optbar{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+    border-bottom:1px solid var(--ink);padding-bottom:5px;flex-wrap:wrap}
+  .optbar .id{font-weight:600;text-transform:uppercase;letter-spacing:.16em;font-size:12px}
+  .optbar .id .sel{background:var(--stamp);color:var(--stock-hi);padding:2px 7px;margin-right:9px}
+  .optbar .id .nosel{border:1px solid var(--ink-30);color:var(--ink-60);padding:2px 7px;margin-right:9px}
+  .optbar .amt{font-weight:600;font-size:26px;letter-spacing:-.01em}
+  .optbar .amt small{font-size:10.5px;font-weight:500;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-60);margin-left:9px}
+
+  table{width:100%;border-collapse:collapse;margin:12px 0 0;font-size:13px}
+  td,th{text-align:left;padding:4px 12px 4px 0;vertical-align:top}
+  th{font-weight:500;color:var(--ink-60);text-transform:uppercase;letter-spacing:.12em;
+    font-size:10.5px;width:132px;white-space:nowrap}
+  td b{font-weight:600}
+
+  .note{font-family:"IBM Plex Sans",sans-serif;font-size:15.5px;line-height:1.55;
+    margin:12px 0 0;max-width:66ch}
+
+  /* NOTAM-style warning */
+  .notam{border:2px solid var(--ribbon);margin:14px 0 0;background:rgba(158,47,40,.05)}
+  .notam .bar{background:var(--ribbon);color:#eff0ed;font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.2em;padding:5px 12px}
+  .notam .body{padding:12px 14px}
+  .notam p{margin:0;font-family:"IBM Plex Sans",sans-serif;font-size:15.5px;line-height:1.55;max-width:64ch}
+  .notam p+p{margin-top:8px}
+
+  .totals{margin-top:14px;border-top:1px dashed var(--rule);padding-top:9px;font-size:13px}
+  .totals b{font-weight:600}
+  .totals .t{font-size:15px}
+
+  a.book{display:inline-block;margin-top:16px;background:var(--stamp);color:var(--stock-hi);
+    text-decoration:none;font-weight:600;text-transform:uppercase;letter-spacing:.16em;
+    font-size:11.5px;padding:10px 16px}
+  a.book:hover{background:#223c66}
+  a.book.alt{background:none;color:var(--ink);border:1px solid var(--ink-30)}
+  a.book.alt:hover{background:var(--ink);color:var(--stock-hi)}
+
+  footer{margin-top:34px;border-top:3px double var(--ink);padding-top:12px;
+    display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+    font-size:11.5px;color:var(--ink-60);text-transform:uppercase;letter-spacing:.12em}
+  footer p{margin:0;max-width:62ch;text-transform:none;letter-spacing:0;font-size:13px;
+    font-family:"IBM Plex Sans",sans-serif;line-height:1.5}
+
+  .banner{background:var(--ink);color:var(--stock);padding:14px 28px;margin-bottom:26px}
+  .banner .n{text-transform:uppercase;letter-spacing:.2em;font-size:11px;opacity:.6}
+  .banner .t{font-family:"IBM Plex Sans",sans-serif;font-size:20px;font-weight:600;letter-spacing:-.01em}
+  .banner .d{font-size:12.5px;opacity:.78;max-width:76ch;font-family:"IBM Plex Sans",sans-serif}
+  .sw{display:flex;gap:6px;margin-top:8px}
+  .sw i{width:26px;height:14px;display:block;border:1px solid rgba(255,255,255,.3)}
+
+  @media(max-width:760px){
+    .print{padding:32px 30px 40px}
+    .print::before,.print::after{display:none}
+    .meta{text-align:left}
+    th{width:auto;display:block;padding-bottom:0}
+    td{display:block;padding-bottom:10px}
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="n">Direction 02</div>
+  <div class="t">Dispatch</div>
+  <div class="d">The flight dispatch release — the document a crew actually gets before a flight. Fixed-width report on tractor-feed paper, rubber-stamp blue for the verdict, ribbon red for the one thing that can hurt you. Density is the point: nothing is styled, everything is stated.</div>
+  <div class="sw">
+    <i style="background:#e6e7e4"></i><i style="background:#c3c6c1"></i><i style="background:#14171a"></i>
+    <i style="background:#2c4b7c"></i><i style="background:#9e2f28"></i>
+  </div>
+</div>
+
+<div class="print">
+  <div class="head">
+    <div>
+      <div class="word">Fare<em>Wise</em></div>
+      <div class="sub">Flight search that tells you the catch</div>
+    </div>
+    <div class="meta">
+      <div><span>ROUTE</span> <b>MIA — BER</b></div>
+      <div><span>DATES</span> <b>10 JUL / 24 JUL 2026</b></div>
+      <div><span>PARTY</span> <b>1 ADULT · ECONOMY</b></div>
+      <div><span>SOURCE</span> <b>LIVE FARES · 14 READ</b></div>
+    </div>
+  </div>
+
+  <hr class="hr dbl">
+
+  <h2 class="sec">The honest read</h2>
+  <div class="stamp">
+    <div class="kick">Recommendation · not sponsored · not reordered</div>
+    <p>The $318 is real. It is also <b>two separate tickets</b>, and nobody owns the trip but you.</p>
+    <p>Pay the $102 more. TAP carries you the whole way, and a late first flight becomes their problem.</p>
+  </div>
+
+  <h2 class="sec">Options read for this search</h2>
+
+  <div class="opt">
+    <div class="optbar">
+      <div class="id"><span class="sel">Best buy</span> TAP AIR PORTUGAL</div>
+      <div class="amt">$420 <small>round trip</small></div>
+    </div>
+    <table>
+      <tr><th>Outbound</th><td>MIA <b>18:40</b> → LIS <b>07:10</b> &nbsp;·&nbsp; TP202 &nbsp;·&nbsp; 7h 30m</td></tr>
+      <tr><th>Wait</th><td><b>1h 50m</b> in Lisbon</td></tr>
+      <tr><th>Onward</th><td>LIS <b>09:00</b> → BER <b>13:10</b> &nbsp;·&nbsp; TP534 &nbsp;·&nbsp; 3h 10m</td></tr>
+      <tr><th>Total time</th><td><b>11h 30m</b> · 1 stop</td></tr>
+      <tr><th>Ticket</th><td><b>One ticket</b>, both flights</td></tr>
+    </table>
+    <p class="note">One ticket, so if the first flight is late and you miss the second, TAP puts you on the next one. The 1h 50m wait in Lisbon is enough time on one ticket.</p>
+    <p class="totals">Bag <b>+$35</b> &nbsp;·&nbsp; Seat <b>+$12</b> &nbsp;→&nbsp; <span class="t">total <b>~$467</b></span></p>
+    <a class="book" href="#">Book with TAP →</a>
+  </div>
+
+  <hr class="hr thin" style="margin-top:30px">
+
+  <div class="opt">
+    <div class="optbar">
+      <div class="id"><span class="nosel">Cheapest</span> VUELING + RYANAIR</div>
+      <div class="amt">$318 <small>round trip</small></div>
+    </div>
+    <table>
+      <tr><th>Outbound</th><td>MIA <b>21:15</b> → BCN <b>13:05</b> &nbsp;·&nbsp; VY6402 &nbsp;·&nbsp; 9h 50m</td></tr>
+      <tr><th>Wait</th><td><b>4h 20m</b> in Barcelona &nbsp;·&nbsp; collect and re-check your bag</td></tr>
+      <tr><th>Onward</th><td>BCN → LGW &nbsp;·&nbsp; FR8817 &nbsp;·&nbsp; then LGW → BER</td></tr>
+      <tr><th>Total time</th><td><b>21h 05m</b> · 2 stops</td></tr>
+      <tr><th>Ticket</th><td><b>Two separate tickets</b></td></tr>
+    </table>
+    <div class="notam">
+      <div class="bar">▲ High risk — separate tickets</div>
+      <div class="body">
+        <p>These are two separate tickets booked with two airlines. If your first flight is late and you miss the second, you lose that ticket and pay for a new one. No one is required to rebook you.</p>
+        <p>Your bag is not checked through. You collect it in Barcelona and check it in again yourself, which is why the wait is 4h 20m and not shorter.</p>
+      </div>
+    </div>
+    <p class="totals">Bag <b>+$35</b> &nbsp;·&nbsp; Second airline bag <b>+$41</b> &nbsp;→&nbsp; <span class="t">total <b>~$394</b></span></p>
+    <a class="book alt" href="#">Book anyway →</a>
+  </div>
+
+  <footer>
+    <p>We don't inflate prices based on your search history. The airline's price at checkout can still move with market and currency — that part is outside our control.</p>
+    <div>FareWise · 12 AUG 2026 · PAGE 1 OF 1</div>
+  </footer>
+</div>
+
+</body>
+</html>
