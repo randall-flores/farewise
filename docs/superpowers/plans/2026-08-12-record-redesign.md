@@ -17,7 +17,7 @@
 - **Touch floor:** every interactive element ≥ 44px tall; form rows 66px; primary action 56px.
 - **Contrast:** WCAG 2.2 AA. `--ink-2` on `--card` and on `--bg` must both clear 4.5:1. Never signal with colour alone — every green/red state ships with an icon and a word.
 - **Voice unchanged:** state the fact, then why it matters, then stop. Risk warnings stay full, blunt, complete sentences.
-- **Copy is not in scope.** Do not rewrite existing product copy except the three strings this plan names explicitly.
+- **Copy is not in scope beyond this list.** Exactly seven strings change, each given verbatim in the task that owns it: the `h1` "Where to?" and its lead sentence (Task 3), the promise paragraph (Task 3), the submit label "Search flights" (Task 3), the results meta sentence (Task 4), `New search` → `Edit` (Task 4), the read's closing "Ranked by what these fares actually cost you…" line (Task 4), and `Explain` → `See every flight and fee` (Task 6). Every other user-facing string — every warning, error, empty-state, and booking message — is copied through unchanged.
 - **Do not touch:** `app/api/**`, `lib/**`, `next.config.mjs`, `jsconfig.json`.
 
 ---
