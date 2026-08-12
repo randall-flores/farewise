@@ -202,7 +202,7 @@
 .cabinSelect:focus-visible,
 .fieldInput:focus-visible,
 .swap button:focus-visible,
-.newSearch:focus-visible {
+.editButton:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
 }
@@ -476,7 +476,7 @@
   font-size: 14px;
   color: var(--ink-2);
 }
-.newSearch {
+.editButton {
   margin-left: auto;
   min-height: var(--tap);
   padding: 0 12px;
@@ -510,7 +510,11 @@
   line-height: 1.42;
   letter-spacing: -0.015em;
 }
-.readLine:last-of-type { margin-bottom: 0; }
+/* `:last-of-type` here would never match — `.readFine` is also a <p>, so it's
+   the real last-of-type <p>, not this one. Target the actual last `.readLine`
+   (the one immediately before `.readFine`) directly instead, so its 10px
+   bottom margin doesn't stack with `.readFine`'s 14px top margin. */
+.readLine:has(+ .readFine) { margin-bottom: 0; }
 .readFine {
   margin: 14px 0 0;
   padding-top: 14px;

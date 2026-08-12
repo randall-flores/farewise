@@ -803,6 +803,14 @@ export default function SearchExperience() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null); // { flights, riskMap, summary, verdicts }
   const [error, setError] = useState(null);
+  // True while the user has results but tapped "Edit" to change the search
+  // without losing it. Default false: on first load (no results yet) the form
+  // is the whole screen anyway, `showForm` below covers that case too.
+  const [editing, setEditing] = useState(false);
+  // The form (and the h1/lead above it) render only when there's nothing to
+  // show yet, or the user explicitly asked to edit — never stacked on top of
+  // results by default. See findings 1+2 in the Task 4 review.
+  const showForm = editing || !(data || loading);
   // Bumped on reset to remount the autocomplete fields (they hold their own
   // visible text, so clearing form state alone wouldn't empty the boxes).
   const [resetKey, setResetKey] = useState(0);
@@ -878,6 +886,7 @@ export default function SearchExperience() {
       return;
     }
     setLoading(true);
+    setEditing(false); // a resubmit always returns to the results view
     setError(null);
     setData(null);
     try {
@@ -906,7 +915,7 @@ export default function SearchExperience() {
         </p>
       </header>
 
-      {!(data || loading) && (
+      {showForm && (
         <>
           <h1 className={styles.h1}>Where to?</h1>
           <p className={styles.lead}>
@@ -915,129 +924,131 @@ export default function SearchExperience() {
         </>
       )}
 
-      <form className={styles.form} onSubmit={onSubmit}>
-        <div className={styles.fields}>
-          <AirportField
-            key={`origin-${resetKey}-${swapKey}`}
-            label="From"
-            name="origin"
-            initial={form.originLabel}
-            initialCommitted={Boolean(form.origin)}
-            onSelect={(code, label) => setForm((f) => ({ ...f, origin: code, originLabel: label }))}
-          />
-          <div className={styles.swap}>
-            <button type="button" aria-label="Swap origin and destination" onClick={swapOriginDestination}>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M7 4v16M7 20l-3-3M17 20V4M17 4l3 3" />
-              </svg>
-            </button>
-          </div>
-          <AirportField
-            key={`destination-${resetKey}-${swapKey}`}
-            label="To"
-            name="destination"
-            initial={form.destinationLabel}
-            initialCommitted={Boolean(form.destination)}
-            onSelect={(code, label) => setForm((f) => ({ ...f, destination: code, destinationLabel: label }))}
-          />
+      {showForm && (
+        <form className={styles.form} onSubmit={onSubmit}>
+          <div className={styles.fields}>
+            <AirportField
+              key={`origin-${resetKey}-${swapKey}`}
+              label="From"
+              name="origin"
+              initial={form.originLabel}
+              initialCommitted={Boolean(form.origin)}
+              onSelect={(code, label) => setForm((f) => ({ ...f, origin: code, originLabel: label }))}
+            />
+            <div className={styles.swap}>
+              <button type="button" aria-label="Swap origin and destination" onClick={swapOriginDestination}>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 4v16M7 20l-3-3M17 20V4M17 4l3 3" />
+                </svg>
+              </button>
+            </div>
+            <AirportField
+              key={`destination-${resetKey}-${swapKey}`}
+              label="To"
+              name="destination"
+              initial={form.destinationLabel}
+              initialCommitted={Boolean(form.destination)}
+              onSelect={(code, label) => setForm((f) => ({ ...f, destination: code, destinationLabel: label }))}
+            />
 
-          <div className={styles.fieldSplit}>
-            <label className={styles.field}>
-              <span className={styles.fieldKey}>Out</span>
-              <input
-                className={styles.fieldInput}
-                type="date"
-                name="depart"
-                value={form.depart}
-                onChange={update}
-                min={today}
-                required
-              />
-            </label>
-            {form.tripType === "round-trip" && (
+            <div className={styles.fieldSplit}>
               <label className={styles.field}>
-                <span className={styles.fieldKey}>Back</span>
+                <span className={styles.fieldKey}>Out</span>
                 <input
                   className={styles.fieldInput}
                   type="date"
-                  name="returnDate"
-                  value={form.returnDate}
+                  name="depart"
+                  value={form.depart}
                   onChange={update}
-                  min={form.depart || today}
+                  min={today}
+                  required
                 />
               </label>
-            )}
+              {form.tripType === "round-trip" && (
+                <label className={styles.field}>
+                  <span className={styles.fieldKey}>Back</span>
+                  <input
+                    className={styles.fieldInput}
+                    type="date"
+                    name="returnDate"
+                    value={form.returnDate}
+                    onChange={update}
+                    min={form.depart || today}
+                  />
+                </label>
+              )}
+            </div>
+
+            <div className={styles.fieldRow}>
+              <span className={styles.fieldKey}>Who</span>
+              <TravelersControl
+                counts={{
+                  adults: form.adults,
+                  children: form.children,
+                  infantsInSeat: form.infantsInSeat,
+                  infantsOnLap: form.infantsOnLap,
+                }}
+                onChange={(c) => setForm((f) => ({ ...f, ...c }))}
+              />
+              <select
+                className={styles.cabinSelect}
+                name="cabin"
+                value={form.cabin}
+                onChange={update}
+                aria-label="Cabin"
+              >
+                <option value="economy">Economy</option>
+                <option value="premium">Premium economy</option>
+                <option value="business">Business</option>
+                <option value="first">First class</option>
+              </select>
+            </div>
           </div>
 
-          <div className={styles.fieldRow}>
-            <span className={styles.fieldKey}>Who</span>
-            <TravelersControl
-              counts={{
-                adults: form.adults,
-                children: form.children,
-                infantsInSeat: form.infantsInSeat,
-                infantsOnLap: form.infantsOnLap,
-              }}
-              onChange={(c) => setForm((f) => ({ ...f, ...c }))}
-            />
-            <select
-              className={styles.cabinSelect}
-              name="cabin"
-              value={form.cabin}
-              onChange={update}
-              aria-label="Cabin"
+          <div className={styles.chips} role="group" aria-label="Trip type">
+            <button
+              type="button"
+              className={styles.chip}
+              aria-pressed={form.tripType === "round-trip"}
+              onClick={() => setTripType("round-trip")}
             >
-              <option value="economy">Economy</option>
-              <option value="premium">Premium economy</option>
-              <option value="business">Business</option>
-              <option value="first">First class</option>
-            </select>
+              Round trip
+            </button>
+            <button
+              type="button"
+              className={styles.chip}
+              aria-pressed={form.tripType === "one-way"}
+              onClick={() => setTripType("one-way")}
+            >
+              One way
+            </button>
           </div>
-        </div>
 
-        <div className={styles.chips} role="group" aria-label="Trip type">
-          <button
-            type="button"
-            className={styles.chip}
-            aria-pressed={form.tripType === "round-trip"}
-            onClick={() => setTripType("round-trip")}
-          >
-            Round trip
+          <p className={styles.promise}>
+            {/* JSX collapses the whitespace between a closing tag and same-line text at the
+                start of the next source line, so a plain space here silently disappears
+                (verified: it rendered as "history.The airline's" with no gap). {" "} forces
+                a real space that survives the collapse. */}
+            <b>We don&apos;t inflate prices based on your search history.</b>{" "}
+            The airline&apos;s price at checkout can still move with market and currency — that
+            part is outside our control.
+          </p>
+
+          <button className={styles.submit} type="submit" disabled={loading}>
+            {loading ? "Searching…" : "Search flights"}
           </button>
-          <button
-            type="button"
-            className={styles.chip}
-            aria-pressed={form.tripType === "one-way"}
-            onClick={() => setTripType("one-way")}
-          >
-            One way
-          </button>
-        </div>
-
-        <p className={styles.promise}>
-          {/* JSX collapses the whitespace between a closing tag and same-line text at the
-              start of the next source line, so a plain space here silently disappears
-              (verified: it rendered as "history.The airline's" with no gap). {" "} forces
-              a real space that survives the collapse. */}
-          <b>We don&apos;t inflate prices based on your search history.</b>{" "}
-          The airline&apos;s price at checkout can still move with market and currency — that
-          part is outside our control.
-        </p>
-
-        <button className={styles.submit} type="submit" disabled={loading}>
-          {loading ? "Searching…" : "Search flights"}
-        </button>
-      </form>
+        </form>
+      )}
 
       {loading && (
         <div className={styles.loading} role="status" aria-live="polite">
@@ -1062,17 +1073,19 @@ export default function SearchExperience() {
               <p className={styles.searchMeta} role="status" aria-live="polite">
                 {(() => {
                   const nights = nightsBetween(form.depart, form.returnDate);
+                  const count = data.flights.length;
+                  const noun = data.source === "serpapi" ? "live fare" : "demo fare";
                   return [
                     CABIN_LABEL[form.cabin] || form.cabin,
                     nights ? `${nights} ${nights === 1 ? "night" : "nights"}` : null,
-                    `${data.flights.length} ${data.source === "serpapi" ? "live fares" : "demo fares"} read`,
+                    `${count} ${noun}${count === 1 ? "" : "s"} read`,
                   ]
                     .filter(Boolean)
                     .join(" · ");
                 })()}
               </p>
             </div>
-            <button type="button" className={styles.newSearch} onClick={resetSearch}>
+            <button type="button" className={styles.editButton} onClick={() => setEditing(true)}>
               Edit
             </button>
           </div>
