@@ -189,9 +189,10 @@ function AirportField({ label, name, initial, onSelect }) {
 
   return (
     <label className={styles.field}>
-      <span>{label}</span>
+      <span className={styles.fieldKey}>{label}</span>
       <div className={styles.autocomplete}>
         <input
+          className={styles.fieldInput}
           name={name}
           value={text}
           onChange={onChange}
@@ -247,34 +248,6 @@ function AirportField({ label, name, initial, onSelect }) {
         </span>
       )}
     </label>
-  );
-}
-
-// Split-flap departure-board rendering of a route code (e.g. "MIA" -> three tiles).
-function FlapBoard({ origin, destination }) {
-  // On load nothing is chosen yet — show a dimmed sample route so the signature
-  // board is visible immediately, then brighten to the live route as they type.
-  const ghost = !origin && !destination;
-  const from = origin || "MIA";
-  const to = destination || "BER";
-  const tiles = (code) =>
-    String(code || "")
-      .toUpperCase()
-      .split("")
-      .map((ch, i) => (
-        <div key={i} className={styles.flap}>
-          <span>{ch}</span>
-        </div>
-      ));
-  return (
-    <div
-      className={`${styles.board} ${ghost ? styles.boardGhost : ""}`}
-      aria-label={ghost ? "Your route appears here" : `${origin} to ${destination}`}
-    >
-      <div className={styles.code}>{tiles(from)}</div>
-      <div className={styles.arrow}>→</div>
-      <div className={styles.code}>{tiles(to)}</div>
-    </div>
   );
 }
 
@@ -926,112 +899,123 @@ export default function SearchExperience() {
 
   return (
     <>
-      {/* Split hero: pitch + live board on the left, the search form on the right.
-          Collapses to a single column (and a tighter top margin) once a search runs. */}
-      <div className={`${styles.hero} ${data || loading ? styles.heroCompact : ""}`}>
-        <div className={styles.heroIntro}>
-          <p className={styles.kicker}>Flight search that tells you the truth</p>
-          <h1 className={styles.brand}>FareWise</h1>
-          <FlapBoard origin={form.origin} destination={form.destination} />
-        </div>
+      {/* App bar — the wordmark and nothing else. This is a tool, not a
+          landing page; the search card below is the first real thing. */}
+      <header className={styles.appbar}>
+        <p className={styles.brand}>
+          Fare<span>Wise</span>
+        </p>
+      </header>
 
-        <div className={styles.heroPitch}>
-          <p className={styles.subtitle}>
-            We don&apos;t book your flight or hide the catch. We compare the real
-            options, explain the trade-offs in plain language, then send you to book
-            direct.
+      {!(data || loading) && (
+        <>
+          <h1 className={styles.h1}>Where to?</h1>
+          <p className={styles.lead}>
+            We read every fare that comes back, then tell you what the cheap one costs you.
           </p>
-        </div>
+        </>
+      )}
 
-        <div className={styles.heroForm}>
-          <form className={styles.form} onSubmit={onSubmit}>
-            <p className={styles.formTitle}>Find your flight</p>
+      <form className={styles.form} onSubmit={onSubmit}>
+        <div className={styles.fields}>
+          <AirportField
+            key={`origin-${resetKey}`}
+            label="From"
+            name="origin"
+            initial={form.origin}
+            onSelect={(code) => setForm((f) => ({ ...f, origin: code }))}
+          />
+          <AirportField
+            key={`destination-${resetKey}`}
+            label="To"
+            name="destination"
+            initial={form.destination}
+            onSelect={(code) => setForm((f) => ({ ...f, destination: code }))}
+          />
 
-            {/* Context strip: trip type · travelers · cabin. Self-evident — no labels. */}
-            <div className={styles.contextStrip}>
-              {/* Trip type — segmented toggle. Same behavior: One way hides + clears Return. */}
-              <div className={styles.segmented} role="group" aria-label="Trip type">
-                <button
-                  type="button"
-                  className={`${styles.segment} ${form.tripType === "round-trip" ? styles.segmentActive : ""}`}
-                  aria-pressed={form.tripType === "round-trip"}
-                  onClick={() => setTripType("round-trip")}
-                >
-                  Round trip
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.segment} ${form.tripType === "one-way" ? styles.segmentActive : ""}`}
-                  aria-pressed={form.tripType === "one-way"}
-                  onClick={() => setTripType("one-way")}
-                >
-                  One way
-                </button>
-              </div>
-
-              {/* Travelers — opens the passenger counter popover. */}
-              <TravelersControl
-                counts={{
-                  adults: form.adults,
-                  children: form.children,
-                  infantsInSeat: form.infantsInSeat,
-                  infantsOnLap: form.infantsOnLap,
-                }}
-                onChange={(c) => setForm((f) => ({ ...f, ...c }))}
+          <div className={styles.fieldSplit}>
+            <label className={styles.field}>
+              <span className={styles.fieldKey}>Out</span>
+              <input
+                className={styles.fieldInput}
+                type="date"
+                name="depart"
+                value={form.depart}
+                onChange={update}
+                min={today}
+                required
               />
-
-              {/* Cabin — existing select, restyled to match the strip. */}
-              <select className={styles.cabinSelect} name="cabin" value={form.cabin} onChange={update} aria-label="Cabin">
-                <option value="economy">Economy</option>
-                <option value="premium">Premium economy</option>
-                <option value="business">Business</option>
-                <option value="first">First class</option>
-              </select>
-            </div>
-
-            {/* From / To — two equal columns, mono FROM/TO labels (from AirportField). */}
-            <div className={styles.row}>
-              <AirportField
-                key={`origin-${resetKey}`}
-                label="From"
-                name="origin"
-                initial={form.origin}
-                onSelect={(code) => setForm((f) => ({ ...f, origin: code }))}
-              />
-              <AirportField
-                key={`destination-${resetKey}`}
-                label="To"
-                name="destination"
-                initial={form.destination}
-                onSelect={(code) => setForm((f) => ({ ...f, destination: code }))}
-              />
-            </div>
-
-            {/* Depart / Return — two equal columns. Return only on round trip. */}
-            <div className={styles.row}>
+            </label>
+            {form.tripType === "round-trip" && (
               <label className={styles.field}>
-                <span>Depart</span>
-                <input type="date" name="depart" value={form.depart} onChange={update} min={today} required />
+                <span className={styles.fieldKey}>Back</span>
+                <input
+                  className={styles.fieldInput}
+                  type="date"
+                  name="returnDate"
+                  value={form.returnDate}
+                  onChange={update}
+                  min={form.depart || today}
+                />
               </label>
-              {form.tripType === "round-trip" && (
-                <label className={styles.field}>
-                  <span>Return</span>
-                  <input
-                    type="date"
-                    name="returnDate"
-                    value={form.returnDate}
-                    onChange={update}
-                    min={form.depart || today}
-                  />
-                </label>
-              )}
-            </div>
-            <button className={styles.submit} type="submit" disabled={loading}>
-              {loading ? "Searching…" : "Search flights →"}
-            </button>
-          </form>
+            )}
+          </div>
+
+          <div className={styles.fieldRow}>
+            <span className={styles.fieldKey}>Who</span>
+            <TravelersControl
+              counts={{
+                adults: form.adults,
+                children: form.children,
+                infantsInSeat: form.infantsInSeat,
+                infantsOnLap: form.infantsOnLap,
+              }}
+              onChange={(c) => setForm((f) => ({ ...f, ...c }))}
+            />
+            <select
+              className={styles.cabinSelect}
+              name="cabin"
+              value={form.cabin}
+              onChange={update}
+              aria-label="Cabin"
+            >
+              <option value="economy">Economy</option>
+              <option value="premium">Premium economy</option>
+              <option value="business">Business</option>
+              <option value="first">First class</option>
+            </select>
+          </div>
         </div>
-      </div>
+
+        <div className={styles.chips} role="group" aria-label="Trip type">
+          <button
+            type="button"
+            className={styles.chip}
+            aria-pressed={form.tripType === "round-trip"}
+            onClick={() => setTripType("round-trip")}
+          >
+            Round trip
+          </button>
+          <button
+            type="button"
+            className={styles.chip}
+            aria-pressed={form.tripType === "one-way"}
+            onClick={() => setTripType("one-way")}
+          >
+            One way
+          </button>
+        </div>
+
+        <p className={styles.promise}>
+          <b>We don&apos;t inflate prices based on your search history.</b> The airline&apos;s
+          price at checkout can still move with market and currency — that part is outside
+          our control.
+        </p>
+
+        <button className={styles.submit} type="submit" disabled={loading}>
+          {loading ? "Searching…" : "Search flights"}
+        </button>
+      </form>
 
       {loading && (
         <div className={styles.loading} role="status" aria-live="polite">

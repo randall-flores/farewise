@@ -9,198 +9,140 @@
   position: relative;
 }
 
-/* ---------- SPLIT HERO ---------- */
-/* Two columns: pitch + live board (left), search form (right). The min-height
-   pulls the block toward the vertical centre of the first screen so the page
-   reads as composed, not top-stranded. Collapses to one column on narrow views. */
-.hero {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  grid-template-areas:
-    "intro form"
-    "pitch form";
-  gap: clamp(18px, 3vw, 30px) clamp(28px, 5vw, 72px);
-  align-content: center;
-  min-height: min(78vh, 700px);
-}
-.heroCompact {
-  min-height: 0;
-  margin-bottom: clamp(8px, 2vw, 16px);
-}
-.heroIntro {
-  grid-area: intro;
+/* ---- app bar ---- */
+.appbar {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  align-self: end; /* hug the pitch around the vertical centre line */
-  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0 6px;
 }
-.heroPitch {
-  grid-area: pitch;
-  align-self: start;
-  min-width: 0;
+.brand {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
-.heroForm {
-  grid-area: form;
-  align-self: center;
-  width: 100%;
+.brand span { color: var(--navy); }
+
+.h1 {
+  font-size: 30px;
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  margin: 16px 0 6px;
+}
+.lead {
+  color: var(--ink-2);
+  font-size: 16px;
+  margin: 0;
+  max-width: 44ch;
 }
 
-/* Mobile: identity first, then the form (primary action), then the pitch.
-   Areas drive the visual order; only the form holds focusable elements, so
-   keyboard/focus order is unaffected by the reorder. */
-@media (max-width: 880px) {
-  .hero {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "intro"
-      "form"
-      "pitch";
-    align-content: start;
-    min-height: 0;
-    gap: 26px;
-  }
-  .heroIntro,
-  .heroPitch,
-  .heroForm { align-self: stretch; }
+/* ---- the field stack: one card, one row per fact ---- */
+.form { margin-top: 20px; }
+.fields {
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
 }
-
-/* ---------- HERO LEFT ---------- */
-.kicker {
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.34em;
+.fields > :first-child { border-radius: var(--r) var(--r) 0 0; }
+.fields > :last-child { border-radius: 0 0 var(--r) var(--r); }
+.field {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  min-height: 66px;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+.field:last-child { border-bottom: none; }
+.fieldKey {
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--amber);
-  margin: 0 0 18px;
+  color: var(--ink-2);
+  font-weight: 600;
+  width: 48px;
+  flex: none;
+}
+.fieldInput {
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: 6px 0;
+  min-height: 40px;
+}
+.fieldInput::placeholder { color: var(--ink-2); font-weight: 400; }
+.fieldInput:focus { outline: none; }
+.field:focus-within { background: var(--navy-tint); }
+.fieldSplit { display: flex; border-bottom: 1px solid var(--line); }
+.fieldSplit .field { flex: 1; border-bottom: none; }
+.fieldSplit .field + .field { border-left: 1px solid var(--line); }
+.fieldRow {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-.kicker::after {
-  content: "";
-  height: 1px;
-  flex: 1;
-  background: linear-gradient(90deg, var(--cream-12), transparent);
+  padding: 13px 16px;
+  min-height: 66px;
 }
 
-.brand {
-  font-size: clamp(2.8rem, 6vw, 4.4rem);
-  margin: 0 0 22px;
-}
-
-.subtitle {
-  font-size: 1.05rem;
-  color: var(--cream-60);
-  max-width: 46ch;
-  margin: 0;
-}
-
-/* split-flap route board */
-.board {
-  display: flex;
-  align-items: center;
-  gap: clamp(12px, 3vw, 26px);
-  flex-wrap: wrap;
-  margin: 4px 0 0;
-}
-/* on-load sample route: present but clearly a placeholder */
-.boardGhost { opacity: 0.5; }
-.code { display: flex; gap: 5px; }
-.flap {
-  position: relative;
-  width: clamp(42px, 11vw, 62px);
-  height: clamp(56px, 15vw, 84px);
-  background: linear-gradient(180deg, #16203a 0 50%, #0a1120 50% 100%);
-  border: 1px solid var(--cream-08);
-  border-radius: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--serif);
-  font-size: clamp(40px, 11vw, 60px);
-  color: var(--cream);
-  line-height: 1;
-  box-shadow: inset 0 1px 0 rgba(234, 238, 246, 0.05), 0 6px 16px rgba(0, 0, 0, 0.35);
-}
-.flap::before {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; top: 50%;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.55);
-  transform: translateY(-0.5px);
-}
-.flap span { transform: translateY(-2px); }
-.arrow {
-  color: var(--amber);
-  font-family: var(--serif);
-  font-size: clamp(34px, 8vw, 52px);
-  line-height: 1;
-  position: relative;
-  top: -2px;
-  filter: drop-shadow(0 0 10px rgba(255, 122, 26, 0.4));
-}
-
-/* ---------- FORM ---------- */
-/* Flat card — no gradient, no shadow (focus rings are the only lift). Calmer
-   and more minimal: solid surface, quiet hairline, generous row spacing. */
-.form {
+/* ---- trip type ---- */
+.chips { display: flex; gap: 9px; margin-top: 16px; }
+.chip {
+  padding: 11px 16px;
+  min-height: var(--tap);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-2);
   background: var(--card);
-  border: 1px solid var(--cream-12);
-  border-radius: var(--radius);
-  padding: clamp(22px, 3vw, 28px);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
 }
-/* form card header: gives the card a defined top edge */
-.formTitle {
-  margin: 0;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--cream-08);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-}
-.row { display: flex; gap: 16px; flex-wrap: wrap; }
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  flex: 1;
-  min-width: 140px;
+.chip[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+  font-weight: 600;
 }
 
-/* Mobile: stack every field full-width so date pickers and inputs never
-   collide. Dropping min-width lets them shrink to the viewport instead of
-   overflowing. */
-@media (max-width: 600px) {
-  .row { flex-direction: column; gap: 14px; }
-  .field { min-width: 0; width: 100%; }
-  /* Full-width submit sits in the thumb zone for one-handed phone use. */
-  .submit { align-self: stretch; width: 100%; text-align: center; }
+.promise {
+  margin: 20px 0 0;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.5;
 }
-.field span {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-}
-.field input,
-.field select {
+.promise b { color: var(--ink); font-weight: 600; }
+
+.submit {
+  display: block;
   width: 100%;
-  min-width: 0; /* let fields shrink to the card instead of forcing overflow */
-  max-width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--cream-12);
-  border-radius: 10px;
-  background: var(--page-2);
-  color: var(--cream);
-  font-family: var(--mono);
+  min-height: 56px;
+  margin-top: 16px;
+  border: none;
+  border-radius: 14px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+}
+.submit:hover { background: var(--navy-2); }
+.submit:disabled { opacity: 0.55; cursor: default; }
+
+/* One focus treatment for the whole app. */
+.chip:focus-visible,
+.submit:focus-visible,
+.cabinSelect:focus-visible,
+.fieldInput:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
 }
 
 /* Date inputs carry a UA minimum width on iOS/WebKit that ignores width:100%
@@ -275,7 +217,6 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.field input::placeholder { color: var(--cream-60); }
 
 /* Inline "pick from the list" error under an autocomplete field. */
 .fieldError {
@@ -284,83 +225,6 @@
   letter-spacing: 0.02em;
   color: var(--risk);
 }
-
-/* Native date inputs on the dark theme: the format hint (mm/dd/yyyy) and the
-   calendar icon are dark-on-dark by default, so an empty field looks blank.
-   Show the hint muted, brighten a real value, and make the icon visible. */
-.field input[type="date"]::-webkit-datetime-edit { color: var(--cream-60); }
-.field input[type="date"]:focus::-webkit-datetime-edit,
-.field input[type="date"]:valid::-webkit-datetime-edit { color: var(--cream); }
-.field input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.8);
-  cursor: pointer;
-}
-.field input:focus,
-.field select:focus {
-  outline: 2px solid var(--amber);
-  outline-offset: 1px;
-  border-color: transparent;
-}
-.submit {
-  width: 100%;
-  margin-top: 4px;
-  padding: 13px 24px;
-  text-align: center;
-  border: none;
-  border-radius: 10px;
-  background: var(--amber);
-  color: #070b14;
-  font-family: var(--mono);
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-.submit:hover { background: var(--amber-soft); }
-.submit:disabled { opacity: 0.55; cursor: default; }
-
-/* ---------- CONTEXT STRIP (trip type · travelers · cabin) ---------- */
-/* Three self-evident controls, left-aligned, no field labels. Flat inset fills,
-   hairline borders, equal 44px height. Wraps on narrow screens. */
-.contextStrip {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-/* Segmented trip-type toggle: two pills in a hairline container. Active pill is
-   filled amber with dark text; inactive is transparent, muted cream. */
-.segmented {
-  display: inline-flex;
-  gap: 3px;
-  padding: 3px;
-  background: var(--page-2);
-  border: 1px solid var(--cream-12);
-  border-radius: 10px;
-}
-.segment {
-  appearance: none;
-  border: none;
-  background: none;
-  cursor: pointer;
-  min-height: 38px;
-  padding: 9px 16px;
-  border-radius: 7px;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-  transition: background 0.15s ease, color 0.15s ease;
-}
-.segment:hover { color: var(--cream); }
-.segmentActive,
-.segmentActive:hover { background: var(--amber); color: var(--page); }
-.segment:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
 /* Travelers button + cabin select share the inset fill, hairline, height. */
 .travelers,
