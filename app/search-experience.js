@@ -821,6 +821,18 @@ export default function SearchExperience() {
   // Today, as YYYY-MM-DD, for the date inputs' `min` and the submit-time guard.
   const today = new Date().toISOString().slice(0, 10);
 
+  // The results screen's heading, focused programmatically the moment fresh
+  // results land. Without this, the form (and the Submit button holding
+  // focus) unmounts on submit and focus silently falls back to <body> — a
+  // keyboard/screen-reader user gets no indication of where they landed.
+  const resultsHeadingRef = useRef(null);
+  useEffect(() => {
+    // Only on the transition INTO results (data going from null to an
+    // object), never on every render — editing/resubmitting sets data back
+    // to null first, so this fires again exactly when new results appear.
+    if (data) resultsHeadingRef.current?.focus();
+  }, [data]);
+
   function update(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
@@ -1066,8 +1078,28 @@ export default function SearchExperience() {
       {data && (
         <section className={styles.results}>
           <div className={styles.searchbar}>
-            <div>
-              <p className={styles.searchRoute}>
+            <button
+              type="button"
+              className={styles.backButton}
+              onClick={resetSearch}
+              aria-label="Start a new search"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M15 5l-7 7 7 7" />
+              </svg>
+            </button>
+            <div className={styles.searchbarInfo}>
+              <p className={styles.searchRoute} ref={resultsHeadingRef} tabIndex={-1}>
                 {form.origin} → {form.destination}
               </p>
               <p className={styles.searchMeta} role="status" aria-live="polite">

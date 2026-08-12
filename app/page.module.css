@@ -202,7 +202,9 @@
 .cabinSelect:focus-visible,
 .fieldInput:focus-visible,
 .swap button:focus-visible,
-.editButton:focus-visible {
+.editButton:focus-visible,
+.backButton:focus-visible,
+.searchRoute:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
 }
@@ -465,6 +467,31 @@
   background: var(--bg);
   border-bottom: 1px solid var(--line-2);
 }
+/* Back arrow — "start over" (resetSearch). Bordered square on the card
+   surface, matching the mockup's `.topbar .back` treatment, sized to the
+   44px touch floor. */
+.backButton {
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+}
+/* Route + meta share the middle of the bar. min-width:0 lets them shrink
+   instead of pushing Edit off the right edge on a narrow phone. */
+.searchbarInfo {
+  flex: 1;
+  min-width: 0;
+}
+/* Focus target after a fresh search lands (see resultsHeadingRef). It takes
+   the same navy ring as every other focusable thing — :focus-visible only
+   matches on programmatic focus when the last input was the keyboard, so a
+   mouse user never sees it. */
 .searchRoute {
   margin: 0;
   font-size: 18px;
