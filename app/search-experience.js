@@ -105,7 +105,9 @@ function AirportField({ label, name, initial, onSelect }) {
   const [active, setActive] = useState(-1); // highlighted suggestion for arrow-key nav
   const [invalid, setInvalid] = useState(false); // typed something but never picked a real place
   const blurTimer = useRef(null);
-  const committed = useRef(Boolean(initial)); // a valid code is currently chosen for this field
+  // `initial` is now the friendly label (not the bare code), so this still reads
+  // correctly: a non-empty label means a real place was already chosen for this field.
+  const committed = useRef(Boolean(initial));
   const errorId = `${name}-error`;
 
   // Local, instant autocomplete over the bundled airport dataset — no network,
@@ -129,14 +131,16 @@ function AirportField({ label, name, initial, onSelect }) {
     const value = e.target.value;
     setText(value);
     setInvalid(false); // clear the error while they're still typing
-    // Let power users type a raw 3-letter code directly (e.g. "JFK").
+    // Let power users type a raw 3-letter code directly (e.g. "JFK"). The parent
+    // needs the label too (not just the code) so a later swap can restore this
+    // box's visible text — the label is just whatever's currently typed.
     const code = value.trim().toUpperCase();
     if (/^[A-Z]{3}$/.test(code)) {
       committed.current = true;
-      onSelect(code);
+      onSelect(code, value);
     } else {
       committed.current = false; // edited text no longer matches a chosen place
-      onSelect(""); // tell the parent this field has no valid code right now
+      onSelect("", value); // no valid code right now, but track what's actually in the box
     }
     if (value.trim().length >= 2) {
       // The airport dataset loads once on first use; after that this resolves
@@ -151,7 +155,7 @@ function AirportField({ label, name, initial, onSelect }) {
 
   function choose(place) {
     committed.current = true;
-    onSelect(place.code); // the parent stores the IATA code for the search
+    onSelect(place.code, place.label); // parent stores both the code (search) and label (display)
     setText(place.label); // the box shows the friendly label, e.g. "Berlin (BER) — Brandenburg"
     setResults([]);
     setActive(-1);
@@ -820,6 +824,11 @@ export default function SearchExperience() {
   const [form, setForm] = useState({
     origin: "",
     destination: "",
+    // The friendly display label for each field (e.g. "Berlin (BER) — Brandenburg"),
+    // kept alongside the bare code so a swap can restore the right text in each box —
+    // AirportField only knows its own box, not what the other one is showing.
+    originLabel: "",
+    destinationLabel: "",
     tripType: "round-trip",
     depart: "",
     returnDate: "",
@@ -833,6 +842,9 @@ export default function SearchExperience() {
   // Bumped on reset to remount the autocomplete fields (they hold their own
   // visible text, so clearing form state alone wouldn't empty the boxes).
   const [resetKey, setResetKey] = useState(0);
+  // Bumped on swap, same reason as resetKey: remounting the two fields with
+  // their new `initial` label is the only way to force the visible text to change.
+  const [swapKey, setSwapKey] = useState(0);
 
   // Today, as YYYY-MM-DD, for the date inputs' `min` and the submit-time guard.
   const today = new Date().toISOString().slice(0, 10);
@@ -848,8 +860,31 @@ export default function SearchExperience() {
     setForm((f) => ({ ...f, tripType, returnDate: tripType === "one-way" ? "" : f.returnDate }));
   }
 
+  // Swap From and To — code AND label together, in one update, so neither box
+  // ever shows a code that doesn't match its own displayed text.
+  function swapOriginDestination() {
+    setForm((f) => ({
+      ...f,
+      origin: f.destination,
+      destination: f.origin,
+      originLabel: f.destinationLabel,
+      destinationLabel: f.originLabel,
+    }));
+    setSwapKey((k) => k + 1);
+  }
+
   function resetSearch() {
-    setForm({ origin: "", destination: "", tripType: "round-trip", depart: "", returnDate: "", cabin: "economy", ...PASSENGER_DEFAULTS });
+    setForm({
+      origin: "",
+      destination: "",
+      originLabel: "",
+      destinationLabel: "",
+      tripType: "round-trip",
+      depart: "",
+      returnDate: "",
+      cabin: "economy",
+      ...PASSENGER_DEFAULTS,
+    });
     setData(null);
     setError(null);
     setResetKey((k) => k + 1);
@@ -919,18 +954,35 @@ export default function SearchExperience() {
       <form className={styles.form} onSubmit={onSubmit}>
         <div className={styles.fields}>
           <AirportField
-            key={`origin-${resetKey}`}
+            key={`origin-${resetKey}-${swapKey}`}
             label="From"
             name="origin"
-            initial={form.origin}
-            onSelect={(code) => setForm((f) => ({ ...f, origin: code }))}
+            initial={form.originLabel}
+            onSelect={(code, label) => setForm((f) => ({ ...f, origin: code, originLabel: label }))}
           />
+          <div className={styles.swap}>
+            <button type="button" aria-label="Swap origin and destination" onClick={swapOriginDestination}>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M7 4v16M7 20l-3-3M17 20V4M17 4l3 3" />
+              </svg>
+            </button>
+          </div>
           <AirportField
-            key={`destination-${resetKey}`}
+            key={`destination-${resetKey}-${swapKey}`}
             label="To"
             name="destination"
-            initial={form.destination}
-            onSelect={(code) => setForm((f) => ({ ...f, destination: code }))}
+            initial={form.destinationLabel}
+            onSelect={(code, label) => setForm((f) => ({ ...f, destination: code, destinationLabel: label }))}
           />
 
           <div className={styles.fieldSplit}>

@@ -45,8 +45,18 @@
   border: 1px solid var(--line-2);
   border-radius: var(--r);
 }
-.fields > :first-child { border-radius: var(--r) var(--r) 0 0; }
-.fields > :last-child { border-radius: 0 0 var(--r) var(--r); }
+/* Keep the card's rounded corners honest: `.fields` has no overflow:hidden
+   (that would clip the autocomplete dropdown), so whatever paints the corner
+   position must be rounded itself, or a `:focus-within` tint squares it off.
+   Covers both shapes a corner slot can take: a `.field` sitting there directly,
+   and a background-less wrapper (`.fieldSplit`, and `.swap` if it ever lands
+   there) whose actual painted `.field` is one level down. */
+.fields > :first-child { border-top-left-radius: var(--r); border-top-right-radius: var(--r); }
+.fields > :last-child { border-bottom-left-radius: var(--r); border-bottom-right-radius: var(--r); }
+.fields > :first-child .field:first-child { border-top-left-radius: var(--r); }
+.fields > :first-child .field:last-child { border-top-right-radius: var(--r); }
+.fields > :last-child .field:first-child { border-bottom-left-radius: var(--r); }
+.fields > :last-child .field:last-child { border-bottom-right-radius: var(--r); }
 .field {
   display: flex;
   align-items: center;
@@ -89,6 +99,32 @@
   gap: 12px;
   padding: 13px 16px;
   min-height: 66px;
+}
+
+/* ---- From/To swap ---- */
+/* Zero-height row so it takes no layout space; the button is pulled up by
+   `top: -24px` to straddle the seam between the From and To rows. */
+.swap { position: relative; height: 0; }
+.swap button {
+  position: absolute;
+  right: 18px;
+  top: -24px;
+  /* Both neighboring `.field` rows are also `position: relative` with no
+     z-index, so paint order would otherwise follow DOM order — meaning the To
+     field (which comes after this button in the markup) would paint over the
+     button's lower half whenever it picks up the `:focus-within` tint. This
+     lifts the button above both rows regardless of focus state. */
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
 }
 
 /* ---- trip type ---- */
@@ -140,7 +176,8 @@
 .chip:focus-visible,
 .submit:focus-visible,
 .cabinSelect:focus-visible,
-.fieldInput:focus-visible {
+.fieldInput:focus-visible,
+.swap button:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
 }
