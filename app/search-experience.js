@@ -73,6 +73,18 @@ function useFocusModality() {
   }, []);
 }
 
+// Split model text into lines. Same belt-and-suspenders idea as noEmDash: the
+// prompt asks for real line breaks, but a model can just as easily type the two
+// characters backslash-n, and those render on screen as "schedule.\nEdelweiss"
+// — code leaking into a sentence a traveler is trying to read. Accept either.
+function splitLines(text) {
+  if (typeof text !== "string") return [];
+  return text
+    .split(/\\r\\n|\\n|\r\n|\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
 // Belt-and-suspenders: the generation prompt forbids em dashes, but if one ever
 // slips through we never render it. Turn an em dash (or "--") into a comma break
 // so the plain-spoken voice holds in the UI too.
@@ -735,14 +747,11 @@ function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 
               </>
             )}
             {verdict?.explanation ? (
-              noEmDash(verdict.explanation)
-                .split("\n")
-                .filter(Boolean)
-                .map((p, i) => <p key={i}>{p}</p>)
+              splitLines(noEmDash(verdict.explanation)).map((p, i) => <p key={i}>{p}</p>)
             ) : readPending ? (
               // The flights above are real and final; only the written read is
               // still coming. Say which it is rather than claiming there's nothing.
-              <p>Still reading this one. The flights and warnings above are final.</p>
+              <p>Still comparing this one. The flights and warnings above are final.</p>
             ) : (
               <p>No further detail available.</p>
             )}
@@ -777,7 +786,7 @@ function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 
 const SEARCH_STAGES = [
   { id: "flights", label: "Searching flights" },
   { id: "returns", label: "Checking return flights", roundTripOnly: true },
-  { id: "read", label: "Reading the fine print" },
+  { id: "read", label: "Comparing the options" },
 ];
 
 function SearchProgress({ stage, roundTrip }) {
@@ -1332,17 +1341,14 @@ export default function SearchExperience() {
                       <i />
                       <i />
                     </span>
-                    Reading these {data.flights.length} fares and their fine print.
+                    Comparing these {data.flights.length} fares.
                   </p>
                 ) : (
-                  data.summary
-                    .split("\n")
-                    .filter(Boolean)
-                    .map((line, i) => (
-                      <p key={i} className={styles.readLine}>
-                        {renderHonestLine(noEmDash(line), data.flights)}
-                      </p>
-                    ))
+                  splitLines(data.summary).map((line, i) => (
+                    <p key={i} className={styles.readLine}>
+                      {renderHonestLine(noEmDash(line), data.flights)}
+                    </p>
+                  ))
                 )}
               </section>
 

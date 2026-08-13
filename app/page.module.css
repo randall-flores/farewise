@@ -627,7 +627,11 @@
 .readWaiting .working i { background: var(--navy-on); }
 /* The airline name and price that renderHonestLine pulls out of each line. */
 .leadAirline { font-weight: 600; }
-.leadPrice { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Not mono, unlike every other price in the app. Mono exists so a column of
+   figures lines up; here the price sits mid-sentence, where there is no column
+   to line up with and a full-width mono comma opens a visible gap in the middle
+   of "$1,311". Weight does the emphasis instead. */
+.leadPrice { font-weight: 600; font-variant-numeric: tabular-nums; }
 
 .insight {
   margin: 14px 0 0;

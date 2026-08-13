@@ -180,6 +180,8 @@ There is no display face. A product UI doesn't need one, and a decorative headli
 
 **The Mono-for-Digits Rule.** Times, prices, and airport codes are set in IBM Plex Mono with tabular figures, so a column of them lines up and the digits don't wobble as they change. Every human sentence is sans. The face tells the user whether they are reading a measurement or a judgement.
 
+The rule is about columns, not about digits: a figure sitting mid-sentence has nothing to line up with, and mono's full-width comma opens a visible gap inside "$1,311". Prices inside prose — the read block's lead-in — stay in the body face and take their emphasis from weight.
+
 ## 4. Elevation
 
 Nearly flat. Depth comes from tone and hairlines, not shadow: page grey → white card → sunk strip. Only genuinely floating layers cast anything.
@@ -213,7 +215,7 @@ One card, one row per fact, 66px per row, hairline between, label 48px wide on t
 Always visible, never behind a toggle, and generated in code rather than by the model. A tinted block with an icon plus an uppercase word (`Warning` / `Note`), then a full, blunt, complete sentence. This is the one place brevity loses to clarity.
 
 ### States
-- **Loading:** a stage list over three card-shaped skeletons. A live search can run half a minute, and at that length the user's problem is doubt, not boredom — so the route streams each phase as it truly begins (searching flights → checking return flights → reading the fine print) and each row turns from waiting to working to done. No spinner, and **no progress bar or percentage**: we don't know how long the data source will take, so any bar would be invented motion. The skeletons hold the space so nothing jumps when the real cards land.
+- **Loading:** a stage list over three card-shaped skeletons. A live search can run half a minute, and at that length the user's problem is doubt, not boredom — so the route streams each phase as it truly begins (searching flights → checking return flights → comparing the options) and each row turns from waiting to working to done. No spinner, and **no progress bar or percentage**: we don't know how long the data source will take, so any bar would be invented motion. The skeletons hold the space so nothing jumps when the real cards land.
 - **Error** (a real failure): the alert-edged block. We'd rather show nothing than prices we can't verify.
 - **Empty** (no flights for these dates): a calm white card. This is an answer, not a failure, and it must never be dressed as one.
 
