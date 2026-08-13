@@ -757,10 +757,16 @@
 .rwSep { display: inline-block; width: 10px; }
 /* +1 means the flight lands on a later calendar day. Never let that read as
    same-day: alert red, and the row carries an aria-label spelling it out. */
+/* "+2 days" sits inside a mono value but is a phrase, not a figure, so it takes
+   the body face — mono would space the word out and widen an already tight row.
+   nowrap keeps the number and its unit together if the row has to wrap. */
 .dayOffset {
-  margin-left: 4px;
-  color: var(--alert);
+  margin-left: 6px;
+  font-family: var(--body);
+  font-size: 14px;
   font-weight: 700;
+  color: var(--alert);
+  white-space: nowrap;
 }
 
 /* The one-line judgement, on the recessed surface so it reads as commentary

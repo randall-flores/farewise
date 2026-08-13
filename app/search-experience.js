@@ -324,11 +324,14 @@ function LegLine({ segments, stops, totalDuration, label }) {
               <span className={styles.rwSep}> </span>
               {dep} → {arr}
               {off > 0 && (
+                // Carries the word, not just the number. A bare red "+2" is a
+                // code the reader has to crack, and red on its own is exactly
+                // the signal-without-a-word this design forbids.
                 <span
                   className={styles.dayOffset}
                   aria-label={off === 1 ? "arrives the next day" : `arrives ${off} days later`}
                 >
-                  +{off}
+                  +{off} {off === 1 ? "day" : "days"}
                 </span>
               )}
             </>
@@ -373,7 +376,8 @@ function shortDate(iso) {
 
 // Whole-calendar-day difference between departure and arrival, from the DATE
 // parts only (Date.UTC avoids any timezone shift). 0 = same day, 1 = next day,
-// etc. Honesty: this is what powers the "+1" so we never imply same-day arrival.
+// etc. Honesty: this powers the "+1 day" / "+2 days" mark on the arrival time,
+// so a journey that lands on a later date can never read as same-day.
 function dayOffset(departIso, arriveIso) {
   const d = String(departIso || "").split("T")[0];
   const a = String(arriveIso || "").split("T")[0];
