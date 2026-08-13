@@ -17,101 +17,145 @@ function stripInternalIds(text) {
     .trim();
 }
 
+// This route STREAMS. A live round-trip search runs two deep SerpApi calls and
+// then a Claude call, which can take half a minute, and a page that shows nothing
+// for thirty seconds reads as broken. So instead of computing everything and
+// replying once at the end, we hold the connection open and write one small JSON
+// line per event as it happens. The browser reads those lines as they arrive.
+//
+// The format is NDJSON: one JSON object per line, newline-separated. Every line
+// is one of three things:
+//   { "stage": "flights" | "returns" | "read" }  a phase actually just began
+//   { "error": "..." }                           an honest down-state
+//   { "done": true, ...payload }                 the finished result
+//
+// Every stage line is written when that phase truly starts, never on a timer and
+// never predicted. The wait is real, so the report of it is too.
+//
+// One consequence worth knowing: an HTTP status is sent with the first byte, so
+// once the stream is open we can no longer answer 502. Failures therefore travel
+// as an `error` line inside a 200 response, and the client treats that line
+// exactly as it used to treat a non-OK status.
 export async function POST(request) {
   const search = await request.json();
+  const encoder = new TextEncoder();
 
-  // 1) Get the flights. Source is SerpApi in production (FAREWISE_DATA_SOURCE).
-  // We only ever reason over THIS data — nothing invented. On ANY failure or an
-  // empty result we DO NOT fall back to demo/fake data: we return an honest
-  // down-state. FareWise would rather show nothing than fares it can't verify.
-  let flights;
-  let priceInsights = null;
-  let source = "serpapi";
-  try {
-    ({ flights, priceInsights, source } = await getFlights(search));
-  } catch (err) {
-    console.error("flight source error:", err);
-    return Response.json(
-      {
-        error:
-          "We couldn't pull up verified fares for this search right now. FareWise won't show prices it can't stand behind — please try again in a moment.",
-      },
-      { status: 502 }
-    );
-  }
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (obj) => controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
 
-  // Genuine empty result (SerpApi returned successfully but no flights for these
-  // dates): a calm empty-state, NOT the red error. Skip the AI layer entirely.
-  if (!flights || flights.length === 0) {
-    return Response.json({
-      flights: [],
-      riskMap: {},
-      summary: "",
-      verdicts: {},
-      priceInsights,
-      source,
-      search: {
-        origin: search.origin,
-        destination: search.destination,
-        depart: search.depart,
-        returnDate: search.returnDate || "",
-      },
-    });
-  }
+      // 1) Get the flights. Source is SerpApi in production (FAREWISE_DATA_SOURCE).
+      // We only ever reason over THIS data — nothing invented. On ANY failure or an
+      // empty result we DO NOT fall back to demo/fake data: we send an honest
+      // down-state. FareWise would rather show nothing than fares it can't verify.
+      send({ stage: "flights" });
+      let flights;
+      let priceInsights = null;
+      let source = "serpapi";
+      try {
+        // getFlights reports "returns" itself, from inside the round-trip path,
+        // the moment the outbound call lands and the return call goes out.
+        ({ flights, priceInsights, source } = await getFlights(search, (stage) => send({ stage })));
+      } catch (err) {
+        console.error("flight source error:", err);
+        send({
+          error:
+            "We couldn't pull up verified fares for this search right now. FareWise won't show prices it can't stand behind. Please try again in a moment.",
+        });
+        controller.close();
+        return;
+      }
 
-  // 2) Explain. A failure here is different: we HAVE real flights, the AI layer
-  // just didn't respond. Say so honestly, separately from a data outage.
-  try {
-    // Deterministic honesty flags, computed in code (not left to the AI).
-    // The 2nd arg (all flights) is intentional — it lets detectRisks spot a
-    // possible mistake fare by comparing each price against the others.
-    const riskMap = {};
-    for (const f of flights) riskMap[f.id] = detectRisks(f, flights);
+      // Genuine empty result (SerpApi returned successfully but no flights for these
+      // dates): a calm empty-state, NOT the red error. Skip the AI layer entirely.
+      if (!flights || flights.length === 0) {
+        send({
+          done: true,
+          flights: [],
+          riskMap: {},
+          summary: "",
+          verdicts: {},
+          priceInsights,
+          source,
+          search: {
+            origin: search.origin,
+            destination: search.destination,
+            depart: search.depart,
+            returnDate: search.returnDate || "",
+          },
+        });
+        controller.close();
+        return;
+      }
 
-    // ONE Claude call: summary + per-flight verdict tags + explanations.
-    // priceInsights (per-search, real or null) lets Claude ground its read.
-    const result = await getComparison(flights, search, riskMap, priceInsights);
+      // 2) Explain. A failure here is different: we HAVE real flights, the AI layer
+      // just didn't respond. Say so honestly, separately from a data outage.
+      send({ stage: "read" });
+      try {
+        // Deterministic honesty flags, computed in code (not left to the AI).
+        // The 2nd arg (all flights) is intentional — it lets detectRisks spot a
+        // possible mistake fare by comparing each price against the others.
+        const riskMap = {};
+        for (const f of flights) riskMap[f.id] = detectRisks(f, flights);
 
-    // Map Claude's per-flight output by id, and clamp each verdict against OUR flags
-    // so a model slip can only make a card more cautious, never hide a risk.
-    const verdicts = {};
-    for (const item of result.flights || []) {
-      verdicts[item.id] = {
-        verdict: reconcileVerdict(item.verdict, riskMap[item.id] || []),
-        tag: stripInternalIds(item.tag),
-        explanation: stripInternalIds(item.explanation),
-      };
-    }
+        // ONE Claude call: summary + per-flight verdict tags + explanations.
+        // priceInsights (per-search, real or null) lets Claude ground its read.
+        const result = await getComparison(flights, search, riskMap, priceInsights);
 
-    // Echo the searched context so the client can request booking options later
-    // with the EXACT search that produced these results (not a since-edited form).
-    const searchContext = {
-      origin: search.origin,
-      destination: search.destination,
-      depart: search.depart,
-      returnDate: search.returnDate || "", // present -> booking uses the round-trip path
-      // Carry the party + cabin so "How to book" prices booking options for the
-      // same travelers/cabin as the results — not SerpApi's 1-adult, economy default.
-      cabin: search.cabin,
-      adults: search.adults,
-      children: search.children,
-      infantsInSeat: search.infantsInSeat,
-      infantsOnLap: search.infantsOnLap,
-    };
-    return Response.json({
-      flights,
-      riskMap,
-      summary: stripInternalIds(result.summary),
-      verdicts,
-      priceInsights,
-      source,
-      search: searchContext,
-    });
-  } catch (err) {
-    console.error("explain route error:", err);
-    return Response.json(
-      { error: "We found flights but couldn't generate the plain-language read just now. Try again in a moment." },
-      { status: 500 }
-    );
-  }
+        // Map Claude's per-flight output by id, and clamp each verdict against OUR flags
+        // so a model slip can only make a card more cautious, never hide a risk.
+        const verdicts = {};
+        for (const item of result.flights || []) {
+          verdicts[item.id] = {
+            verdict: reconcileVerdict(item.verdict, riskMap[item.id] || []),
+            tag: stripInternalIds(item.tag),
+            explanation: stripInternalIds(item.explanation),
+          };
+        }
+
+        // Echo the searched context so the client can request booking options later
+        // with the EXACT search that produced these results (not a since-edited form).
+        const searchContext = {
+          origin: search.origin,
+          destination: search.destination,
+          depart: search.depart,
+          returnDate: search.returnDate || "", // present -> booking uses the round-trip path
+          // Carry the party + cabin so "How to book" prices booking options for the
+          // same travelers/cabin as the results — not SerpApi's 1-adult, economy default.
+          cabin: search.cabin,
+          adults: search.adults,
+          children: search.children,
+          infantsInSeat: search.infantsInSeat,
+          infantsOnLap: search.infantsOnLap,
+        };
+        send({
+          done: true,
+          flights,
+          riskMap,
+          summary: stripInternalIds(result.summary),
+          verdicts,
+          priceInsights,
+          source,
+          search: searchContext,
+        });
+      } catch (err) {
+        console.error("explain route error:", err);
+        send({
+          error:
+            "We found flights but couldn't generate the plain-language read just now. Try again in a moment.",
+        });
+      }
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-store, no-transform",
+      // Tells any proxy in front of us not to hold the lines back and deliver
+      // them in one lump, which would defeat the whole point.
+      "X-Accel-Buffering": "no",
+    },
+  });
 }

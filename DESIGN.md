@@ -211,7 +211,7 @@ One card, one row per fact, 66px per row, hairline between, label 48px wide on t
 Always visible, never behind a toggle, and generated in code rather than by the model. A tinted block with an icon plus an uppercase word (`Warning` / `Note`), then a full, blunt, complete sentence. This is the one place brevity loses to clarity.
 
 ### States
-- **Loading:** three card-shaped skeletons under a status line. No spinner — a spinner says only "wait", a skeleton says what's coming and holds the space so nothing jumps when it lands.
+- **Loading:** a stage list over three card-shaped skeletons. A live search can run half a minute, and at that length the user's problem is doubt, not boredom — so the route streams each phase as it truly begins (searching flights → checking return flights → reading the fine print) and each row turns from waiting to working to done. No spinner, and **no progress bar or percentage**: we don't know how long the data source will take, so any bar would be invented motion. The skeletons hold the space so nothing jumps when the real cards land.
 - **Error** (a real failure): the alert-edged block. We'd rather show nothing than prices we can't verify.
 - **Empty** (no flights for these dates): a calm white card. This is an answer, not a failure, and it must never be dressed as one.
 
@@ -243,6 +243,7 @@ The **"Night Departure Board"** system is retired, not paused: night navy and wa
 - **Don't** hide a warning behind a disclosure, ever.
 - **Don't** put an explaining sentence under a heading. If the control below it already shows what the thing does, the sentence is filler and reads as machine-written padding. "Where to?" stands alone above the form.
 - **Don't** tell the user how FareWise gets paid, in any wording. Ranking honestly is the behaviour; announcing it invites the question of who pays and what it bought. Volunteering the disclaimer reads as defensive, not transparent.
+- **Don't** show a progress bar, a percentage, or any indicator that implies we know how much of the wait is left. Report phases that have actually happened; never predict.
 - **Don't** use an em dash or an en dash in anything a user reads — copy, labels, warnings, ranges, or generated text. Use a full stop, a comma, or the word "to" for a range. The dash is the loudest tell that a sentence was machine-written.
 
 ## 8. Dark theme

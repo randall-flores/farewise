@@ -712,6 +712,61 @@ function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 
   );
 }
 
+// The phases of a search, in the order they run. Each one is reported by the
+// server the moment it actually begins, so this list is a record of what has
+// happened, never a guess at how far along we are. There is no progress bar for
+// the same reason: we don't know how long SerpApi will take, and inventing a
+// percentage would be the one kind of dishonesty this product exists to avoid.
+const SEARCH_STAGES = [
+  { id: "flights", label: "Searching flights" },
+  { id: "returns", label: "Checking return flights", roundTripOnly: true },
+  { id: "read", label: "Reading the fine print" },
+];
+
+function SearchProgress({ stage, roundTrip }) {
+  const steps = SEARCH_STAGES.filter((s) => roundTrip || !s.roundTripOnly);
+  // Before the first line arrives, the first step is already underway — the
+  // server sends it immediately, so treating it as active is true, not optimistic.
+  const currentIndex = Math.max(
+    0,
+    steps.findIndex((s) => s.id === stage)
+  );
+  const current = steps[currentIndex];
+
+  return (
+    <div className={styles.progress}>
+      {/* One polite announcement per change. The list below is the visual
+          version of the same thing, so screen readers hear it once, not twice. */}
+      <p className={styles.srOnly} role="status" aria-live="polite">
+        {current.label}
+      </p>
+      <ol className={styles.stages} aria-hidden="true">
+        {steps.map((s, i) => {
+          const state = i < currentIndex ? "done" : i === currentIndex ? "active" : "waiting";
+          return (
+            <li key={s.id} className={styles.stageRow} data-state={state}>
+              <span className={styles.stageMark}>
+                {state === "done" ? (
+                  "✓"
+                ) : state === "active" ? (
+                  <span className={styles.working}>
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                ) : (
+                  "·"
+                )}
+              </span>
+              {s.label}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
 // Travelers selector: a button showing the party summary that opens a popover of
 // four counter rows. Controlled — counts live in the parent form state; this owns
 // only the open/closed state. All count rules live in lib/passengers (adjust /
@@ -823,6 +878,7 @@ export default function SearchExperience() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [stage, setStage] = useState(null); // which phase the server says it's in
   const [data, setData] = useState(null); // { flights, riskMap, summary, verdicts }
   const [error, setError] = useState(null);
   // True while the user has results but tapped "Edit" to change the search
@@ -923,19 +979,59 @@ export default function SearchExperience() {
     setEditing(false); // a resubmit always returns to the results view
     setError(null);
     setData(null);
+    setStage(null);
     try {
       const res = await fetch("/api/explain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const json = await res.json();
-      if (json.error) setError(json.error);
-      else setData(json);
+
+      // The route answers in NDJSON: one JSON object per line, written as each
+      // phase actually happens. Read the body as it arrives instead of waiting
+      // for the whole thing, so the wait can report itself.
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let settled = false; // saw a `done` or `error` line
+
+      // A chunk can split mid-line, so keep the tail in `buffer` until its
+      // newline shows up in the next chunk.
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop(); // the last piece may be a partial line
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          let msg;
+          try {
+            msg = JSON.parse(line);
+          } catch {
+            continue; // never let one malformed line kill a good search
+          }
+          if (msg.stage) setStage(msg.stage);
+          else if (msg.error) {
+            setError(msg.error);
+            settled = true;
+          } else if (msg.done) {
+            setData(msg);
+            settled = true;
+          }
+        }
+      }
+
+      // The connection ended without a verdict: the function died mid-flight, or
+      // something between us dropped it. Say so rather than sitting on a spinner.
+      if (!settled) {
+        setError("The search stopped before it finished. Try again in a moment.");
+      }
     } catch {
       setError("Couldn't reach FareWise. Check your connection and try again.");
     } finally {
       setLoading(false);
+      setStage(null);
     }
   }
 
@@ -1077,13 +1173,12 @@ export default function SearchExperience() {
         </form>
       )}
 
-      {/* A spinner says only "wait". Three card-shaped placeholders say what is
-          arriving, and hold the space so the layout doesn't jump when it does. */}
+      {/* A live search can run half a minute. The stage list says where that time
+          is going, and the placeholders hold the space so nothing jumps when the
+          real cards land. */}
       {loading && (
         <div className={styles.loadingWrap}>
-          <p className={styles.loadingNote} role="status" aria-live="polite">
-            Reading the real options and the fine print…
-          </p>
+          <SearchProgress stage={stage} roundTrip={Boolean(form.returnDate)} />
           {[0, 1, 2].map((i) => (
             <div key={i} className={styles.skeleton} aria-hidden="true">
               <div className={styles.skLine} style={{ width: "45%", height: 20 }} />

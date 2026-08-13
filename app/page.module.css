@@ -409,7 +409,61 @@
 /* Placeholders in the shape of what's coming, so the answer lands in the space
    already held for it. */
 .loadingWrap { padding-top: 18px; }
-.loadingNote { margin: 0 0 14px; font-size: 16px; color: var(--ink-2); }
+
+/* The stage list. Each row is a phase the server said it reached, so a row
+   turning from waiting to working is real evidence, not decoration. */
+.progress { margin: 0 0 18px; }
+.stages { list-style: none; margin: 0; padding: 0; }
+.stageRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  font-size: 16px;
+  color: var(--ink-2);
+}
+.stageRow[data-state="active"] { color: var(--ink); font-weight: 600; }
+.stageRow[data-state="waiting"] { opacity: 0.55; }
+.stageMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  flex: none;
+}
+.stageRow[data-state="done"] .stageMark { color: var(--ok); font-weight: 700; }
+
+/* Three dots breathing in sequence: enough to read as "working" without
+   pretending to know how far along it is. Frozen under reduced motion by the
+   global guard in globals.css, where the row still reads as the active one
+   through its weight and colour. */
+.working { display: inline-flex; gap: 3px; }
+.working i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ink);
+  animation: working 1.1s ease-in-out infinite;
+}
+.working i:nth-child(2) { animation-delay: 0.15s; }
+.working i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes working {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+/* Announced, never shown — the visible list carries the same information. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
 .skeleton {
   background: var(--card);
   border: 1px solid var(--line);
