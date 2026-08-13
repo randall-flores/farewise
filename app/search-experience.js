@@ -20,6 +20,29 @@ function usePrefersReducedMotion() {
   return reduce;
 }
 
+// Open a date field's calendar when the field is clicked.
+//
+// On desktop Chrome a date input only opens its picker from the little glyph at
+// the end — clicking the digits just moves between the day/month/year segments.
+// We replaced that glyph with the form's own chevron, so the picker needs its
+// own way in, and "click the field" is what people expect anyway.
+//
+// This lives on the input rather than the surrounding row: a <label> forwards a
+// click to the control it labels, and that forwarded click bubbles back up, so
+// a handler on the row would run twice per click. The second showPicker() lands
+// on an already-open picker and can shut it again. On the input it runs once,
+// whether the person clicked the digits, the chevron, or the "Out" label.
+function openDatePicker(e) {
+  // showPicker throws if the browser blocks it (no user gesture, cross-origin
+  // frame) and doesn't exist before ~2022. It's an enhancement either way: the
+  // field is still typable, and mobile opens its own picker on tap regardless.
+  try {
+    e.currentTarget.showPicker?.();
+  } catch {
+    /* fall back to typing the date */
+  }
+}
+
 // Records whether the person is currently driving the page with a pointer or
 // with the keyboard, as `data-focus` on <html>.
 //
@@ -1139,6 +1162,7 @@ export default function SearchExperience() {
                   name="depart"
                   value={form.depart}
                   onChange={update}
+                  onClick={openDatePicker}
                   min={today}
                   required
                 />
@@ -1152,6 +1176,7 @@ export default function SearchExperience() {
                     name="returnDate"
                     value={form.returnDate}
                     onChange={update}
+                    onClick={openDatePicker}
                     min={form.depart || today}
                   />
                 </label>

@@ -235,16 +235,14 @@
   background-position: right center;
   background-size: 12px;
 }
-/* Chrome's own indicator stays where it is and stays clickable — it's just
-   made invisible and stretched over our chevron, so the picker still opens
-   from the glyph the user can see. Firefox and Safari draw no indicator and
-   open the picker from the field itself, so they lose nothing. */
+/* Chrome's own indicator goes entirely, rather than being hidden and left in
+   place: an invisible control sitting under our chevron would open the picker
+   itself and then be told to open it again by the row's click handler, which
+   reads as a picker that flashes and shuts. One way in, ours — the whole row
+   opens it (see openDatePicker). */
 .field input[type="date"]::-webkit-calendar-picker-indicator {
-  width: 20px;
-  margin: 0;
-  padding: 0;
-  opacity: 0;
-  cursor: pointer;
+  display: none;
+  -webkit-appearance: none;
 }
 
 /* Airport autocomplete */
