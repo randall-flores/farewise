@@ -317,12 +317,13 @@
 
 /* Travelers button and cabin select are the two bordered controls on the form.
    They share a shape so the last row reads as one pair. */
-/* flex-basis auto, not 0: "2 adults" needs more room than "Economy", and an
-   even 50/50 split forces the wider one to truncate on a narrow phone. Sized by
-   content, shrinking proportionally when the row runs out of width. */
+/* An even split. Basis auto looks tempting — let each control take the width its
+   content wants — but only .cabinSelect is a flex item of the row; the travelers
+   button sits inside .travelersWrap, so basis auto sized the select against a
+   wrapper still on basis 0 and squeezed the button down to its icon. */
 .travelers,
 .cabinSelect {
-  flex: 1 1 auto;
+  flex: 1;
   min-width: 0;
   min-height: var(--tap);
   border: 1px solid var(--line-2);
@@ -345,8 +346,11 @@
   gap: 8px;
   width: 100%;
   padding: 0 12px;
+  /* The chevron is flex:none and so can't shrink. If the row ever squeezes this
+     button, clip it here rather than let it escape the border and land on top
+     of the control next door. */
+  overflow: hidden;
 }
-.travelersIcon,
 .travelersChev { flex: none; color: var(--ink-2); }
 .travelersCount {
   flex: 1;

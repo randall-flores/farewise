@@ -885,10 +885,10 @@ function TravelersControl({ counts, onChange }) {
         aria-label={`Travelers: ${summary}`}
         onClick={() => setOpen((o) => !o)}
       >
-        <svg className={styles.travelersIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
+        {/* No person icon here. The row's own "Who" label already says what this
+            control is, so the icon repeated it while eating width the count
+            needs — and when the row squeezed, the icon was the part that
+            survived, leaving a button that said nothing at all. */}
         <span className={styles.travelersCount}>{summary}</span>
         <svg className={styles.travelersChev} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="m6 9 6 6 6-6" />
