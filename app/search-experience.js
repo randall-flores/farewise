@@ -1084,10 +1084,20 @@ export default function SearchExperience() {
         </form>
       )}
 
+      {/* A spinner says only "wait". Three card-shaped placeholders say what is
+          arriving, and hold the space so the layout doesn't jump when it does. */}
       {loading && (
-        <div className={styles.loading} role="status" aria-live="polite">
-          <div className={styles.spinner} />
-          <p>Reading the real options and the fine print…</p>
+        <div className={styles.loadingWrap}>
+          <p className={styles.loadingNote} role="status" aria-live="polite">
+            Reading the real options and the fine print…
+          </p>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className={styles.skeleton} aria-hidden="true">
+              <div className={styles.skLine} style={{ width: "45%", height: 20 }} />
+              <div className={styles.skLine} style={{ width: "72%" }} />
+              <div className={styles.skLine} style={{ width: "60%" }} />
+            </div>
+          ))}
         </div>
       )}
 
