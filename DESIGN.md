@@ -144,7 +144,7 @@ The system rejects the **generic SaaS dashboard** (no identical card grids, no g
 - **Record Navy** (`#1e3f77`): the finding block, the primary action, the seller link, the disclosure buttons, the focus ring. 10.3:1 with white on it, 10.3:1 as text on white.
 - **Navy 2** (`#16305c`): hover and pressed.
 - **Navy Tint** (`#e8eef8`): the "cheapest" tag, the highlighted autocomplete row, the focused form row.
-- **Navy On** (`#a8c0e6`): secondary text *on* the navy block — the kicker and the closing fine print. 5.6:1 on navy.
+- **Navy On** (`#a8c0e6`): secondary text *on* the navy block — the kicker. 5.6:1 on navy.
 
 ### The signal
 - **Alert** (`#9c2028`): the catch — separate tickets, a tight connection, a suspiciously low fare, a next-day arrival, a real failure. 7.9:1 on white, 7.0:1 on its own tint.
@@ -196,7 +196,7 @@ Nearly flat. Depth comes from tone and hairlines, not shadow: page grey → whit
 One fact per row: a label in `ink-2` on the left, the value right-aligned in 600 weight, a hairline between. This is the component the whole system is named for. Route and times sit in mono so two cards can be compared down the column; everything else is sans. Total cost is the last row, and when the data source doesn't itemise fees it says `fare only · fees not listed` rather than implying a total we don't have.
 
 ### The finding block (signature)
-The honest read: a filled navy card, an uppercase kicker in `navy-on`, then the lines as plain 19px paragraphs — no bullets, because inside a filled block a bullet is decoration. It closes with a hairline and one line of fine print stating that ranking is by cost to the user, never by what anyone pays us.
+The honest read: a filled navy card, an uppercase kicker in `navy-on`, then the lines as plain 19px paragraphs — no bullets, because inside a filled block a bullet is decoration. It ends on the last line of the read. Nothing follows it explaining how FareWise makes money; a page that volunteers that reads as a page with something to defend.
 
 ### Buttons
 - **Primary:** navy fill, white text, 14px radius, 56px tall, full width. One per screen.
@@ -241,6 +241,9 @@ The **"Night Departure Board"** system is retired, not paused: night navy and wa
 - **Don't** introduce a second accent hue. Navy is the voice; red and green exist only as the signal.
 - **Don't** render text below 12.5px, and don't use the label tier for anything but labels.
 - **Don't** hide a warning behind a disclosure, ever.
+- **Don't** put an explaining sentence under a heading. If the control below it already shows what the thing does, the sentence is filler and reads as machine-written padding. "Where to?" stands alone above the form.
+- **Don't** tell the user how FareWise gets paid, in any wording. Ranking honestly is the behaviour; announcing it invites the question of who pays and what it bought. Volunteering the disclaimer reads as defensive, not transparent.
+- **Don't** use an em dash or an en dash in anything a user reads — copy, labels, warnings, ranges, or generated text. Use a full stop, a comma, or the word "to" for a range. The dash is the loudest tell that a sentence was machine-written.
 
 ## 8. Dark theme
 

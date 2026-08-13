@@ -118,7 +118,7 @@ function AirportField({ label, name, initial, initialCommitted, onSelect }) {
   function choose(place) {
     committed.current = true;
     onSelect(place.code, place.label); // parent stores both the code (search) and label (display)
-    setText(place.label); // the box shows the friendly label, e.g. "Berlin (BER) — Brandenburg"
+    setText(place.label); // the box shows the friendly label, e.g. "Berlin (BER), Brandenburg"
     setResults([]);
     setActive(-1);
     setOpen(false);
@@ -219,11 +219,12 @@ function AirportField({ label, name, initial, initialCommitted, onSelect }) {
 
 const CABIN_LABEL = { economy: "Economy", premium: "Premium economy", business: "Business", first: "First class" };
 
-// Build the board-style route line ("MIA — LIS — BER") from the segments.
+// Build the route line ("MIA → LIS → BER") from the segments. The arrow reads
+// as "then", the same as it does between the two clock times beside it.
 function routeCodes(segments = []) {
   const first = segments[0]?.from;
   const rest = segments.map((s) => s.to);
-  return [first, ...rest].filter(Boolean).join(" — ");
+  return [first, ...rest].filter(Boolean).join(" → ");
 }
 
 // One leg as two record rows: where it goes and when (mono, so the digits line
@@ -284,10 +285,10 @@ function priceInsightLine(pi) {
   const money = (n) => formatMoney(n, "USD");
   const range = pi.typicalPriceRange;
   if (pi.priceLevel && range) {
-    return `Prices for this route are currently ${pi.priceLevel} — typical range ${money(range[0])}–${money(range[1])}.`;
+    return `Prices for this route are currently ${pi.priceLevel}. Typical range ${money(range[0])} to ${money(range[1])}.`;
   }
   if (pi.priceLevel) return `Prices for this route are currently ${pi.priceLevel}.`;
-  if (range) return `Typical price for this route: ${money(range[0])}–${money(range[1])}.`;
+  if (range) return `Typical price for this route: ${money(range[0])} to ${money(range[1])}.`;
   return null;
 }
 
@@ -473,8 +474,7 @@ function BookOptions({ token, search }) {
           {options && options.length > 0 && (
             <>
               <p className={styles.bookNote}>
-                Live bookable prices — these are what the seller charges and can differ from the
-                price above.
+                These are live prices from each seller. They can differ from the price above.
               </p>
               <ul className={styles.bookList}>
                 {options.map((o, i) => (
@@ -718,7 +718,7 @@ function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 
 // canIncrement / canDecrement), so the buttons just call them.
 const TRAVELER_ROWS = [
   { type: "adults", label: "Adults" },
-  { type: "children", label: "Children", hint: "2–11" },
+  { type: "children", label: "Children", hint: "2 to 11" },
   { type: "infantsInSeat", label: "Infants in seat" },
   { type: "infantsOnLap", label: "Infants on lap" },
 ];
@@ -810,7 +810,7 @@ export default function SearchExperience() {
   const [form, setForm] = useState({
     origin: "",
     destination: "",
-    // The friendly display label for each field (e.g. "Berlin (BER) — Brandenburg"),
+    // The friendly display label for each field (e.g. "Berlin (BER), Brandenburg"),
     // kept alongside the bare code so a swap can restore the right text in each box —
     // AirportField only knows its own box, not what the other one is showing.
     originLabel: "",
@@ -949,14 +949,7 @@ export default function SearchExperience() {
         </p>
       </header>
 
-      {showForm && (
-        <>
-          <h1 className={styles.h1}>Where to?</h1>
-          <p className={styles.lead}>
-            We read every fare that comes back, then tell you what the cheap one costs you.
-          </p>
-        </>
-      )}
+      {showForm && <h1 className={styles.h1}>Where to?</h1>}
 
       {showForm && (
         <form className={styles.form} onSubmit={onSubmit}>
@@ -1074,7 +1067,7 @@ export default function SearchExperience() {
                 (verified: it rendered as "history.The airline's" with no gap). {" "} forces
                 a real space that survives the collapse. */}
             <b>We don&apos;t inflate prices based on your search history.</b>{" "}
-            The airline&apos;s price at checkout can still move with market and currency — that
+            The airline&apos;s price at checkout can still move with market and currency. That
             part is outside our control.
           </p>
 
@@ -1174,9 +1167,6 @@ export default function SearchExperience() {
                       {renderHonestLine(noEmDash(line), data.flights)}
                     </p>
                   ))}
-                <p className={styles.readFine}>
-                  Ranked by what these fares actually cost you. Never by what anyone pays us.
-                </p>
               </section>
 
               {/* Real per-search price context from SerpApi (price_insights).
@@ -1216,7 +1206,7 @@ export default function SearchExperience() {
           )}
 
           {data.source !== "serpapi" && (
-            <p className={styles.foot}>Demo fares — hand-written sample data, not live prices.</p>
+            <p className={styles.foot}>Demo fares. Hand-written sample data, not live prices.</p>
           )}
         </section>
       )}

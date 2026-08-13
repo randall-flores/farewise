@@ -24,18 +24,14 @@
 }
 .brand span { color: var(--navy); }
 
+/* The whole prompt. Nothing under it explains the product, because the form
+   directly below already does. */
 .h1 {
   font-size: 30px;
   line-height: 1.14;
   letter-spacing: -0.03em;
   font-weight: 700;
-  margin: 16px 0 6px;
-}
-.lead {
-  color: var(--ink-2);
-  font-size: 16px;
-  margin: 0;
-  max-width: 44ch;
+  margin: 16px 0 0;
 }
 
 /* ---- the field stack: one card, one row per fact ---- */
@@ -528,19 +524,9 @@
   line-height: 1.42;
   letter-spacing: -0.015em;
 }
-/* `:last-of-type` here would never match — `.readFine` is also a <p>, so it's
-   the real last-of-type <p>, not this one. Target the actual last `.readLine`
-   (the one immediately before `.readFine`) directly instead, so its 10px
-   bottom margin doesn't stack with `.readFine`'s 14px top margin. */
-.readLine:has(+ .readFine) { margin-bottom: 0; }
-.readFine {
-  margin: 14px 0 0;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
-  font-size: 14.5px;
-  line-height: 1.45;
-  color: var(--navy-on);
-}
+/* The read's lines are the last thing in the block, so the final one drops its
+   bottom margin rather than padding out the navy. */
+.readLine:last-child { margin-bottom: 0; }
 /* The airline name and price that renderHonestLine pulls out of each line. */
 .leadAirline { font-weight: 600; }
 .leadPrice { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; }
