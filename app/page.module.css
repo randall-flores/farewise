@@ -222,67 +222,61 @@
    picked label (e.g. a city name) can refuse to shrink and push this flex
    item past the card edge. */
 .autocomplete { position: relative; min-width: 0; }
+/* The list hangs off the input it belongs to, not the card edge — anchoring it
+   to the input keeps it aligned no matter how wide the "From"/"To" label gets. */
 .suggestions {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
-  z-index: 30;
+  z-index: 40;
   margin: 0;
   padding: 6px;
   list-style: none;
-  background: var(--card-2);
-  border: 1px solid var(--cream-12);
-  border-radius: 10px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
-  max-height: 264px;
+  max-height: 320px;
   overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  box-shadow: 0 12px 30px rgba(18, 23, 26, 0.14);
 }
 .suggestion {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
-  cursor: pointer;
+  min-height: var(--tap);
   padding: 10px 12px;
-  min-height: 44px; /* comfortable touch target */
-  border-radius: 7px;
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--cream);
+  border: none;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--ink);
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
 }
 .suggestion:hover,
 .suggestion:focus-visible,
 .suggestionActive {
-  background: rgba(255, 122, 26, 0.14);
-  color: var(--amber-soft);
+  background: var(--navy-tint);
+  color: var(--navy);
   outline: none;
 }
-/* a city header stands out above its airports */
-.suggestionCity {
-  font-weight: 600;
-  color: var(--cream);
-  border-bottom: 1px solid var(--cream-08);
-  border-radius: 7px 7px 0 0;
-}
-/* airports listed under their city sit indented, with a guide rule */
+/* A city header stands above the airports it contains. */
+.suggestionCity { font-weight: 600; }
+/* Its airports sit indented beneath it, on a hairline guide. */
 .suggestionUnderCity {
-  padding-left: 26px;
-  border-left: 1px solid rgba(255, 122, 26, 0.45); /* 1px hairline guide, not a side-stripe */
+  padding-left: 24px;
   margin-left: 10px;
-  font-size: 12.5px;
-  color: var(--cream-60);
+  border-left: 1px solid var(--line-2);
+  font-size: 15.5px;
+  color: var(--ink-2);
 }
 .suggestionType {
   flex: none;
-  color: var(--cream-60);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 13.5px;
+  color: var(--ink-2);
 }
 
 /* Inline "pick from the list" error under an autocomplete field. */
@@ -293,40 +287,41 @@
   color: var(--alert);
 }
 
-/* Travelers button + cabin select share the inset fill, hairline, height. */
+/* Travelers button and cabin select are the two bordered controls on the form.
+   They share a shape so the last row reads as one pair. */
 .travelers,
 .cabinSelect {
-  min-height: 44px;
-  background: var(--page-2);
-  border: 1px solid var(--cream-12);
-  border-radius: 10px;
-  color: var(--cream);
-  font-family: var(--mono);
-  font-size: 13px;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 16px;
   cursor: pointer;
 }
-.travelers:focus-visible,
-.cabinSelect:focus-visible {
-  outline: 2px solid var(--amber);
-  outline-offset: 1px;
-  border-color: transparent;
-}
 
-/* Travelers — placeholder; non-functional until the counter is built. */
 .travelers {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 0 12px;
 }
 .travelersIcon,
-.travelersChev { flex: none; color: var(--cream-60); }
-.travelersCount { font-weight: 500; }
-.travelers { white-space: nowrap; }
+.travelersChev { flex: none; color: var(--ink-2); }
+.travelersCount {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-/* Travelers popover — floating layer (gets the dropdown shadow like the airport
-   suggestions; the flat-card rule is about the form surface, not popovers). */
-.travelersWrap { position: relative; }
+/* Travelers popover — a floating layer, so it carries a shadow the flat form
+   surface never does. Fixed width because the counter rows need room; the
+   button it hangs off is only half a row wide. */
+.travelersWrap { position: relative; flex: 1; min-width: 0; }
 .travelersPanel {
   position: absolute;
   top: calc(100% + 8px);
@@ -335,92 +330,83 @@
   width: 290px;
   max-width: calc(100vw - 40px);
   padding: 8px;
-  background: var(--card-2);
-  border: 1px solid var(--cream-12);
-  border-radius: 12px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  box-shadow: 0 12px 30px rgba(18, 23, 26, 0.14);
 }
 .counterRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px;
+  padding: 8px 6px;
 }
 .counterLabel {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  font-size: 14px;
-  color: var(--cream);
+  gap: 1px;
+  font-size: 16px;
 }
-.counterHint {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-}
-.counter { display: inline-flex; align-items: center; gap: 6px; }
+.counterHint { font-size: 13.5px; color: var(--ink-2); }
+.counter { display: flex; align-items: center; gap: 4px; }
 .counterBtn {
-  width: 44px;
-  height: 44px;
   display: grid;
   place-items: center;
-  background: var(--page-2);
-  border: 1px solid var(--cream-12);
-  border-radius: 9px;
-  color: var(--amber);
-  font-family: var(--mono);
+  width: var(--tap);
+  height: var(--tap);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  color: var(--ink);
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease;
 }
-.counterBtn:hover:not(:disabled) { border-color: rgba(255, 122, 26, 0.4); }
-.counterBtn:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
-.counterBtn:disabled { opacity: 0.35; color: var(--cream-60); cursor: default; }
+.counterBtn:hover:not(:disabled) { background: var(--navy-tint); }
+.counterBtn:disabled { opacity: 0.38; cursor: default; }
 .counterValue {
-  min-width: 26px;
+  min-width: 32px;
   text-align: center;
-  font-family: var(--mono);
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--cream);
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .travelersDone {
-  margin-top: 6px;
   width: 100%;
-  min-height: 44px;
-  padding: 11px;
-  background: var(--amber);
-  color: var(--page);
+  min-height: 48px;
+  margin-top: 6px;
   border: none;
-  border-radius: 9px;
-  font-family: var(--mono);
-  font-size: 12px;
+  border-radius: var(--r-sm);
+  background: var(--navy);
+  color: #fff;
+  font-size: 16px;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   cursor: pointer;
   transition: background 0.15s ease;
 }
-.travelersDone:hover { background: var(--amber-soft); }
-.travelersDone:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.travelersDone:hover { background: var(--navy-2); }
 
-/* Cabin — native select restyled to the dark theme with a custom chevron
-   (appearance:none + inline SVG), matching the date-input treatment. */
+/* Cabin — the native select with its own chevron (appearance:none + inline
+   SVG), so it matches the travelers button beside it. */
 .cabinSelect {
   appearance: none;
   -webkit-appearance: none;
-  padding: 10px 36px 10px 14px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23f6f1e7' stroke-opacity='0.6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  padding: 0 34px 0 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23586267' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 14px center;
+  background-position: right 12px center;
   background-size: 12px;
+}
+
+/* Every control in the popovers takes the app's one focus treatment. */
+.travelers:focus-visible,
+.counterBtn:focus-visible,
+.travelersDone:focus-visible,
+.suggestion:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
 }
 
 /* ---------- LOADING / ERROR ---------- */
