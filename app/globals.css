@@ -11,22 +11,22 @@
   --sunk: #e4e7e5;        /* recessed: the "say" line, summary rows */
 
   /* ink */
-  --ink: #12171a;         /* primary text — 15.8:1 on --card */
-  --ink-2: #586267;       /* secondary text — 5.4:1 on --card, 4.9:1 on --bg */
+  --ink: #12171a;         /* primary text — 18.1:1 on --card */
+  --ink-2: #586267;       /* secondary text — 6.3:1 on --card, 5.5:1 on --bg, 5.0:1 on --sunk */
   --line: #d5d9d7;        /* hairlines inside cards */
   --line-2: #c3c9c6;      /* stronger edge: card borders, control borders */
 
   /* the record ink — verdict block, primary action, chosen state */
-  --navy: #1e3f77;        /* 8.4:1 with white text on it */
-  --navy-2: #16305c;      /* pressed */
-  --navy-tint: #e8eef8;   /* tag background */
-  --navy-on: #a8c0e6;     /* secondary text ON the navy block — 5.1:1 */
+  --navy: #1e3f77;        /* 10.3:1 with white text on it; 10.3:1 as text on --card */
+  --navy-2: #16305c;      /* hover / pressed */
+  --navy-tint: #e8eef8;   /* tag and highlight background — navy on it is 8.9:1 */
+  --navy-on: #a8c0e6;     /* secondary text ON the navy block — 5.6:1 */
 
   /* signals — always paired with an icon and a word, never colour alone */
-  --alert: #9c2028;       /* the catch: separate tickets, tight connection */
-  --alert-bg: #fbeeee;
-  --ok: #1c6b52;          /* one ticket, protected */
-  --ok-tint: #e2efe9;
+  --alert: #9c2028;       /* the catch: separate tickets, tight connection — 7.9:1 on --card */
+  --alert-bg: #fbeeee;    /* alert on it is 7.0:1 */
+  --ok: #1c6b52;          /* nothing found to warn about — 6.4:1 on --card */
+  --ok-tint: #e2efe9;     /* ok on it is 5.4:1 */
 
   --body: var(--font-body), system-ui, sans-serif;
   --mono: var(--font-mono), ui-monospace, monospace;

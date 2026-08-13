@@ -335,8 +335,8 @@ function nightsBetween(depart, returnDate) {
 // Render one honest-read line with the airline (bold) and price (mono) pulled
 // out as an emphasized lead-in. We key off the REAL data (the flights' airline
 // names + a $ token), not a fixed prose template, so the wording can vary freely
-// and we still emphasize the two things people scan for. No amber (reserved for
-// actions). Falls back to plain text when nothing matches.
+// and we still emphasize the two things people scan for. Weight and the mono
+// face do the emphasis, not colour. Falls back to plain text when nothing matches.
 function renderHonestLine(line, flights) {
   const nodes = [];
   let rest = line;
