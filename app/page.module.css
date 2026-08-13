@@ -125,6 +125,44 @@
   min-height: 66px;
 }
 
+/* Text this app doesn't write itself — the model's read and explanations, and
+   seller names from the booking source — can contain a token with no spaces in
+   it that's wider than a phone. Everything else in the layout can shrink; a
+   single unbreakable word can't, and it would push the whole page sideways.
+   Let those blocks break mid-word rather than scroll the page. */
+.readLine,
+.say,
+.warnMsg,
+.detailPad p,
+.bookSeller,
+.bookNote,
+.empty,
+.error {
+  overflow-wrap: break-word;
+}
+
+/* ---- narrow phones ----
+   The Who row is the tightest thing in the app: a fixed-width label plus two
+   controls that each carry their own padding and a chevron. Worked out, each
+   control gets (viewport - 146px) / 2 — 122px at 390, but only 107px at 360,
+   and "Economy" needs about 110px before it starts clipping. Reclaiming the
+   label width, the gaps and some of the select's chevron gutter buys back the
+   difference without touching the layout anywhere else. */
+@media (max-width: 400px) {
+  .fieldRow { gap: 8px; }
+  .fieldKey { width: 42px; }
+  .cabinSelect { padding-right: 28px; }
+}
+
+/* Below ~340px no split fits both labels, so stop splitting. Rare hardware
+   (an original SE and the like), and it degrades to a taller row rather than
+   to two clipped words. */
+@media (max-width: 340px) {
+  .fieldRow { flex-wrap: wrap; }
+  .travelersWrap,
+  .cabinSelect { flex: 1 1 100%; }
+}
+
 /* ---- From/To swap ---- */
 /* Zero-height row so it takes no layout space; the button is pulled up by
    `top: -24px` to straddle the seam between the From and To rows. */
@@ -132,16 +170,18 @@
 .swap button {
   position: absolute;
   right: 18px;
-  top: -24px;
+  /* Half the button's height, so it stays centred on the hairline between the
+     two rows whatever size the button is. */
+  top: -20px;
   /* Both neighboring `.field` rows are also `position: relative` with no
      z-index, so paint order would otherwise follow DOM order — meaning the To
      field (which comes after this button in the markup) would paint over the
      button's lower half whenever it picks up the `:focus-within` tint. This
      lifts the button above both rows regardless of focus state. */
   z-index: 2;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   background: var(--card);
   border: 1px solid var(--line-2);
   color: var(--ink);
@@ -149,6 +189,14 @@
   place-items: center;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+}
+/* The button reads as 40px but is tapped as 44px. Shrinking the drawn box
+   shouldn't shrink the target — this sits between two text fields, where a
+   near-miss puts the caret in the wrong row. */
+.swap button::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
 }
 
 /* ---- trip type ---- */
