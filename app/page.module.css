@@ -201,8 +201,8 @@
 .submit:focus-visible,
 .cabinSelect:focus-visible,
 .swap button:focus-visible,
-.editButton:focus-visible,
 .backButton:focus-visible,
+.fieldClear:focus-visible,
 .searchRoute:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
@@ -250,6 +250,27 @@
    picked label (e.g. a city name) can refuse to shrink and push this flex
    item past the card edge. */
 .autocomplete { position: relative; min-width: 0; }
+
+/* Empties one field. Sits over the right end of the input rather than in the
+   row, so it can't take width from the value it's clearing. 44px target, but
+   the visible mark stays small — this is a quiet control, not a second action
+   competing with Search flights. */
+.fieldClear {
+  position: absolute;
+  top: 50%;
+  right: -8px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.fieldClear:hover { color: var(--ink); }
 /* The list hangs off the input it belongs to, not the card edge — anchoring it
    to the input keeps it aligned no matter how wide the "From"/"To" label gets. */
 .suggestions {
@@ -589,17 +610,6 @@
   margin: 2px 0 0;
   font-size: 14px;
   color: var(--ink-2);
-}
-.editButton {
-  margin-left: auto;
-  min-height: var(--tap);
-  padding: 0 12px;
-  border: none;
-  background: none;
-  color: var(--navy);
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 /* ---- the honest read: the finding, printed in record navy ---- */

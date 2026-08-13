@@ -236,6 +236,20 @@ function AirportField({ label, name, initial, initialCommitted, onSelect }) {
     clearTimeout(blurTimer.current);
   }
 
+  // Empty this field: the visible text, the parent's code AND label, the
+  // dropdown, and the "pick a real airport" error. Leaves focus in the input so
+  // the next thing you type starts a fresh search rather than needing a tap.
+  function clearField() {
+    clearTimeout(blurTimer.current);
+    committed.current = false;
+    setText("");
+    setResults([]);
+    setOpen(false);
+    setActive(-1);
+    setInvalid(false);
+    onSelect("", "");
+  }
+
   // Keyboard: arrow up/down move the highlight, Enter picks it, Escape closes.
   function onKeyDown(e) {
     if (e.key === "Escape") {
@@ -297,6 +311,35 @@ function AirportField({ label, name, initial, initialCommitted, onSelect }) {
           aria-describedby={invalid ? errorId : undefined}
           required
         />
+        {/* These two fields fill with long labels ("Berlin (BER), Berlin
+            Brandenburg"), and replacing one on a phone otherwise means
+            select-all-then-type. onMouseDown, not onClick: the input's blur
+            handler fires first on a click and would judge the now-empty field
+            invalid before the clear lands. */}
+        {text !== "" && (
+          <button
+            type="button"
+            className={styles.fieldClear}
+            aria-label={`Clear ${label}`}
+            onMouseDown={(e) => {
+              e.preventDefault(); // keep focus in the input
+              clearField();
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        )}
         {open && results.length > 0 && (
           <ul className={styles.suggestions} id={`${name}-listbox`} role="listbox">
             {results.map((p, i) => (
@@ -1010,11 +1053,10 @@ export default function SearchExperience() {
   // show yet, or the user explicitly asked to edit — never stacked on top of
   // results by default. See findings 1+2 in the Task 4 review.
   const showForm = editing || !(data || loading);
-  // Bumped on reset to remount the autocomplete fields (they hold their own
-  // visible text, so clearing form state alone wouldn't empty the boxes).
-  const [resetKey, setResetKey] = useState(0);
-  // Bumped on swap, same reason as resetKey: remounting the two fields with
-  // their new `initial` label is the only way to force the visible text to change.
+  // Bumped on swap: the two fields hold their own visible text, so remounting
+  // them with their new `initial` label is the only way to force it to change.
+  // (There's no reset counterpart any more — nothing blanks the form wholesale,
+  // and each field clears itself from the inside via its own × button.)
   const [swapKey, setSwapKey] = useState(0);
 
   // Today, as YYYY-MM-DD, for the date inputs' `min` and the submit-time guard.
@@ -1060,21 +1102,11 @@ export default function SearchExperience() {
     setSwapKey((k) => k + 1);
   }
 
-  function resetSearch() {
-    setForm({
-      origin: "",
-      destination: "",
-      originLabel: "",
-      destinationLabel: "",
-      tripType: "round-trip",
-      depart: "",
-      returnDate: "",
-      cabin: "economy",
-      ...PASSENGER_DEFAULTS,
-    });
-    setData(null);
-    setError(null);
-    setResetKey((k) => k + 1);
+  // Back to the form with every field exactly as it was, results still mounted
+  // below. Changing one thing and resubmitting is the common path, so nothing
+  // is thrown away; clearing a field is a deliberate act (the × on From/To).
+  function editSearch() {
+    setEditing(true);
     const reduce =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1186,7 +1218,7 @@ export default function SearchExperience() {
         <form className={styles.form} onSubmit={onSubmit}>
           <div className={styles.fields}>
             <AirportField
-              key={`origin-${resetKey}-${swapKey}`}
+              key={`origin-${swapKey}`}
               label="From"
               name="origin"
               initial={form.originLabel}
@@ -1211,7 +1243,7 @@ export default function SearchExperience() {
               </button>
             </div>
             <AirportField
-              key={`destination-${resetKey}-${swapKey}`}
+              key={`destination-${swapKey}`}
               label="To"
               name="destination"
               initial={form.destinationLabel}
@@ -1325,11 +1357,15 @@ export default function SearchExperience() {
       {data && (
         <section className={styles.results}>
           <div className={styles.searchbar}>
+            {/* Back means back to the search you just ran, still filled in.
+                It used to blank every field, which is the opposite of what a
+                back arrow means anywhere else — and it was the big obvious
+                control sitting next to a quiet "Edit" that was the safe one. */}
             <button
               type="button"
               className={styles.backButton}
-              onClick={resetSearch}
-              aria-label="Start a new search"
+              onClick={editSearch}
+              aria-label="Back to your search"
             >
               <svg
                 width="18"
@@ -1364,9 +1400,6 @@ export default function SearchExperience() {
                 })()}
               </p>
             </div>
-            <button type="button" className={styles.editButton} onClick={() => setEditing(true)}>
-              Edit
-            </button>
           </div>
 
           {data.flights.length === 0 ? (
