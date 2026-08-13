@@ -202,6 +202,7 @@
 .cabinSelect:focus-visible,
 .swap button:focus-visible,
 .backButton:focus-visible,
+.editButton:focus-visible,
 .fieldClear:focus-visible,
 .searchRoute:focus-visible {
   outline: 2px solid var(--navy);
@@ -251,14 +252,16 @@
    item past the card edge. */
 .autocomplete { position: relative; min-width: 0; }
 
-/* Empties one field. Sits over the right end of the input rather than in the
-   row, so it can't take width from the value it's clearing. 44px target, but
-   the visible mark stays small — this is a quiet control, not a second action
-   competing with Search flights. */
+/* Empties one field. It overlays the right end of the input, so the input has
+   to give up that strip — see the padding-right below. Reserved permanently
+   rather than only while the × is showing, so the text doesn't shift sideways
+   the moment you start typing. 44px target, small visible mark: a quiet
+   control, not a second action competing with Search flights. */
+.autocomplete .fieldInput { padding-right: 32px; }
 .fieldClear {
   position: absolute;
   top: 50%;
-  right: -8px;
+  right: -2px;
   transform: translateY(-50%);
   display: grid;
   place-items: center;
@@ -595,6 +598,19 @@
 .searchbarInfo {
   flex: 1;
   min-width: 0;
+}
+/* Quiet next to the arrow: this keeps the search, the arrow throws it away, and
+   the safer of the two shouldn't be the louder one. */
+.editButton {
+  flex: none;
+  min-height: var(--tap);
+  padding: 0 4px 0 12px;
+  border: none;
+  background: none;
+  color: var(--navy);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
 }
 /* Focus target after a fresh search lands (see resultsHeadingRef). It takes
    the same navy ring as every other focusable thing — :focus-visible only

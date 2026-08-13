@@ -1053,10 +1053,11 @@ export default function SearchExperience() {
   // show yet, or the user explicitly asked to edit — never stacked on top of
   // results by default. See findings 1+2 in the Task 4 review.
   const showForm = editing || !(data || loading);
-  // Bumped on swap: the two fields hold their own visible text, so remounting
-  // them with their new `initial` label is the only way to force it to change.
-  // (There's no reset counterpart any more — nothing blanks the form wholesale,
-  // and each field clears itself from the inside via its own × button.)
+  // Bumped on reset to remount the autocomplete fields (they hold their own
+  // visible text, so clearing form state alone wouldn't empty the boxes).
+  const [resetKey, setResetKey] = useState(0);
+  // Bumped on swap, same reason as resetKey: remounting the two fields with
+  // their new `initial` label is the only way to force the visible text to change.
   const [swapKey, setSwapKey] = useState(0);
 
   // Today, as YYYY-MM-DD, for the date inputs' `min` and the submit-time guard.
@@ -1102,15 +1103,42 @@ export default function SearchExperience() {
     setSwapKey((k) => k + 1);
   }
 
-  // Back to the form with every field exactly as it was, results still mounted
-  // below. Changing one thing and resubmitting is the common path, so nothing
-  // is thrown away; clearing a field is a deliberate act (the × on From/To).
-  function editSearch() {
-    setEditing(true);
+  // Scroll back up to the form, honouring reduced motion. Shared by both header
+  // controls, which differ only in what they do to the search first.
+  function scrollToForm() {
     const reduce =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  }
+
+  // The arrow: start over. Every field empty, results gone. resetKey remounts
+  // the two airport fields, which hold their own visible text — clearing the
+  // form state alone would leave the old labels sitting in the boxes.
+  function resetSearch() {
+    setForm({
+      origin: "",
+      destination: "",
+      originLabel: "",
+      destinationLabel: "",
+      tripType: "round-trip",
+      depart: "",
+      returnDate: "",
+      cabin: "economy",
+      ...PASSENGER_DEFAULTS,
+    });
+    setData(null);
+    setError(null);
+    setEditing(false);
+    setResetKey((k) => k + 1);
+    scrollToForm();
+  }
+
+  // Edit: the same search, back in the form, results still mounted below.
+  // Change one thing and resubmit without retyping the rest.
+  function editSearch() {
+    setEditing(true);
+    scrollToForm();
   }
 
   async function onSubmit(e) {
@@ -1218,7 +1246,7 @@ export default function SearchExperience() {
         <form className={styles.form} onSubmit={onSubmit}>
           <div className={styles.fields}>
             <AirportField
-              key={`origin-${swapKey}`}
+              key={`origin-${resetKey}-${swapKey}`}
               label="From"
               name="origin"
               initial={form.originLabel}
@@ -1243,7 +1271,7 @@ export default function SearchExperience() {
               </button>
             </div>
             <AirportField
-              key={`destination-${swapKey}`}
+              key={`destination-${resetKey}-${swapKey}`}
               label="To"
               name="destination"
               initial={form.destinationLabel}
@@ -1357,15 +1385,15 @@ export default function SearchExperience() {
       {data && (
         <section className={styles.results}>
           <div className={styles.searchbar}>
-            {/* Back means back to the search you just ran, still filled in.
-                It used to blank every field, which is the opposite of what a
-                back arrow means anywhere else — and it was the big obvious
-                control sitting next to a quiet "Edit" that was the safe one. */}
+            {/* Two controls, deliberately different. The arrow starts over:
+                every field empty, results gone. "Edit" keeps the search and
+                just puts it back in the form. Both say which they are — the
+                arrow through its label, Edit through its word. */}
             <button
               type="button"
               className={styles.backButton}
-              onClick={editSearch}
-              aria-label="Back to your search"
+              onClick={resetSearch}
+              aria-label="Start a new search"
             >
               <svg
                 width="18"
@@ -1400,6 +1428,9 @@ export default function SearchExperience() {
                 })()}
               </p>
             </div>
+            <button type="button" className={styles.editButton} onClick={editSearch}>
+              Edit
+            </button>
           </div>
 
           {data.flights.length === 0 ? (

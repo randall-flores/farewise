@@ -250,6 +250,14 @@ The **"Night Departure Board"** system is retired, not paused: night navy and wa
 - **Don't** show a progress bar, a percentage, or any indicator that implies we know how much of the wait is left. Report phases that have actually happened; never predict.
 - **Don't** use an em dash or an en dash in anything a user reads — copy, labels, warnings, ranges, or generated text. Use a full stop, a comma, or the word "to" for a range. The dash is the loudest tell that a sentence was machine-written.
 
-## 8. Dark theme
+## 8. Known limitation: the native date picker's Reset
+
+On iOS the date field opens the system calendar, which draws its own **Reset** button. Tapping it does not clear the field, and two attempts have failed to make it: `useDateClearFix` in `app/search-experience.js` listens for a native `change` on the input, on the theory that WebKit fires `change` but not `input` and React's `onChange` for a date input listens to `input`. It didn't fix it, which suggests the button dispatches no event we can see at all — or resets the picker's own selection rather than the field's value.
+
+The listener stays because it is harmless (writing the same value twice is a no-op) and would be correct on any browser that does dispatch. But the button is browser chrome, not ours, and it should not be treated as a working control.
+
+Two ways out if it needs solving properly, neither yet taken: give the date rows the same × the From/To fields have, so there is a clear that belongs to this design; or make the date inputs uncontrolled and read them at submit, so whatever the native picker does to the value sticks instead of being overwritten on the next render.
+
+## 9. Dark theme
 
 Not built. When it is, it is one `@media (prefers-color-scheme: dark)` block in `app/globals.css` that redefines these same token names — and nothing downstream changes. Contrast must be re-verified against the dark values; the light ratios do not transfer.
