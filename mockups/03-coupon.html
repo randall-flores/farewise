@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FareWise — Direction 3: Coupon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --stock:#d9e4de;      /* safety-paper duck egg */
+    --stock-hi:#eaf1ec;
+    --stub:#cbd9d2;
+    --intaglio:#123f35;   /* engraved green — the ink */
+    --intaglio-2:#1d5c4d;
+    --violet:#4a3a6b;     /* counterfoil violet — second security colour */
+    --oxblood:#8a2e39;    /* the one alarm colour */
+    --ink-60:#4f635c;
+    --rule:#a9bcb3;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:#c3d2ca;color:var(--intaglio);
+    font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;padding-bottom:80px;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+
+  .lbl{font-family:"Courier Prime",monospace;font-weight:700;text-transform:uppercase;
+    letter-spacing:.18em;font-size:11px}
+
+  /* ---- masthead on guilloche ---- */
+  .mast{position:relative;margin-top:30px;background:var(--stock);
+    border:1px solid var(--rule);padding:30px 34px 26px;overflow:hidden}
+  .mast svg.guil{position:absolute;inset:0;width:100%;height:100%;opacity:.5}
+  .mast .in{position:relative}
+  .word{font-family:Spectral,Georgia,serif;font-weight:600;font-size:42px;
+    letter-spacing:-.02em;line-height:1;margin:0}
+  .word em{font-style:italic;font-weight:400;color:var(--violet)}
+  .mast .tag{font-family:"Courier Prime",monospace;text-transform:uppercase;
+    letter-spacing:.2em;font-size:11px;margin-top:9px;color:var(--ink-60)}
+  .mast .search{margin-top:20px;padding-top:16px;border-top:1px solid var(--rule);
+    display:flex;gap:28px;flex-wrap:wrap;font-family:"Courier Prime",monospace;font-size:13px}
+  .mast .search b{display:block;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--ink-60);font-weight:700;margin-bottom:2px}
+
+  /* ---- the read, printed as fare conditions ---- */
+  .conditions{margin-top:26px;border:1px solid var(--intaglio);background:var(--stock-hi);
+    padding:26px 30px}
+  .conditions .hd{font-family:"Courier Prime",monospace;font-weight:700;text-transform:uppercase;
+    letter-spacing:.2em;font-size:11px;color:var(--violet);
+    display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .conditions .hd::after{content:"";flex:1;border-top:1px solid var(--rule)}
+  .conditions p{font-family:Spectral,Georgia,serif;font-size:21px;line-height:1.45;
+    margin:0 0 9px;max-width:58ch}
+  .conditions p:last-child{margin:0}
+  .conditions b{font-weight:600}
+  .conditions .fine{font-family:Inter,sans-serif;font-size:14.5px;color:var(--ink-60);margin-top:14px}
+
+  /* ---- coupons ---- */
+  .coupon{margin-top:24px;display:grid;grid-template-columns:1fr 244px;
+    border:1px solid var(--rule);background:var(--stock);position:relative;overflow:hidden}
+  .coupon.risky{border-color:var(--oxblood)}
+  .cbody{padding:26px 30px;position:relative;z-index:1}
+  .cstub{background:var(--stub);border-left:2px dashed var(--intaglio);padding:26px 24px;
+    display:flex;flex-direction:column;justify-content:space-between;position:relative;z-index:1}
+  /* perforation notches */
+  .coupon::before,.coupon::after{content:"";position:absolute;right:236px;width:16px;height:16px;
+    background:#c3d2ca;border-radius:50%;z-index:2}
+  .coupon::before{top:-8px}
+  .coupon::after{bottom:-8px}
+
+  .cclass{font-family:"Courier Prime",monospace;font-weight:700;text-transform:uppercase;
+    letter-spacing:.18em;font-size:11px;color:var(--stock-hi);background:var(--intaglio);
+    display:inline-block;padding:4px 10px}
+  .cclass.alt{background:none;color:var(--ink-60);border:1px solid var(--rule)}
+  .carrier{font-family:Spectral,serif;font-size:27px;font-weight:500;letter-spacing:-.01em;
+    margin:12px 0 2px}
+  .seg{font-family:"Courier Prime",monospace;font-size:13.5px;letter-spacing:.03em;
+    color:var(--ink-60);margin:0 0 3px}
+  .seg b{color:var(--intaglio);font-weight:700}
+  .cnote{margin:14px 0 0;font-size:15.5px;line-height:1.55;max-width:58ch}
+  .fees{font-family:"Courier Prime",monospace;font-size:13px;margin-top:14px;
+    border-top:1px dotted var(--rule);padding-top:10px}
+  .fees b{font-weight:700}
+
+  .amt{font-family:"Courier Prime",monospace;font-weight:700;font-size:40px;line-height:1;
+    letter-spacing:-.02em}
+  .unit{font-family:"Courier Prime",monospace;font-size:10.5px;text-transform:uppercase;
+    letter-spacing:.2em;color:var(--ink-60);margin-top:8px}
+  .micro{font-family:"Courier Prime",monospace;font-size:7px;letter-spacing:.08em;
+    color:var(--ink-60);opacity:.75;line-height:1.5;margin-top:14px;word-break:break-all}
+  a.book{display:block;text-align:center;margin-top:16px;background:var(--intaglio);
+    color:var(--stock-hi);text-decoration:none;font-family:"Courier Prime",monospace;
+    font-weight:700;text-transform:uppercase;letter-spacing:.14em;font-size:11.5px;padding:11px 12px}
+  a.book:hover{background:var(--intaglio-2)}
+  a.book.alt{background:none;color:var(--intaglio);border:1px solid var(--intaglio)}
+  a.book.alt:hover{background:var(--intaglio);color:var(--stock-hi)}
+
+  /* alarm block */
+  .alarm{margin:16px 0 0;border-left:0;border:1px solid var(--oxblood);background:rgba(138,46,57,.06)}
+  .alarm .bar{background:var(--oxblood);color:#eaf1ec;font-family:"Courier Prime",monospace;
+    font-weight:700;text-transform:uppercase;letter-spacing:.18em;font-size:11px;padding:6px 12px;
+    display:flex;align-items:center;gap:8px}
+  .alarm .bd{padding:13px 14px}
+  .alarm p{margin:0;font-size:15.5px;line-height:1.55;max-width:58ch}
+  .alarm p+p{margin-top:8px}
+
+  footer{margin-top:34px;border-top:1px solid var(--rule);padding-top:14px;display:flex;
+    justify-content:space-between;gap:24px;flex-wrap:wrap}
+  footer p{margin:0;max-width:60ch;font-size:14px;color:var(--ink-60)}
+
+  .banner{background:var(--intaglio);color:var(--stock-hi);padding:14px 28px}
+  .banner .n{font-family:"Courier Prime",monospace;text-transform:uppercase;letter-spacing:.2em;font-size:11px;opacity:.65}
+  .banner .t{font-family:Spectral,serif;font-size:22px;font-weight:600;letter-spacing:-.01em}
+  .banner .d{font-size:13px;opacity:.82;max-width:76ch}
+  .sw{display:flex;gap:6px;margin-top:8px}
+  .sw i{width:26px;height:14px;display:block;border:1px solid rgba(255,255,255,.28)}
+
+  @media(max-width:780px){
+    .coupon{grid-template-columns:1fr}
+    .cstub{border-left:none;border-top:2px dashed var(--intaglio)}
+    .coupon::before,.coupon::after{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="n">Direction 03</div>
+  <div class="t">Coupon</div>
+  <div class="d">Security-printed ticket stock. Duck-egg safety paper, engraved green ink, violet counterfoil, guilloche line-work. Each result is a real coupon with a tear-off stub; the honest read is printed where the conditions of the fare would be. The risk warning is the only thing on the page in oxblood.</div>
+  <div class="sw">
+    <i style="background:#d9e4de"></i><i style="background:#cbd9d2"></i><i style="background:#123f35"></i>
+    <i style="background:#4a3a6b"></i><i style="background:#8a2e39"></i>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="mast">
+    <svg class="guil" viewBox="0 0 1000 210" preserveAspectRatio="none" aria-hidden="true">
+      <g fill="none" stroke="#4a3a6b" stroke-width=".6" opacity=".45">
+        <path d="M0 105 Q 125 20 250 105 T 500 105 T 750 105 T 1000 105"/>
+        <path d="M0 105 Q 125 190 250 105 T 500 105 T 750 105 T 1000 105"/>
+        <path d="M0 105 Q 125 45 250 105 T 500 105 T 750 105 T 1000 105"/>
+        <path d="M0 105 Q 125 165 250 105 T 500 105 T 750 105 T 1000 105"/>
+        <path d="M0 105 Q 166 10 333 105 T 666 105 T 1000 105"/>
+        <path d="M0 105 Q 166 200 333 105 T 666 105 T 1000 105"/>
+      </g>
+      <g fill="none" stroke="#123f35" stroke-width=".5" opacity=".3">
+        <circle cx="500" cy="105" r="96"/><circle cx="500" cy="105" r="74"/>
+        <circle cx="500" cy="105" r="52"/>
+      </g>
+    </svg>
+    <div class="in">
+      <h1 class="word">Fare<em>Wise</em></h1>
+      <div class="tag">Flight search that tells you the catch</div>
+      <div class="search">
+        <div><b>Route</b> MIA → BER</div>
+        <div><b>Dates</b> 10 JUL — 24 JUL 2026</div>
+        <div><b>Party</b> 1 ADULT · ECONOMY</div>
+        <div><b>Source</b> LIVE FARES · 14 READ</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="conditions">
+    <div class="hd">The honest read</div>
+    <p>The $318 is real. It is also <b>two separate tickets</b>, and nobody owns the trip but you.</p>
+    <p>Pay the $102 more. TAP carries you the whole way, and a late first flight becomes their problem.</p>
+    <p class="fine">Both fares came back from this search. Nothing here is ranked by what anyone pays us.</p>
+  </section>
+
+  <article class="coupon">
+    <div class="cbody">
+      <span class="cclass">Best buy</span>
+      <h2 class="carrier">TAP Air Portugal</h2>
+      <p class="seg">MIA <b>18:40</b> → LIS <b>07:10</b> · TP202 · 7H 30M</p>
+      <p class="seg">WAIT <b>1H 50M</b> IN LISBON</p>
+      <p class="seg">LIS <b>09:00</b> → BER <b>13:10</b> · TP534 · 3H 10M</p>
+      <p class="cnote">One ticket, both flights. If the first flight is late and you miss the second, TAP puts you on the next one — their problem, not yours.</p>
+      <p class="fees">BAG <b>+$35</b> &nbsp;·&nbsp; SEAT <b>+$12</b> &nbsp;→&nbsp; TOTAL <b>~$467</b></p>
+    </div>
+    <div class="cstub">
+      <div>
+        <div class="amt">$420</div>
+        <div class="unit">Round trip · 11h 30m · 1 stop</div>
+        <div class="micro">FAREWISE·FAREWISE·FAREWISE·FAREWISE·FAREWISE·FAREWISE·FAREWISE·FAREWISE</div>
+      </div>
+      <a class="book" href="#">Book with TAP</a>
+    </div>
+  </article>
+
+  <article class="coupon risky">
+    <div class="cbody">
+      <span class="cclass alt">Cheapest</span>
+      <h2 class="carrier">Vueling + Ryanair</h2>
+      <p class="seg">MIA <b>21:15</b> → BCN <b>13:05</b> · VY6402 · 9H 50M</p>
+      <p class="seg">WAIT <b>4H 20M</b> IN BARCELONA · COLLECT AND RE-CHECK BAG</p>
+      <p class="seg">BCN → LGW · FR8817 &nbsp;THEN&nbsp; LGW → BER</p>
+      <div class="alarm">
+        <div class="bar">▲ High risk — separate tickets</div>
+        <div class="bd">
+          <p>These are two separate tickets booked with two airlines. If your first flight is late and you miss the second, you lose that ticket and pay for a new one. No one is required to rebook you.</p>
+          <p>Your bag is not checked through. You collect it in Barcelona and check it in again yourself.</p>
+        </div>
+      </div>
+      <p class="fees">BAG <b>+$35</b> &nbsp;·&nbsp; SECOND AIRLINE BAG <b>+$41</b> &nbsp;→&nbsp; TOTAL <b>~$394</b></p>
+    </div>
+    <div class="cstub">
+      <div>
+        <div class="amt">$318</div>
+        <div class="unit">Round trip · 21h 05m · 2 stops</div>
+        <div class="micro">SEPARATETICKETS·SEPARATETICKETS·SEPARATETICKETS·SEPARATETICKETS</div>
+      </div>
+      <a class="book alt" href="#">Book anyway</a>
+    </div>
+  </article>
+
+  <footer>
+    <p>We don't inflate prices based on your search history. The airline's price at checkout can still move with market and currency — that part is outside our control.</p>
+    <div class="lbl" style="color:var(--ink-60)">FareWise · 12 Aug 2026</div>
+  </footer>
+
+</div>
+</body>
+</html>

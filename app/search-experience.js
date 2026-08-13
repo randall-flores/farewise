@@ -20,26 +20,57 @@ function usePrefersReducedMotion() {
   return reduce;
 }
 
-// Count a whole number up to `target` on mount (ease-out, ~0.85s). Reduced motion
-// jumps straight to the final value. Used for the big card price.
-function useCountUp(target, duration = 850) {
-  const reduce = usePrefersReducedMotion();
-  const [val, setVal] = useState(0);
+// Open a date field's calendar when the field is clicked.
+//
+// On desktop Chrome a date input only opens its picker from the little glyph at
+// the end — clicking the digits just moves between the day/month/year segments.
+// We replaced that glyph with the form's own chevron, so the picker needs its
+// own way in, and "click the field" is what people expect anyway.
+//
+// This lives on the input rather than the surrounding row: a <label> forwards a
+// click to the control it labels, and that forwarded click bubbles back up, so
+// a handler on the row would run twice per click. The second showPicker() lands
+// on an already-open picker and can shut it again. On the input it runs once,
+// whether the person clicked the digits, the chevron, or the "Out" label.
+function openDatePicker(e) {
+  // showPicker throws if the browser blocks it (no user gesture, cross-origin
+  // frame) and doesn't exist before ~2022. It's an enhancement either way: the
+  // field is still typable, and mobile opens its own picker on tap regardless.
+  try {
+    e.currentTarget.showPicker?.();
+  } catch {
+    /* fall back to typing the date */
+  }
+}
+
+// Records whether the person is currently driving the page with a pointer or
+// with the keyboard, as `data-focus` on <html>.
+//
+// Why this exists: a text input matches :focus-visible when you CLICK it, not
+// just when you Tab to it, so a focus ring styled the normal way appears on
+// every click and reads as clutter. A mouse user doesn't need a ring — the
+// caret is already sitting in the field they just clicked. A keyboard user
+// does, because they have nothing else tracking where they are. This lets the
+// CSS tell those two cases apart.
+function useFocusModality() {
   useEffect(() => {
-    if (reduce) return; // reduced motion: the hook returns `target` directly below
-    let raf;
-    let start = null;
-    const tick = (t) => {
-      if (start === null) start = t;
-      const p = Math.min((t - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - p, 4); // ease-out-quart
-      setVal(Math.round(target * eased)); // set inside the rAF callback, not the effect body
-      if (p < 1) raf = requestAnimationFrame(tick);
+    const root = document.documentElement;
+    const pointer = () => root.setAttribute("data-focus", "pointer");
+    // Only navigation keys switch the mode — typing into a field you clicked
+    // shouldn't suddenly draw a ring around it.
+    const keyboard = (e) => {
+      if (e.key === "Tab" || e.key === "ArrowUp" || e.key === "ArrowDown") {
+        root.setAttribute("data-focus", "keyboard");
+      }
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, reduce, duration]);
-  return reduce ? target : val;
+    pointer(); // assume pointer until a Tab says otherwise
+    window.addEventListener("pointerdown", pointer, true);
+    window.addEventListener("keydown", keyboard, true);
+    return () => {
+      window.removeEventListener("pointerdown", pointer, true);
+      window.removeEventListener("keydown", keyboard, true);
+    };
+  }, []);
 }
 
 // Belt-and-suspenders: the generation prompt forbids em dashes, but if one ever
@@ -55,57 +86,43 @@ function noEmDash(text) {
     .trim();
 }
 
-// Split-flap reveal: render the final string in board tiles and, on mount, flip
-// each character into place with a stagger (the hero board's mechanic, reused on
-// results). The final text is always in the DOM and carried on aria-label, so
-// reduced-motion and headless renders read the real value; only the entrance moves.
-function FlapText({ text, className }) {
-  const reduce = usePrefersReducedMotion();
-  const str = String(text ?? "");
+// The one chevron in the app, on both disclosure buttons. It points down when
+// the panel is shut and flips when it opens — the flip is driven purely by the
+// button's own aria-expanded, so each toggle always shows its own state.
+function Chevron() {
   return (
-    <span className={`${styles.flapText} ${className || ""}`} aria-label={str}>
-      {str.split("").map((ch, i) => (
-        <span
-          key={i}
-          className={styles.flapChar}
-          aria-hidden="true"
-          data-flap={reduce ? "off" : "in"}
-          style={reduce ? undefined : { animationDelay: `${i * 45}ms` }}
-        >
-          {ch === " " ? " " : ch}
-        </span>
-      ))}
-    </span>
-  );
-}
-
-// Big card price: the currency symbol in accent orange, the number counting up.
-// aria-label carries the formatted price so screen readers announce it once, whole.
-function CountUpPrice({ amount, currency = "USD" }) {
-  const n = useCountUp(amount);
-  const symbol =
-    new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 })
-      .formatToParts(0)
-      .find((p) => p.type === "currency")?.value || "$";
-  const digits = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n);
-  return (
-    <span className={styles.priceValue} aria-label={formatMoney(amount, currency)}>
-      <span className={styles.priceCurrency} aria-hidden="true">{symbol}</span>
-      <span aria-hidden="true">{digits}</span>
-    </span>
+    <svg
+      className={styles.chev}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
   );
 }
 
 // A From/To field with debounced airport/city autocomplete.
 // Shows what the user types; commits the chosen IATA code to the parent form.
-function AirportField({ label, name, initial, onSelect }) {
+function AirportField({ label, name, initial, initialCommitted, onSelect }) {
   const [text, setText] = useState(initial); // what's visible in the box
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1); // highlighted suggestion for arrow-key nav
   const [invalid, setInvalid] = useState(false); // typed something but never picked a real place
   const blurTimer = useRef(null);
-  const committed = useRef(Boolean(initial)); // a valid code is currently chosen for this field
+  // `initial` is a LABEL (display text), not proof of a real pick — the parent
+  // also tracks uncommitted, partially-typed text as a label (see onChange
+  // below) so a swap can restore it. Only the caller's `initialCommitted`
+  // (derived from whether the parent's CODE is set) says whether this field
+  // actually holds a real, chosen place.
+  const committed = useRef(Boolean(initialCommitted));
   const errorId = `${name}-error`;
 
   // Local, instant autocomplete over the bundled airport dataset — no network,
@@ -129,14 +146,16 @@ function AirportField({ label, name, initial, onSelect }) {
     const value = e.target.value;
     setText(value);
     setInvalid(false); // clear the error while they're still typing
-    // Let power users type a raw 3-letter code directly (e.g. "JFK").
+    // Let power users type a raw 3-letter code directly (e.g. "JFK"). The parent
+    // needs the label too (not just the code) so a later swap can restore this
+    // box's visible text — the label is just whatever's currently typed.
     const code = value.trim().toUpperCase();
     if (/^[A-Z]{3}$/.test(code)) {
       committed.current = true;
-      onSelect(code);
+      onSelect(code, value);
     } else {
       committed.current = false; // edited text no longer matches a chosen place
-      onSelect(""); // tell the parent this field has no valid code right now
+      onSelect("", value); // no valid code right now, but track what's actually in the box
     }
     if (value.trim().length >= 2) {
       // The airport dataset loads once on first use; after that this resolves
@@ -151,8 +170,8 @@ function AirportField({ label, name, initial, onSelect }) {
 
   function choose(place) {
     committed.current = true;
-    onSelect(place.code); // the parent stores the IATA code for the search
-    setText(place.label); // the box shows the friendly label, e.g. "Berlin (BER) — Brandenburg"
+    onSelect(place.code, place.label); // parent stores both the code (search) and label (display)
+    setText(place.label); // the box shows the friendly label, e.g. "Berlin (BER), Brandenburg"
     setResults([]);
     setActive(-1);
     setOpen(false);
@@ -189,9 +208,10 @@ function AirportField({ label, name, initial, onSelect }) {
 
   return (
     <label className={styles.field}>
-      <span>{label}</span>
+      <span className={styles.fieldKey}>{label}</span>
       <div className={styles.autocomplete}>
         <input
+          className={styles.fieldInput}
           name={name}
           value={text}
           onChange={onChange}
@@ -250,87 +270,64 @@ function AirportField({ label, name, initial, onSelect }) {
   );
 }
 
-// Split-flap departure-board rendering of a route code (e.g. "MIA" -> three tiles).
-function FlapBoard({ origin, destination }) {
-  // On load nothing is chosen yet — show a dimmed sample route so the signature
-  // board is visible immediately, then brighten to the live route as they type.
-  const ghost = !origin && !destination;
-  const from = origin || "MIA";
-  const to = destination || "BER";
-  const tiles = (code) =>
-    String(code || "")
-      .toUpperCase()
-      .split("")
-      .map((ch, i) => (
-        <div key={i} className={styles.flap}>
-          <span>{ch}</span>
-        </div>
-      ));
-  return (
-    <div
-      className={`${styles.board} ${ghost ? styles.boardGhost : ""}`}
-      aria-label={ghost ? "Your route appears here" : `${origin} to ${destination}`}
-    >
-      <div className={styles.code}>{tiles(from)}</div>
-      <div className={styles.arrow}>→</div>
-      <div className={styles.code}>{tiles(to)}</div>
-    </div>
-  );
-}
-
-// Verdict level → flag color class + glyph (color is never the only signal; the tag text carries meaning).
-const VERDICT_CLASS = { good: "flagGood", caution: "flagCaution", "high-risk": "flagRisk" };
-const VERDICT_ICON = { good: "✓", caution: "!", "high-risk": "▲" };
-
 const CABIN_LABEL = { economy: "Economy", premium: "Premium economy", business: "Business", first: "First class" };
 
-// Build the board-style route line ("MIA — LIS — BER") from the segments.
+// Build the route line ("MIA → LIS → BER") from the segments. The arrow reads
+// as "then", the same as it does between the two clock times beside it.
 function routeCodes(segments = []) {
   const first = segments[0]?.from;
   const rest = segments.map((s) => s.to);
-  return [first, ...rest].filter(Boolean).join(" — ");
+  return [first, ...rest].filter(Boolean).join(" → ");
 }
 
-// One leg's line: route + stops + duration, then its clock times with day offset.
-// `label` ("Outbound"/"Return") is set on round trips; it also turns on the
-// per-leg airline (outbound and return can be different airlines).
+// One leg as two record rows: where it goes and when (mono, so the digits line
+// up down the card), then the shape of the journey. `label`
+// ("Outbound"/"Return") only appears on round trips, where the user genuinely
+// has two legs to tell apart — and it carries that leg's airline, since the two
+// directions can be flown by different ones.
 function LegLine({ segments, stops, totalDuration, label }) {
   if (!segments?.length) return null;
   const dep = clockTime(segments[0]?.depart);
   const arr = clockTime(segments[segments.length - 1]?.arrive);
   const off = dayOffset(segments[0]?.depart, segments[segments.length - 1]?.arrive);
   const date = shortDate(segments[0]?.depart);
+  const shape = [
+    stops === 0 ? "no stops" : `${stops} stop${stops === 1 ? "" : "s"}`,
+    totalDuration,
+    label && segments[0]?.airline ? segments[0].airline : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <div className={styles.leg}>
-      {label && (
-        <span className={styles.legLabel}>
-          {label}
-          {date && <span className={styles.legDate}>{date}</span>}
+    <>
+      <div className={styles.rw}>
+        <span className={styles.rwKey}>
+          {label ? `${label}${date ? ` · ${date}` : ""}` : "Route"}
         </span>
-      )}
-      <p className={styles.route}>
-        <b>{routeCodes(segments)}</b> &nbsp;·&nbsp;{" "}
-        {stops === 0 ? "no stops" : `${stops} stop${stops === 1 ? "" : "s"}`}{" "}
-        &nbsp;·&nbsp; {totalDuration}
-        {label && segments[0]?.airline ? (
-          <span className={styles.legAirline}> · {segments[0].airline}</span>
-        ) : null}
-      </p>
-      {dep && arr && (
-        <p className={styles.times}>
-          <FlapText text={dep} /> <span className={styles.timesArrow}>→</span> <FlapText text={arr} />
-          {off > 0 && (
-            <span
-              className={styles.dayOffset}
-              aria-label={off === 1 ? "arrives the next day" : `arrives ${off} days later`}
-            >
-              {" "}
-              +{off}
-            </span>
+        <span className={`${styles.rwVal} ${styles.mono}`}>
+          {routeCodes(segments)}
+          {dep && arr && (
+            <>
+              <span className={styles.rwSep}> </span>
+              {dep} → {arr}
+              {off > 0 && (
+                <span
+                  className={styles.dayOffset}
+                  aria-label={off === 1 ? "arrives the next day" : `arrives ${off} days later`}
+                >
+                  +{off}
+                </span>
+              )}
+            </>
           )}
-        </p>
-      )}
-    </div>
+        </span>
+      </div>
+      <div className={styles.rw}>
+        <span className={styles.rwKey}>Stops</span>
+        <span className={styles.rwVal}>{shape}</span>
+      </div>
+    </>
   );
 }
 
@@ -341,10 +338,10 @@ function priceInsightLine(pi) {
   const money = (n) => formatMoney(n, "USD");
   const range = pi.typicalPriceRange;
   if (pi.priceLevel && range) {
-    return `Prices for this route are currently ${pi.priceLevel} — typical range ${money(range[0])}–${money(range[1])}.`;
+    return `Prices for this route are currently ${pi.priceLevel}. Typical range ${money(range[0])} to ${money(range[1])}.`;
   }
   if (pi.priceLevel) return `Prices for this route are currently ${pi.priceLevel}.`;
-  if (range) return `Typical price for this route: ${money(range[0])}–${money(range[1])}.`;
+  if (range) return `Typical price for this route: ${money(range[0])} to ${money(range[1])}.`;
   return null;
 }
 
@@ -392,8 +389,8 @@ function nightsBetween(depart, returnDate) {
 // Render one honest-read line with the airline (bold) and price (mono) pulled
 // out as an emphasized lead-in. We key off the REAL data (the flights' airline
 // names + a $ token), not a fixed prose template, so the wording can vary freely
-// and we still emphasize the two things people scan for. No amber (reserved for
-// actions). Falls back to plain text when nothing matches.
+// and we still emphasize the two things people scan for. Weight and the mono
+// face do the emphasis, not colour. Falls back to plain text when nothing matches.
 function renderHonestLine(line, flights) {
   const nodes = [];
   let rest = line;
@@ -507,9 +504,9 @@ function BookOptions({ token, search }) {
 
   return (
     <div className={styles.bookWrap}>
-      <button type="button" className={styles.toggle} onClick={toggle} aria-expanded={open}>
+      <button type="button" className={styles.bookToggle} onClick={toggle} aria-expanded={open}>
         <span>{open ? "Hide booking options" : "How to book"}</span>
-        <span className={styles.chev}>↓</span>
+        <Chevron />
       </button>
 
       {open && (
@@ -530,8 +527,7 @@ function BookOptions({ token, search }) {
           {options && options.length > 0 && (
             <>
               <p className={styles.bookNote}>
-                Live bookable prices — these are what the seller charges and can differ from the
-                price above.
+                These are live prices from each seller. They can differ from the price above.
               </p>
               <ul className={styles.bookList}>
                 {options.map((o, i) => (
@@ -587,11 +583,11 @@ function BookOptions({ token, search }) {
   );
 }
 
-// One flight result, rendered as a boarding-pass ticket.
-// Body (left): airline, the flight(s), the trade-off note, and ALWAYS-visible warnings.
-// Stub (right, perforated): the price counting up. Foot: "Explain" -> full
-// reasoning + segment breakdown + booking.
-function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 0 }) {
+// One flight result, rendered as a record: a head (tag, airline, price), then one
+// labelled row per fact with the value right-aligned, then the one-line
+// judgement, then any warnings — which are ALWAYS visible, never behind the
+// toggle. The foot opens the full detail.
+function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 0, readPending = false }) {
   const [open, setOpen] = useState(false);
   const reduce = usePrefersReducedMotion();
   const fees = totalExtraFees(flight);
@@ -602,150 +598,229 @@ function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 
 
   return (
     <article
-      className={`${styles.card} ${styles.ticket} ${open ? styles.open : ""} ${level === "high-risk" ? styles.muted : ""}`}
+      className={`${styles.fare} ${open ? styles.open : ""}`}
       style={reduce ? undefined : { animationDelay: `${index * 70}ms` }}
     >
-      <div className={styles.ticketMain}>
-        {/* ---- Ticket body ---- */}
-        <div className={styles.ticketBody}>
-          <div className={styles.bodyHead}>
-            <h2 className={styles.airline}>{flight.bookVia.name}</h2>
-            {cheapest && (
-              <span className={styles.cheapTag}>
-                <span className={styles.cheapIc} aria-hidden="true">✓</span> Cheapest
-              </span>
-            )}
-          </div>
-
-          <div className={styles.legs}>
-            {roundTrip ? (
-              <>
-                <LegLine
-                  segments={flight.segments}
-                  stops={flight.stops}
-                  totalDuration={flight.totalDuration}
-                  label="Outbound"
-                />
-                <LegLine
-                  segments={flight.returnSegments}
-                  stops={flight.returnStops}
-                  totalDuration={flight.returnTotalDuration}
-                  label="Return"
-                />
-              </>
-            ) : (
-              <LegLine
-                segments={flight.segments}
-                stops={flight.stops}
-                totalDuration={flight.totalDuration}
-              />
-            )}
-          </div>
-
-          {/* Trade-off note: the one-line verdict, color + icon paired (never color alone). */}
-          {verdict?.tag && (
-            <p className={`${styles.tradeoff} ${styles[VERDICT_CLASS[level]]}`}>
-              <span className={styles.ic} aria-hidden="true">{VERDICT_ICON[level]}</span>
-              <span>{noEmDash(verdict.tag)}</span>
-            </p>
-          )}
-
-          {/* Warnings ALWAYS show — even collapsed. Deterministic, from code, not the AI. */}
-          {risks.length > 0 && (
-            <div className={styles.warnings}>
-              {risks.map((r, i) => (
-                <p key={i} className={`${styles.warn} ${styles[`warn_${r.severity}`]}`}>
-                  <span className={styles.warnLbl}>{r.severity === "info" ? "Note" : "Warning"}</span>
-                  {r.message}
-                </p>
-              ))}
-            </div>
-          )}
+      <div className={styles.fareHead}>
+        <div className={styles.fareId}>
+          {/* At most one tag. "Check the catch" points at the warning below it;
+              "No catch found" says only what we checked, never that the ticket
+              is protected — the data source doesn't tell us that. */}
+          {level === "high-risk" ? (
+            <span className={`${styles.tag} ${styles.tagBad}`}>
+              <span className={styles.tagIc} aria-hidden="true">▲</span>
+              Check the catch
+            </span>
+          ) : cheapest ? (
+            <span className={`${styles.tag} ${styles.tagPick}`}>Cheapest</span>
+          ) : level === "good" ? (
+            <span className={`${styles.tag} ${styles.tagOk}`}>
+              <span className={styles.tagIc} aria-hidden="true">✓</span>
+              No catch found
+            </span>
+          ) : null}
+          <h2 className={styles.airline}>{flight.bookVia.name}</h2>
         </div>
+        <p className={styles.amt}>
+          <span className={styles.mono}>{formatMoney(flight.price, flight.currency)}</span>
+          <small>{roundTrip ? "round trip" : "one way"}</small>
+        </p>
+      </div>
 
-        {/* ---- Perforated price stub ---- */}
-        <div className={styles.ticketStub}>
-          <div className={`${styles.price} ${level === "high-risk" ? styles.dim : ""}`}>
-            <CountUpPrice amount={flight.price} currency={flight.currency} />
-          </div>
-          <div className={styles.priceUnit}>{roundTrip ? "round trip" : "one way"}</div>
-          <div className={styles.allin}>
+      <div className={styles.rows}>
+        {roundTrip ? (
+          <>
+            <LegLine
+              segments={flight.segments}
+              stops={flight.stops}
+              totalDuration={flight.totalDuration}
+              label="Outbound"
+            />
+            <LegLine
+              segments={flight.returnSegments}
+              stops={flight.returnStops}
+              totalDuration={flight.returnTotalDuration}
+              label="Return"
+            />
+          </>
+        ) : (
+          <LegLine
+            segments={flight.segments}
+            stops={flight.stops}
+            totalDuration={flight.totalDuration}
+          />
+        )}
+        <div className={styles.rw}>
+          <span className={styles.rwKey}>Total cost</span>
+          <span className={styles.rwVal}>
             {!feesKnown ? (
               "fare only · fees not listed"
             ) : fees > 0 ? (
               <>
-                <b>~{formatMoney(allIn, flight.currency)}</b> total
+                <span className={styles.mono}>~{formatMoney(allIn, flight.currency)}</span> with
+                bag and seat
               </>
             ) : (
-              "fare only · no extra fees"
+              "no extra fees listed"
+            )}
+          </span>
+        </div>
+      </div>
+
+      {/* The one-line judgement. */}
+      {verdict?.tag && <p className={styles.say}>{noEmDash(verdict.tag)}</p>}
+
+      {/* Deterministic, from code, not from the model. Colour is never the only
+          signal — the icon and the word carry it too. */}
+      {risks.length > 0 && (
+        <div className={styles.warnings}>
+          {risks.map((r, i) => (
+            <div key={i} className={`${styles.warn} ${styles[`warn_${r.severity}`]}`}>
+              <p className={styles.warnLbl}>
+                <span aria-hidden="true">{r.severity === "info" ? "i" : "▲"}</span>
+                {r.severity === "info" ? "Note" : "Warning"}
+              </p>
+              <p className={styles.warnMsg}>{r.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ---- The detail, opened on demand: every flight in order, the full
+              reasoning, then how to actually book it. ---- */}
+      <button
+        type="button"
+        className={styles.toggle}
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
+        <span>{open ? "Hide the detail" : "See every flight and fee"}</span>
+        <Chevron />
+      </button>
+
+      <div className={styles.detail}>
+        <div className={styles.detailInner}>
+          <div className={styles.detailPad}>
+            {/* Each flight on its own line, in the order they're flown. On a
+                round trip the two directions are separate lists so the
+                numbering restarts where the journey does. */}
+            {roundTrip && <p className={styles.stopsHead}>Outbound</p>}
+            <ol className={styles.stops}>
+              {flight.segments.map((s, i) => (
+                <li key={`o${i}`} className={styles.stop}>
+                  <span className={styles.stopT}>
+                    <span className={styles.mono}>{clockTime(s.depart)}</span> {s.from} → {s.to}
+                  </span>
+                  <span className={styles.stopP}>
+                    {s.airline} {s.flightNo} · {s.duration}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            {roundTrip && flight.returnSegments?.length > 0 && (
+              <>
+                <p className={styles.stopsHead}>Return</p>
+                <ol className={styles.stops}>
+                  {flight.returnSegments.map((s, i) => (
+                    <li key={`r${i}`} className={styles.stop}>
+                      <span className={styles.stopT}>
+                        <span className={styles.mono}>{clockTime(s.depart)}</span> {s.from} → {s.to}
+                      </span>
+                      <span className={styles.stopP}>
+                        {s.airline} {s.flightNo} · {s.duration}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </>
+            )}
+            {verdict?.explanation ? (
+              noEmDash(verdict.explanation)
+                .split("\n")
+                .filter(Boolean)
+                .map((p, i) => <p key={i}>{p}</p>)
+            ) : readPending ? (
+              // The flights above are real and final; only the written read is
+              // still coming. Say which it is rather than claiming there's nothing.
+              <p>Still reading this one. The flights and warnings above are final.</p>
+            ) : (
+              <p>No further detail available.</p>
+            )}
+            {flight.bookVia?.token ? (
+              // Real source: lazy-fetch booking options on demand (not on load).
+              <BookOptions token={flight.bookVia.token} search={search} />
+            ) : flight.bookVia?.url ? (
+              // Demo data carries a placeholder link.
+              <a
+                className={styles.book}
+                href={flight.bookVia.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Book direct with {flight.bookVia.name} ↗
+              </a>
+            ) : (
+              <p className={styles.bookSoon}>No booking link for this option yet.</p>
             )}
           </div>
         </div>
       </div>
-
-      {/* ---- Foot: Explain toggle + on-demand detail (spans the full ticket width) ---- */}
-      <div className={styles.ticketFoot}>
-        <button
-          type="button"
-          className={styles.toggle}
-          onClick={() => setOpen((o) => !o)}
-          aria-expanded={open}
-        >
-          <span>{open ? "Hide detail" : "Explain"}</span>
-          <span className={styles.chev}>↓</span>
-        </button>
-
-        {/* Layer 3: full reasoning + segment breakdown, smooth-expanded on demand. */}
-        <div className={styles.detail}>
-          <div className={styles.detailInner}>
-            <div className={styles.detailPad}>
-              <ul className={styles.segments}>
-                {roundTrip && <li className={styles.segHead}>Outbound</li>}
-                {flight.segments.map((s, i) => (
-                  <li key={`o${i}`}>
-                    <b>{s.from} → {s.to}</b> · {s.airline} {s.flightNo} · {s.duration}
-                  </li>
-                ))}
-                {roundTrip && flight.returnSegments?.length > 0 && (
-                  <>
-                    <li className={styles.segHead}>Return</li>
-                    {flight.returnSegments.map((s, i) => (
-                      <li key={`r${i}`}>
-                        <b>{s.from} → {s.to}</b> · {s.airline} {s.flightNo} · {s.duration}
-                      </li>
-                    ))}
-                  </>
-                )}
-              </ul>
-              {verdict?.explanation ? (
-                noEmDash(verdict.explanation)
-                  .split("\n")
-                  .filter(Boolean)
-                  .map((p, i) => <p key={i}>{p}</p>)
-              ) : (
-                <p>No further detail available.</p>
-              )}
-              {flight.bookVia?.token ? (
-                // Real source: lazy-fetch booking options on demand (not on load).
-                <BookOptions token={flight.bookVia.token} search={search} />
-              ) : flight.bookVia?.url ? (
-                // Demo data carries a placeholder link.
-                <a
-                  className={styles.book}
-                  href={flight.bookVia.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Book direct with {flight.bookVia.name} ↗
-                </a>
-              ) : (
-                <p className={styles.bookSoon}>No booking link for this option yet.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
     </article>
+  );
+}
+
+// The phases of a search, in the order they run. Each one is reported by the
+// server the moment it actually begins, so this list is a record of what has
+// happened, never a guess at how far along we are. There is no progress bar for
+// the same reason: we don't know how long SerpApi will take, and inventing a
+// percentage would be the one kind of dishonesty this product exists to avoid.
+const SEARCH_STAGES = [
+  { id: "flights", label: "Searching flights" },
+  { id: "returns", label: "Checking return flights", roundTripOnly: true },
+  { id: "read", label: "Reading the fine print" },
+];
+
+function SearchProgress({ stage, roundTrip }) {
+  const steps = SEARCH_STAGES.filter((s) => roundTrip || !s.roundTripOnly);
+  // Before the first line arrives, the first step is already underway — the
+  // server sends it immediately, so treating it as active is true, not optimistic.
+  const currentIndex = Math.max(
+    0,
+    steps.findIndex((s) => s.id === stage)
+  );
+  const current = steps[currentIndex];
+
+  return (
+    <div className={styles.progress}>
+      {/* One polite announcement per change. The list below is the visual
+          version of the same thing, so screen readers hear it once, not twice. */}
+      <p className={styles.srOnly} role="status" aria-live="polite">
+        {current.label}
+      </p>
+      <ol className={styles.stages} aria-hidden="true">
+        {steps.map((s, i) => {
+          const state = i < currentIndex ? "done" : i === currentIndex ? "active" : "waiting";
+          return (
+            <li key={s.id} className={styles.stageRow} data-state={state}>
+              <span className={styles.stageMark}>
+                {state === "done" ? (
+                  "✓"
+                ) : state === "active" ? (
+                  <span className={styles.working}>
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                ) : (
+                  "·"
+                )}
+              </span>
+              {s.label}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }
 
@@ -755,7 +830,7 @@ function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 
 // canIncrement / canDecrement), so the buttons just call them.
 const TRAVELER_ROWS = [
   { type: "adults", label: "Adults" },
-  { type: "children", label: "Children", hint: "2–11" },
+  { type: "children", label: "Children", hint: "2 to 11" },
   { type: "infantsInSeat", label: "Infants in seat" },
   { type: "infantsOnLap", label: "Infants on lap" },
 ];
@@ -844,9 +919,15 @@ function TravelersControl({ counts, onChange }) {
 }
 
 export default function SearchExperience() {
+  useFocusModality();
   const [form, setForm] = useState({
     origin: "",
     destination: "",
+    // The friendly display label for each field (e.g. "Berlin (BER), Brandenburg"),
+    // kept alongside the bare code so a swap can restore the right text in each box —
+    // AirportField only knows its own box, not what the other one is showing.
+    originLabel: "",
+    destinationLabel: "",
     tripType: "round-trip",
     depart: "",
     returnDate: "",
@@ -855,14 +936,39 @@ export default function SearchExperience() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [stage, setStage] = useState(null); // which phase the server says it's in
+  const [readPending, setReadPending] = useState(false); // cards are up, read still writing
   const [data, setData] = useState(null); // { flights, riskMap, summary, verdicts }
   const [error, setError] = useState(null);
+  // True while the user has results but tapped "Edit" to change the search
+  // without losing it. Default false: on first load (no results yet) the form
+  // is the whole screen anyway, `showForm` below covers that case too.
+  const [editing, setEditing] = useState(false);
+  // The form (and the h1/lead above it) render only when there's nothing to
+  // show yet, or the user explicitly asked to edit — never stacked on top of
+  // results by default. See findings 1+2 in the Task 4 review.
+  const showForm = editing || !(data || loading);
   // Bumped on reset to remount the autocomplete fields (they hold their own
   // visible text, so clearing form state alone wouldn't empty the boxes).
   const [resetKey, setResetKey] = useState(0);
+  // Bumped on swap, same reason as resetKey: remounting the two fields with
+  // their new `initial` label is the only way to force the visible text to change.
+  const [swapKey, setSwapKey] = useState(0);
 
   // Today, as YYYY-MM-DD, for the date inputs' `min` and the submit-time guard.
   const today = new Date().toISOString().slice(0, 10);
+
+  // The results screen's heading, focused programmatically the moment fresh
+  // results land. Without this, the form (and the Submit button holding
+  // focus) unmounts on submit and focus silently falls back to <body> — a
+  // keyboard/screen-reader user gets no indication of where they landed.
+  const resultsHeadingRef = useRef(null);
+  useEffect(() => {
+    // Only on the transition INTO results (data going from null to an
+    // object), never on every render — editing/resubmitting sets data back
+    // to null first, so this fires again exactly when new results appear.
+    if (data) resultsHeadingRef.current?.focus();
+  }, [data]);
 
   function update(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -875,8 +981,31 @@ export default function SearchExperience() {
     setForm((f) => ({ ...f, tripType, returnDate: tripType === "one-way" ? "" : f.returnDate }));
   }
 
+  // Swap From and To — code AND label together, in one update, so neither box
+  // ever shows a code that doesn't match its own displayed text.
+  function swapOriginDestination() {
+    setForm((f) => ({
+      ...f,
+      origin: f.destination,
+      destination: f.origin,
+      originLabel: f.destinationLabel,
+      destinationLabel: f.originLabel,
+    }));
+    setSwapKey((k) => k + 1);
+  }
+
   function resetSearch() {
-    setForm({ origin: "", destination: "", tripType: "round-trip", depart: "", returnDate: "", cabin: "economy", ...PASSENGER_DEFAULTS });
+    setForm({
+      origin: "",
+      destination: "",
+      originLabel: "",
+      destinationLabel: "",
+      tripType: "round-trip",
+      depart: "",
+      returnDate: "",
+      cabin: "economy",
+      ...PASSENGER_DEFAULTS,
+    });
     setData(null);
     setError(null);
     setResetKey((k) => k + 1);
@@ -906,70 +1035,156 @@ export default function SearchExperience() {
       return;
     }
     setLoading(true);
+    setEditing(false); // a resubmit always returns to the results view
     setError(null);
     setData(null);
+    setStage(null);
+    setReadPending(false);
     try {
       const res = await fetch("/api/explain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const json = await res.json();
-      if (json.error) setError(json.error);
-      else setData(json);
+
+      // The route answers in NDJSON: one JSON object per line, written as each
+      // phase actually happens. Read the body as it arrives instead of waiting
+      // for the whole thing, so the wait can report itself.
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let settled = false; // saw a `done` or `error` line
+
+      // A chunk can split mid-line, so keep the tail in `buffer` until its
+      // newline shows up in the next chunk.
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop(); // the last piece may be a partial line
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          let msg;
+          try {
+            msg = JSON.parse(line);
+          } catch {
+            continue; // never let one malformed line kill a good search
+          }
+          if (msg.stage) setStage(msg.stage);
+          else if (msg.results) {
+            // Verified fares, sent before the read. Show them now: the prices,
+            // times, and warnings on these cards are all real, and none of them
+            // depend on the model. The read replaces this payload when it lands.
+            setData(msg.results);
+            setReadPending(true);
+            setLoading(false);
+          } else if (msg.error) {
+            setError(msg.error);
+            setReadPending(false);
+            settled = true;
+          } else if (msg.done) {
+            setData(msg);
+            setReadPending(false);
+            settled = true;
+          }
+        }
+      }
+
+      // The connection ended without a verdict: the function died mid-flight, or
+      // something between us dropped it. Say so rather than sitting on a spinner.
+      if (!settled) {
+        setError("The search stopped before it finished. Try again in a moment.");
+      }
     } catch {
       setError("Couldn't reach FareWise. Check your connection and try again.");
     } finally {
       setLoading(false);
+      setStage(null);
     }
   }
 
   return (
     <>
-      {/* Split hero: pitch + live board on the left, the search form on the right.
-          Collapses to a single column (and a tighter top margin) once a search runs. */}
-      <div className={`${styles.hero} ${data || loading ? styles.heroCompact : ""}`}>
-        <div className={styles.heroIntro}>
-          <p className={styles.kicker}>Flight search that tells you the truth</p>
-          <h1 className={styles.brand}>FareWise</h1>
-          <FlapBoard origin={form.origin} destination={form.destination} />
-        </div>
+      {/* App bar — the wordmark and nothing else. This is a tool, not a
+          landing page; the search card below is the first real thing. */}
+      <header className={styles.appbar}>
+        <p className={styles.brand}>
+          Fare<span>Wise</span>
+        </p>
+      </header>
 
-        <div className={styles.heroPitch}>
-          <p className={styles.subtitle}>
-            We don&apos;t book your flight or hide the catch. We compare the real
-            options, explain the trade-offs in plain language, then send you to book
-            direct.
-          </p>
-        </div>
+      {showForm && <h1 className={styles.h1}>Where to?</h1>}
 
-        <div className={styles.heroForm}>
-          <form className={styles.form} onSubmit={onSubmit}>
-            <p className={styles.formTitle}>Find your flight</p>
-
-            {/* Context strip: trip type · travelers · cabin. Self-evident — no labels. */}
-            <div className={styles.contextStrip}>
-              {/* Trip type — segmented toggle. Same behavior: One way hides + clears Return. */}
-              <div className={styles.segmented} role="group" aria-label="Trip type">
-                <button
-                  type="button"
-                  className={`${styles.segment} ${form.tripType === "round-trip" ? styles.segmentActive : ""}`}
-                  aria-pressed={form.tripType === "round-trip"}
-                  onClick={() => setTripType("round-trip")}
+      {showForm && (
+        <form className={styles.form} onSubmit={onSubmit}>
+          <div className={styles.fields}>
+            <AirportField
+              key={`origin-${resetKey}-${swapKey}`}
+              label="From"
+              name="origin"
+              initial={form.originLabel}
+              initialCommitted={Boolean(form.origin)}
+              onSelect={(code, label) => setForm((f) => ({ ...f, origin: code, originLabel: label }))}
+            />
+            <div className={styles.swap}>
+              <button type="button" aria-label="Swap origin and destination" onClick={swapOriginDestination}>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
                 >
-                  Round trip
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.segment} ${form.tripType === "one-way" ? styles.segmentActive : ""}`}
-                  aria-pressed={form.tripType === "one-way"}
-                  onClick={() => setTripType("one-way")}
-                >
-                  One way
-                </button>
-              </div>
+                  <path d="M7 4v16M7 20l-3-3M17 20V4M17 4l3 3" />
+                </svg>
+              </button>
+            </div>
+            <AirportField
+              key={`destination-${resetKey}-${swapKey}`}
+              label="To"
+              name="destination"
+              initial={form.destinationLabel}
+              initialCommitted={Boolean(form.destination)}
+              onSelect={(code, label) => setForm((f) => ({ ...f, destination: code, destinationLabel: label }))}
+            />
 
-              {/* Travelers — opens the passenger counter popover. */}
+            <div className={styles.fieldSplit}>
+              <label className={styles.field}>
+                <span className={styles.fieldKey}>Out</span>
+                <input
+                  className={styles.fieldInput}
+                  type="date"
+                  name="depart"
+                  value={form.depart}
+                  onChange={update}
+                  onClick={openDatePicker}
+                  min={today}
+                  required
+                />
+              </label>
+              {form.tripType === "round-trip" && (
+                <label className={styles.field}>
+                  <span className={styles.fieldKey}>Back</span>
+                  <input
+                    className={styles.fieldInput}
+                    type="date"
+                    name="returnDate"
+                    value={form.returnDate}
+                    onChange={update}
+                    onClick={openDatePicker}
+                    min={form.depart || today}
+                  />
+                </label>
+              )}
+            </div>
+
+            <div className={styles.fieldRow}>
+              <span className={styles.fieldKey}>Who</span>
               <TravelersControl
                 counts={{
                   adults: form.adults,
@@ -979,64 +1194,69 @@ export default function SearchExperience() {
                 }}
                 onChange={(c) => setForm((f) => ({ ...f, ...c }))}
               />
-
-              {/* Cabin — existing select, restyled to match the strip. */}
-              <select className={styles.cabinSelect} name="cabin" value={form.cabin} onChange={update} aria-label="Cabin">
+              <select
+                className={styles.cabinSelect}
+                name="cabin"
+                value={form.cabin}
+                onChange={update}
+                aria-label="Cabin"
+              >
                 <option value="economy">Economy</option>
                 <option value="premium">Premium economy</option>
                 <option value="business">Business</option>
                 <option value="first">First class</option>
               </select>
             </div>
+          </div>
 
-            {/* From / To — two equal columns, mono FROM/TO labels (from AirportField). */}
-            <div className={styles.row}>
-              <AirportField
-                key={`origin-${resetKey}`}
-                label="From"
-                name="origin"
-                initial={form.origin}
-                onSelect={(code) => setForm((f) => ({ ...f, origin: code }))}
-              />
-              <AirportField
-                key={`destination-${resetKey}`}
-                label="To"
-                name="destination"
-                initial={form.destination}
-                onSelect={(code) => setForm((f) => ({ ...f, destination: code }))}
-              />
-            </div>
-
-            {/* Depart / Return — two equal columns. Return only on round trip. */}
-            <div className={styles.row}>
-              <label className={styles.field}>
-                <span>Depart</span>
-                <input type="date" name="depart" value={form.depart} onChange={update} min={today} required />
-              </label>
-              {form.tripType === "round-trip" && (
-                <label className={styles.field}>
-                  <span>Return</span>
-                  <input
-                    type="date"
-                    name="returnDate"
-                    value={form.returnDate}
-                    onChange={update}
-                    min={form.depart || today}
-                  />
-                </label>
-              )}
-            </div>
-            <button className={styles.submit} type="submit" disabled={loading}>
-              {loading ? "Searching…" : "Search flights →"}
+          <div className={styles.chips} role="group" aria-label="Trip type">
+            <button
+              type="button"
+              className={styles.chip}
+              aria-pressed={form.tripType === "round-trip"}
+              onClick={() => setTripType("round-trip")}
+            >
+              Round trip
             </button>
-          </form>
-        </div>
-      </div>
+            <button
+              type="button"
+              className={styles.chip}
+              aria-pressed={form.tripType === "one-way"}
+              onClick={() => setTripType("one-way")}
+            >
+              One way
+            </button>
+          </div>
 
+          <p className={styles.promise}>
+            {/* JSX collapses the whitespace between a closing tag and same-line text at the
+                start of the next source line, so a plain space here silently disappears
+                (verified: it rendered as "history.The airline's" with no gap). {" "} forces
+                a real space that survives the collapse. */}
+            <b>We don&apos;t inflate prices based on your search history.</b>{" "}
+            The airline&apos;s price at checkout can still move with market and currency. That
+            part is outside our control.
+          </p>
+
+          <button className={styles.submit} type="submit" disabled={loading}>
+            {loading ? "Searching…" : "Search flights"}
+          </button>
+        </form>
+      )}
+
+      {/* A live search can run half a minute. The stage list says where that time
+          is going, and the placeholders hold the space so nothing jumps when the
+          real cards land. */}
       {loading && (
-        <div className={styles.loading} role="status" aria-live="polite">
-          <div className={styles.spinner} />
-          <p>Reading the real options and the fine print…</p>
+        <div className={styles.loadingWrap}>
+          <SearchProgress stage={stage} roundTrip={Boolean(form.returnDate)} />
+          {[0, 1, 2].map((i) => (
+            <div key={i} className={styles.skeleton} aria-hidden="true">
+              <div className={styles.skLine} style={{ width: "45%", height: 20 }} />
+              <div className={styles.skLine} style={{ width: "72%" }} />
+              <div className={styles.skLine} style={{ width: "60%" }} />
+            </div>
+          ))}
         </div>
       )}
 
@@ -1048,26 +1268,48 @@ export default function SearchExperience() {
 
       {data && (
         <section className={styles.results}>
-          <div className={styles.resultsHead}>
-            <p className={styles.meta} role="status" aria-live="polite">
-              {/* Factual label from the actual data source — never call real fares "demo". */}
-              <span className={styles.dot} /> {data.source === "serpapi" ? "Live fares" : "Demo fares"}
-              <span className={styles.sep}>·</span> {form.origin} → {form.destination}
-              <span className={styles.sep}>·</span> {CABIN_LABEL[form.cabin] || form.cabin}
-              <span className={styles.sep}>·</span> {data.flights.length} options
-              {(() => {
-                // Round trip only: show trip length in nights (what travelers book
-                // around). null => one-way / same-day / bad date => no segment at all.
-                const nights = nightsBetween(form.depart, form.returnDate);
-                return nights ? (
-                  <>
-                    <span className={styles.sep}>·</span> {nights} {nights === 1 ? "night" : "nights"}
-                  </>
-                ) : null;
-              })()}
-            </p>
-            <button type="button" className={styles.newSearch} onClick={resetSearch}>
-              New search
+          <div className={styles.searchbar}>
+            <button
+              type="button"
+              className={styles.backButton}
+              onClick={resetSearch}
+              aria-label="Start a new search"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M15 5l-7 7 7 7" />
+              </svg>
+            </button>
+            <div className={styles.searchbarInfo}>
+              <p className={styles.searchRoute} ref={resultsHeadingRef} tabIndex={-1}>
+                {form.origin} → {form.destination}
+              </p>
+              <p className={styles.searchMeta} role="status" aria-live="polite">
+                {(() => {
+                  const nights = nightsBetween(form.depart, form.returnDate);
+                  const count = data.flights.length;
+                  const noun = data.source === "serpapi" ? "live fare" : "demo fare";
+                  return [
+                    CABIN_LABEL[form.cabin] || form.cabin,
+                    nights ? `${nights} ${nights === 1 ? "night" : "nights"}` : null,
+                    `${count} ${noun}${count === 1 ? "" : "s"} read`,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ");
+                })()}
+              </p>
+            </div>
+            <button type="button" className={styles.editButton} onClick={() => setEditing(true)}>
+              Edit
             </button>
           </div>
 
@@ -1077,35 +1319,39 @@ export default function SearchExperience() {
             </p>
           ) : (
             <>
-              {/* Real per-search price context from SerpApi (price_insights).
-                  Only rendered when the data exists — never invented. */}
-              {priceInsightLine(data.priceInsights) && (
-                <p className={styles.priceInsight}>
-                  <span className={styles.priceInsightDot} aria-hidden="true" />
-                  {priceInsightLine(data.priceInsights)}
-                </p>
-              )}
-
-              {/* Layer 1: the honest read — one airline/insight per line, as a
-                  bulleted list with small accent dots (never a wall of prose). */}
-              <section className={styles.verdict} aria-labelledby="honest-read-title">
-                <h2 id="honest-read-title" className={styles.verdictTag}>
-                  FareWise&apos;s honest read
+              {/* Layer 1: the honest read, printed as a solid block in record navy
+                  so it reads as one finding, not a list of bullet points. */}
+              <section className={styles.read} aria-labelledby="honest-read-title">
+                <h2 id="honest-read-title" className={styles.readKicker}>
+                  The honest read
                 </h2>
-                <ul className={styles.readList}>
-                  {data.summary
+                {readPending ? (
+                  <p className={styles.readWaiting} role="status" aria-live="polite">
+                    <span className={styles.working} aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                    Reading these {data.flights.length} fares and their fine print.
+                  </p>
+                ) : (
+                  data.summary
                     .split("\n")
                     .filter(Boolean)
                     .map((line, i) => (
-                      <li key={i} className={styles.readItem}>
-                        <span className={styles.readDot} aria-hidden="true" />
-                        <span className={styles.readText}>
-                          {renderHonestLine(noEmDash(line), data.flights)}
-                        </span>
-                      </li>
-                    ))}
-                </ul>
+                      <p key={i} className={styles.readLine}>
+                        {renderHonestLine(noEmDash(line), data.flights)}
+                      </p>
+                    ))
+                )}
               </section>
+
+              {/* Real per-search price context from SerpApi (price_insights).
+                  Only rendered when the data exists — never invented. Sits below
+                  the read, quiet grey, not part of the finding itself. */}
+              {priceInsightLine(data.priceInsights) && (
+                <p className={styles.insight}>{priceInsightLine(data.priceInsights)}</p>
+              )}
 
               <div className={styles.sectionLabel}>{data.flights.length} options found</div>
 
@@ -1125,6 +1371,7 @@ export default function SearchExperience() {
                         flight={f}
                         risks={data.riskMap[f.id] || []}
                         verdict={data.verdicts[f.id]}
+                        readPending={readPending}
                         search={data.search}
                         cheapest={f.id === cheapestId}
                         index={i}
@@ -1137,7 +1384,7 @@ export default function SearchExperience() {
           )}
 
           {data.source !== "serpapi" && (
-            <p className={styles.foot}>Demo fares — hand-written sample data, not live prices.</p>
+            <p className={styles.foot}>Demo fares. Hand-written sample data, not live prices.</p>
           )}
         </section>
       )}

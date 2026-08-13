@@ -1,222 +1,253 @@
 ---
 name: FareWise
-description: Honest flight search — the night departure board that tells you the catch.
+description: Honest flight search — a record of what each fare actually costs you.
 colors:
-  page: "#1a1613"
-  page-inset: "#16120f"
-  card: "#23201b"
-  card-top: "#2a261f"
-  amber: "#ef9f27"
-  amber-soft: "#f3b455"
-  cream: "#f6f1e7"
-  cream-secondary: "#f6f1e79e"
-  cream-faint: "#f6f1e76b"
-  cream-hairline: "#f6f1e71f"
-  good: "#79c79a"
-  warn: "#ef9f27"
-  risk: "#e8694a"
+  bg: "#eef0ee"
+  card: "#ffffff"
+  sunk: "#e4e7e5"
+  ink: "#12171a"
+  ink-2: "#586267"
+  line: "#d5d9d7"
+  line-2: "#c3c9c6"
+  navy: "#1e3f77"
+  navy-2: "#16305c"
+  navy-tint: "#e8eef8"
+  navy-on: "#a8c0e6"
+  alert: "#9c2028"
+  alert-bg: "#fbeeee"
+  ok: "#1c6b52"
+  ok-tint: "#e2efe9"
 typography:
-  display:
-    fontFamily: "Instrument Serif, Georgia, serif"
-    fontSize: "clamp(3rem, 9vw, 5rem)"
+  h1:
+    fontFamily: "IBM Plex Sans, system-ui, sans-serif"
+    fontSize: "30px"
+    fontWeight: 700
+    lineHeight: 1.14
+    letterSpacing: "-0.03em"
+  price:
+    fontFamily: "IBM Plex Mono, ui-monospace, monospace"
+    fontSize: "31px"
+    fontWeight: 600
+    lineHeight: 1
+    letterSpacing: "-0.03em"
+  finding:
+    fontFamily: "IBM Plex Sans, system-ui, sans-serif"
+    fontSize: "19px"
     fontWeight: 400
-    lineHeight: 1.1
-    letterSpacing: "-0.01em"
-  headline:
-    fontFamily: "Instrument Serif, Georgia, serif"
-    fontSize: "clamp(17px, 2.4vw, 19px)"
-    fontWeight: 400
-    lineHeight: 1.1
-    letterSpacing: "-0.01em"
+    lineHeight: 1.42
+    letterSpacing: "-0.015em"
   title:
-    fontFamily: "Figtree, system-ui, sans-serif"
-    fontSize: "clamp(19px, 2.6vw, 22px)"
+    fontFamily: "IBM Plex Sans, system-ui, sans-serif"
+    fontSize: "20px"
     fontWeight: 600
     lineHeight: 1.2
-    letterSpacing: "-0.01em"
+    letterSpacing: "-0.02em"
   body:
-    fontFamily: "Figtree, system-ui, sans-serif"
-    fontSize: "1.08rem"
+    fontFamily: "IBM Plex Sans, system-ui, sans-serif"
+    fontSize: "17px"
     fontWeight: 400
-    lineHeight: 1.55
+    lineHeight: 1.5
+    letterSpacing: "normal"
+  secondary:
+    fontFamily: "IBM Plex Sans, system-ui, sans-serif"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.5
     letterSpacing: "normal"
   label:
-    fontFamily: "IBM Plex Mono, ui-monospace, monospace"
-    fontSize: "11px"
+    fontFamily: "IBM Plex Sans, system-ui, sans-serif"
+    fontSize: "12.5px"
     fontWeight: 600
     lineHeight: 1.2
-    letterSpacing: "0.16em"
-  data:
-    fontFamily: "IBM Plex Mono, ui-monospace, monospace"
-    fontSize: "clamp(30px, 5vw, 40px)"
-    fontWeight: 500
-    lineHeight: 0.95
-    letterSpacing: "-0.01em"
+    letterSpacing: "0.14em"
 rounded:
-  chip: "7px"
-  input: "10px"
-  card: "14px"
+  control: "10px"
+  card: "16px"
+  action: "12px"
 spacing:
-  xs: "7px"
-  sm: "12px"
+  xs: "6px"
+  sm: "11px"
   md: "16px"
-  lg: "24px"
+  lg: "20px"
+  xl: "26px"
 components:
   button-primary:
-    backgroundColor: "{colors.amber}"
-    textColor: "{colors.page}"
-    typography: "{typography.label}"
-    rounded: "{rounded.input}"
-    padding: "13px 24px"
+    backgroundColor: "{colors.navy}"
+    textColor: "#ffffff"
+    rounded: "14px"
+    minHeight: "56px"
+    padding: "0 16px"
   button-primary-hover:
-    backgroundColor: "{colors.amber-soft}"
-    textColor: "{colors.page}"
-  input-field:
-    backgroundColor: "{colors.page-inset}"
-    textColor: "{colors.cream}"
-    typography: "{typography.data}"
-    rounded: "{rounded.input}"
-    padding: "12px 14px"
-  suggestion:
-    backgroundColor: "{colors.card-top}"
-    textColor: "{colors.cream}"
-    rounded: "{rounded.chip}"
-    padding: "10px 12px"
-  flight-card:
+    backgroundColor: "{colors.navy-2}"
+    textColor: "#ffffff"
+  form-row:
     backgroundColor: "{colors.card}"
-    textColor: "{colors.cream}"
+    textColor: "{colors.ink}"
+    minHeight: "66px"
+    padding: "13px 16px"
+    borderBottom: "1px solid {colors.line}"
+  fare-card:
+    backgroundColor: "{colors.card}"
+    textColor: "{colors.ink}"
     rounded: "{rounded.card}"
-    padding: "26px 28px"
-  book-link:
-    backgroundColor: "{colors.page}"
-    textColor: "{colors.amber}"
-    typography: "{typography.label}"
-    rounded: "{rounded.chip}"
-    padding: "10px 16px"
+    border: "1px solid {colors.line-2}"
+  record-row:
+    textColor: "{colors.ink}"
+    labelColor: "{colors.ink-2}"
+    padding: "11px 16px"
+    borderBottom: "1px solid {colors.line}"
+  finding-block:
+    backgroundColor: "{colors.navy}"
+    textColor: "#ffffff"
+    secondaryTextColor: "{colors.navy-on}"
+    rounded: "{rounded.card}"
+    padding: "20px"
+  popover:
+    backgroundColor: "{colors.card}"
+    border: "1px solid {colors.line-2}"
+    rounded: "{rounded.card}"
+    shadow: "0 12px 30px rgba(18, 23, 26, 0.14)"
 ---
 
 # Design System: FareWise
 
 ## 1. Overview
 
-**Creative North Star: "The Night Departure Board"**
+**Creative North Star: "The Record"**
 
-FareWise looks like a warm charcoal airport terminal after midnight. The page is near-black with a faint amber glow bleeding down from the top, like board-light over an empty concourse. The hero is a real split-flap board spelling the route. Amber is the only accent — it is the board, the caution, the call to act — and it earns its rarity. Cream text sits calm and legible on the dark. Mono labels tick along like gate listings. Nothing is loud; the authority comes from restraint and from telling the truth on screen.
+FareWise looks like a document you'd be handed by someone who has no stake in what you choose. The page is cool paper grey. Facts sit on white cards, each one a labelled row with its value right-aligned, so a column of fares can be read down rather than decoded one card at a time. The finding — what we actually think the cheap option costs you — is printed in deep record navy, the one filled block on the screen.
 
-The system rejects the **generic SaaS dashboard** outright: no card-grid control panels, no gradient hero-metric, no blue-and-white tool chrome. It rejects **booking-site urgency** (no red scarcity banners, no countdowns) and **travel-blogger gloss** (no full-bleed beaches, no wanderlust mood photography). FareWise is editorial and mechanical, not a control surface and not a brochure. Components feel like board hardware: solid, tactile, mono-labeled, every element stating a fact.
+It is light because people compare fares in daylight, on a phone, standing up. It is high-contrast because the honest read is the product, and a product you can't read at arm's length isn't honest.
 
-**Key Characteristics:**
-- Dark warm-charcoal canvas, single amber accent, cream type
-- Three-font system: serif display, sans body, mono labels/data
-- Split-flap board as signature hero element
-- Honesty layer rendered as color-coded, icon-paired warnings — never color alone
-- Calm, authoritative, mechanical; restraint over decoration
+The system rejects the **generic SaaS dashboard** (no identical card grids, no gradient hero-metric), **booking-site urgency** (no scarcity banners, no countdowns, no "2 seats left"), and **travel-blogger gloss** (no full-bleed beaches, no wanderlust copy). It is a record, not a control surface and not a brochure.
+
+**Key characteristics:**
+- Cool paper-grey canvas, white cards, one navy, one alert red
+- Two faces only: IBM Plex Sans for anything a person reads, IBM Plex Mono for anything whose digits must line up
+- Every fact is a labelled row; every value is right-aligned
+- The verdict is a filled navy block — the only filled block on the screen
+- Phone-first single column, 560px maximum. There is no desktop layout, only a wider phone.
 
 ## 2. Colors
 
-A warm dark palette: charcoal surfaces stepped by tone, one amber accent, cream text, and a three-color risk signal.
+### Surfaces
+- **Paper Grey** (`#eef0ee`): the page. Cool, no yellow in it — yellow reads as aged paper, and this is a document printed today.
+- **Card White** (`#ffffff`): every raised surface — the search card, each fare card, both popovers.
+- **Sunk** (`#e4e7e5`): recessed strips. The one-line judgement under a fare, the "note" callout, the third-party tag.
 
-### Primary
-- **Board Amber** (`#ef9f27`): the only accent. Primary actions (submit, book), the split-flap arrow, caution warnings, kickers, active autocomplete rows. It is the board light. Used sparingly so it always means "look here."
-- **Amber Glow** (`#f3b455`): hover state for amber surfaces and the brighter accent text on active rows.
+### Ink
+- **Ink** (`#12171a`): primary text. 18.1:1 on white.
+- **Ink 2** (`#586267`): labels and secondary text. 6.3:1 on white, 5.5:1 on the page, 5.0:1 on sunk — it clears AA on all three surfaces it is used on.
+- **Line** (`#d5d9d7`) / **Line 2** (`#c3c9c6`): hairlines inside cards, and the stronger edge on card and control borders. Never text.
 
-### Neutral
-- **Concourse Charcoal** (`#1a1613`): the page. Warm near-black; the terminal at night.
-- **Inset Black** (`#16120f`): deeper recess for inputs and callouts, so fields read as cut into the surface.
-- **Card Charcoal** (`#23201b`) / **Card Top** (`#2a261f`): card surfaces, used as a top-to-bottom gradient so cards catch a faint board-light highlight.
-- **Cream** (`#f6f1e7`): primary text. Calm, warm white.
-- **Cream Secondary** (`#f6f1e7` at 62%): supporting text, routes, meta.
-- **Cream Faint** (`#f6f1e7` at 42%): faint labels and dimmed prices. **Audit risk: verify this clears 4.5:1 on charcoal before using for any text that must be read.**
-- **Cream Hairline** (`#f6f1e7` at 12% / 8%): dividers and borders only, never text.
+### The record ink
+- **Record Navy** (`#1e3f77`): the finding block, the primary action, the seller link, the disclosure buttons, the focus ring. 10.3:1 with white on it, 10.3:1 as text on white.
+- **Navy 2** (`#16305c`): hover and pressed.
+- **Navy Tint** (`#e8eef8`): the "cheapest" tag, the highlighted autocomplete row, the focused form row.
+- **Navy On** (`#a8c0e6`): secondary text *on* the navy block — the kicker. 5.6:1 on navy.
 
-### Tertiary — The Risk Signal
-- **Reassurance Green** (`#79c79a`): the "good" verdict — one ticket, protected, realistic connection. Status dots, good flags.
-- **Caution Amber** (`#ef9f27`): the "watch this" signal — same hue as the accent, reused for medium-risk flags.
-- **High-Risk Red** (`#e8694a`): separate tickets, tight connections, suspiciously low fares. The loud warning.
+### The signal
+- **Alert** (`#9c2028`): the catch — separate tickets, a tight connection, a suspiciously low fare, a next-day arrival, a real failure. 7.9:1 on white, 7.0:1 on its own tint.
+- **Alert BG** (`#fbeeee`): the warning callout and the error block.
+- **OK** (`#1c6b52`): we checked and found nothing to warn about. 6.4:1 on white, 5.4:1 on its own tint.
+- **OK Tint** (`#e2efe9`): the "no catch found" tag and the "direct" seller tag.
 
-### Named Rules
-**The One Board-Light Rule.** Amber is the only accent and appears on a small fraction of any screen. Three amber buttons on one view means two too many. Its scarcity is what makes it read as "act here."
+### Named rules
 
-**The Signal-Never-Alone Rule.** Green / amber / red always ship with a text label and an icon. Color is the fast cue, never the only cue. A color-blind user must get the same warning from the words.
+**The One Navy Rule.** Navy marks the finding and the primary action, nothing else. A screen with three navy blocks has two too many. Its scarcity is what makes the honest read read as the honest read.
+
+**The Signal-Never-Alone Rule.** Green and red always ship with an icon *and* a word. Colour is the fast cue, never the only cue. A colour-blind user gets the same warning from the text.
+
+**The No-Claim Rule.** Green says only what we checked, never what we can't verify. The good tag reads "No catch found", not "One ticket" — the data source returns no separate-ticket or protection signal, so asserting protection would be a claim we never earned.
 
 ## 3. Typography
 
-**Display Font:** Instrument Serif (with Georgia, serif fallback) — normal + italic, weight 400
-**Body Font:** Figtree (with system-ui, sans-serif fallback)
-**Label / Data Font:** IBM Plex Mono (with ui-monospace, monospace fallback)
+**Body:** IBM Plex Sans (system-ui, sans-serif fallback) — 400 / 500 / 600 / 700
+**Mono:** IBM Plex Mono (ui-monospace, monospace fallback) — 500 / 600
 
-**Character:** A serif that's elegant but plain (no fuss), a clean humanist sans for reading, and a mono that does the work of a real departure board — gate codes, prices, times, uppercase labels. The contrast axis is serif-vs-mono, never two similar sans.
+There is no display face. A product UI doesn't need one, and a decorative headline face on a page about honest pricing is exactly the wrong signal. The contrast axis is sans-versus-mono: sentences in one face, data in the other.
 
 ### Hierarchy
-- **Display** (Instrument Serif 400, `clamp(3rem, 9vw, 5rem)`, lh 1.1): the FareWise wordmark and split-flap glyphs. Hero only.
-- **Headline** (Instrument Serif 400, `clamp(17px, 2.4vw, 19px)`, lh 1.1): the verdict summary — the honest read, set in serif so it feels spoken, not labeled.
-- **Title** (Figtree 600, `clamp(19px, 2.6vw, 22px)`, lh 1.2): airline / card titles.
-- **Body** (Figtree 400, ~1.08rem, lh 1.55): explanations and subtitle. Cap measure at ~54ch (already set on subtitle).
-- **Label** (IBM Plex Mono 600, 11px, ls 0.16em, UPPERCASE): field labels, kickers, section rules, button text, the "book via" link.
-- **Data** (IBM Plex Mono 500, `clamp(30px, 5vw, 40px)`, lh 0.95): prices and the big numbers. Mono so digits align like a board.
+- **H1** (Sans 700, 30px, ls -0.03em): "Where to?" — the search screen only, and it hides once a search has run.
+- **Price** (Mono 600, 31px, tabular): the fare on each card.
+- **Finding** (Sans 400, 19px, lh 1.42): the lines of the honest read, set on the navy block.
+- **Title** (Sans 600, 20px): the airline on a fare card.
+- **Body** (Sans 400, 17px, lh 1.5): explanations, warnings, empty states. Nothing that must be read is smaller than 15px.
+- **Secondary** (Sans 400, 15px): supporting lines, the promise, the price-insight line, the footer.
+- **Label** (Sans 600, 12.5px, ls 0.14em, UPPERCASE): the one label tier — form-row keys, section kickers, the warning word, the outbound/return heads. Nothing smaller than this renders text.
 
-### Named Rules
-**The Mono-for-Facts Rule.** Anything that is data — a price, a time, a flight number, a gate-style label — is set in IBM Plex Mono. Anything that is a human sentence — the verdict, the explanation — is serif or sans. The font tells the user whether they're reading a fact or a judgment.
+### Named rules
+
+**The Mono-for-Digits Rule.** Times, prices, and airport codes are set in IBM Plex Mono with tabular figures, so a column of them lines up and the digits don't wobble as they change. Every human sentence is sans. The face tells the user whether they are reading a measurement or a judgement.
 
 ## 4. Elevation
 
-A hybrid: flat surfaces lifted by soft, warm shadows and one atmospheric glow. Depth is conveyed by tonal layering (page → inset → card gradient) first, shadow second. There is no glassmorphism and no hard drop-shadow; shadows are diffuse and dark, like board hardware sitting slightly proud of the wall.
+Nearly flat. Depth comes from tone and hairlines, not shadow: page grey → white card → sunk strip. Only genuinely floating layers cast anything.
 
-### Shadow Vocabulary
-- **Card lift** (`box-shadow: 0 18px 40px rgba(0,0,0,0.28)`): the form and verdict card. A large, soft, downward shadow.
-- **Card rest** (`box-shadow: 0 6px 16px rgba(0,0,0,0.35)` + inset top highlight): split-flap tiles; reads as physical hardware.
-- **Dropdown** (`box-shadow: 0 16px 36px rgba(0,0,0,0.4)`): autocomplete suggestions, floating above the form.
-- **Atmosphere glow** (fixed radial amber, ~10% opacity, top of viewport): board-light bleed. Plus a near-invisible scanline overlay (soft-light, 35%) for board texture.
+- **Card:** no shadow. A 1px `line-2` border and the tonal step off the page do the work.
+- **Popover** (`0 12px 30px rgba(18, 23, 26, 0.14)`): the autocomplete list and the travelers panel — the only two things that float above the page.
+- **Sticky header:** the results search bar sits on the page colour with a `line-2` bottom edge, no shadow.
 
-### Named Rules
-**The Hardware-Not-Glass Rule.** Surfaces are opaque and warm. Shadows are dark and diffuse, never a bright glow or a frosted blur. If a panel looks like frosted glass, it's wrong — these are metal flaps and lit panels, not glass.
+**The Flat-Unless-Floating Rule.** A shadow means "this is above the page and will go away." A card that never moves doesn't get one.
 
 ## 5. Components
 
-Components feel **mechanical and honest**: solid board hardware, mono-labeled, nothing decorative. Every element states a fact.
+### The record row (signature)
+One fact per row: a label in `ink-2` on the left, the value right-aligned in 600 weight, a hairline between. This is the component the whole system is named for. Route and times sit in mono so two cards can be compared down the column; everything else is sans. Total cost is the last row, and when the data source doesn't itemise fees it says `fare only · fees not listed` rather than implying a total we don't have.
+
+### The finding block (signature)
+The honest read: a filled navy card, an uppercase kicker in `navy-on`, then the lines as plain 19px paragraphs — no bullets, because inside a filled block a bullet is decoration. It ends on the last line of the read. Nothing follows it explaining how FareWise makes money; a page that volunteers that reads as a page with something to defend.
 
 ### Buttons
-- **Shape:** 10px radius (`{rounded.input}`).
-- **Primary:** solid Board Amber background, charcoal text, mono uppercase label (13px, ls 0.06em), padding 13px 24px. Left-aligned in the form, not full-width.
-- **Hover / Focus:** background shifts to Amber Glow (`#f3b455`); focus shows a 2px amber outline, offset 1px. Disabled drops to 55% opacity.
-- **Toggle (ghost):** "Show the read" expander — mono uppercase amber text, no fill, 44px min touch target, chevron rotates 180° on open.
+- **Primary:** navy fill, white text, 14px radius, 56px tall, full width. One per screen.
+- **Action** (seller link, "Done"): navy fill, 12px radius, 50px tall, full width of its panel.
+- **Chip** (trip type): white with a `line-2` border; the pressed one inverts to `ink` fill with white text. State is carried by `aria-pressed`, and the CSS keys off it — there is no separate active class to fall out of sync.
+- **Disclosure:** navy text, no fill. The card's own toggle is a full-bleed 52px row with a hairline above it; the nested "How to book" is quieter — inline, no edge — because it opens a panel inside a panel. Each chevron rotates off its own button's `aria-expanded`.
 
-### Cards / Containers
-- **Corner Style:** 14px radius (`{rounded.card}`).
-- **Background:** Card Charcoal, or a `card-top → card` vertical gradient on the form and verdict.
-- **Shadow Strategy:** Card lift (see Elevation). Hover nudges the border to cream-12 and lifts 1px.
-- **Border:** 1px cream-08 hairline.
-- **Internal Padding:** `clamp(20px, 3.4vw, 28px)`.
+### Form
+One card, one row per fact, 66px per row, hairline between, label 48px wide on the left. Out/Back split the row; Who and cabin share the last one. Every control that opens something — Out, Back, Who, cabin — carries the same chevron; there is one "this opens" mark in the app, not four drawn four ways. Dates set their value in mono with tabular figures, because a column of dates is a column of numbers.
 
-### Inputs / Fields
-- **Style:** Inset Black background, 1px cream-12 stroke, 10px radius, mono text. Labels above in mono uppercase.
-- **Focus:** 2px amber outline, border goes transparent.
-- **Dark-native dates:** the `mm/dd/yyyy` hint renders cream-40 muted; a real value brightens to cream; the calendar icon is inverted to stay visible. (Hard-won — empty date fields used to look blank.)
-- **Autocomplete:** floating dropdown (Card Top, dropdown shadow), city headers bold with a hairline under, airports indented under their city with an amber 35% guide rule, active row amber-tinted.
+**The Caret-Is-The-Focus Rule.** Clicking into a field draws nothing: no tint, no ring, no underline. A text field already has the clearest focus signal there is — the caret sitting in it — and anything drawn on top is decoration that competes with the one filled block on the screen. The row's label turning navy is the only addition. Keyboard focus is the opposite case and gets a real navy ring, because a Tab user has no caret to follow across the form. The two are told apart by `data-focus` on `<html>` (see `useFocusModality`), since a text input matches `:focus-visible` on click as well as on Tab and CSS alone can't separate them.
 
-### The Honesty Layer (signature component)
-The reason FareWise exists. Three pieces, all always-visible (never hidden behind a toggle):
-- **Verdict card:** serif summary, one tight line per flight, amber verdict tag (mono uppercase) with a rotated-square bullet.
-- **Flag** (per card): a colored circular icon + sentence. `flagGood` (green check), `flagCaution` (amber), `flagRisk` (red) — color paired with icon and full-sentence text.
-- **Warnings** (per card): stacked callout blocks. `warn_high` (red tint + border), `warn_warn` (amber tint), `warn_info` (cream tint). Each leads with a mono uppercase label, then a plain complete sentence. Risk warnings are never shorthand.
+### Warnings (signature)
+Always visible, never behind a toggle, and generated in code rather than by the model. A tinted block with an icon plus an uppercase word (`Warning` / `Note`), then a full, blunt, complete sentence. This is the one place brevity loses to clarity.
+
+### States
+- **Loading:** a stage list over three card-shaped skeletons. A live search can run half a minute, and at that length the user's problem is doubt, not boredom — so the route streams each phase as it truly begins (searching flights → checking return flights → reading the fine print) and each row turns from waiting to working to done. No spinner, and **no progress bar or percentage**: we don't know how long the data source will take, so any bar would be invented motion. The skeletons hold the space so nothing jumps when the real cards land.
+- **Error** (a real failure): the alert-edged block. We'd rather show nothing than prices we can't verify.
+- **Empty** (no flights for these dates): a calm white card. This is an answer, not a failure, and it must never be dressed as one.
 
 ### Navigation
-No persistent nav in Phase 1; the page is a single search→results flow. The split-flap board doubles as the wayfinding anchor.
+No persistent nav. The flow is search → results, with a sticky context bar carrying the route, what we read, and a way back.
 
-## 6. Do's and Don'ts
+## 6. Retired — do not reintroduce
 
-### Do:
-- **Do** keep amber on ≤10% of any screen (The One Board-Light Rule). Let its rarity carry the call to action.
-- **Do** pair every green/amber/red signal with an icon and a text label (The Signal-Never-Alone Rule), so the warning survives color blindness and the WCAG 2.2 AA bar.
-- **Do** set every price, time, and flight number in IBM Plex Mono; set every human judgment in serif or sans (The Mono-for-Facts Rule).
-- **Do** write risk warnings as full, blunt, complete sentences. Clarity beats brevity exactly where the user must understand the danger.
-- **Do** surface total cost (bag + seat → ~total) in the card, never just the headline fare.
-- **Do** verify cream-40 (42% opacity) clears 4.5:1 before using it for any text that must be read; bump toward cream-60 or cream if close.
+The **"Night Departure Board"** system is retired, not paused: night navy and warm charcoal surfaces, signal orange as the accent, the split-flap hero board, the perforated boarding-pass ticket card, the amber atmosphere glow, and the scanline overlay. None of it returns. If a future request asks for "more personality," it gets it from typography, rhythm, and the finding block — not from bringing the board back.
 
-### Don't:
-- **Don't** build a **generic SaaS dashboard**: no identical card grids, no gradient hero-metric block, no blue-and-white tool chrome.
-- **Don't** add **booking-site urgency**: no red scarcity banners, no "2 seats left," no countdowns. Money never reorders results and nothing manufactures pressure.
-- **Don't** use **travel-blogger gloss**: no full-bleed beach photography, no wanderlust mood copy.
-- **Don't** use glassmorphism or frosted blur (The Hardware-Not-Glass Rule). Surfaces are opaque warm metal, not glass.
-- **Don't** introduce a second accent hue. Amber is the only voice; green/amber/red exist solely as the risk signal.
-- **Don't** rely on the `border-left: 3px amber` stripe on the verdict card — a colored side-stripe over 1px is a banned pattern. Carry the accent with the existing amber verdict tag and a full hairline instead.
+## 7. Do's and Don'ts
+
+### Do
+- **Do** keep navy on the finding and the primary action only (The One Navy Rule).
+- **Do** pair every green or red with an icon and a word (The Signal-Never-Alone Rule).
+- **Do** set times, prices, and airport codes in mono with tabular figures (The Mono-for-Digits Rule).
+- **Do** write risk warnings as full, blunt, complete sentences, and keep them visible when the card is collapsed.
+- **Do** say what we checked, never what we haven't verified (The No-Claim Rule).
+- **Do** keep every interactive element ≥44px, form rows at 66px, and the primary action at 56px.
+- **Do** state total cost — or state plainly that fees aren't listed.
+
+### Don't
+- **Don't** reintroduce orange, cream, neon accents, faux paper texture, perforations, hatch fills, scanlines, or radial atmosphere glows.
+- **Don't** build a generic SaaS dashboard: no identical card grids, no gradient hero-metric block.
+- **Don't** add booking-site urgency: no scarcity banners, no countdowns, no manufactured pressure. Money never reorders results.
+- **Don't** use travel-blogger gloss: no full-bleed beach photography, no wanderlust copy.
+- **Don't** introduce a second accent hue. Navy is the voice; red and green exist only as the signal.
+- **Don't** render text below 12.5px, and don't use the label tier for anything but labels.
+- **Don't** hide a warning behind a disclosure, ever.
+- **Don't** put an explaining sentence under a heading. If the control below it already shows what the thing does, the sentence is filler and reads as machine-written padding. "Where to?" stands alone above the form.
+- **Don't** tell the user how FareWise gets paid, in any wording. Ranking honestly is the behaviour; announcing it invites the question of who pays and what it bought. Volunteering the disclaimer reads as defensive, not transparent.
+- **Don't** show a progress bar, a percentage, or any indicator that implies we know how much of the wait is left. Report phases that have actually happened; never predict.
+- **Don't** use an em dash or an en dash in anything a user reads — copy, labels, warnings, ranges, or generated text. Use a full stop, a comma, or the word "to" for a range. The dash is the loudest tell that a sentence was machine-written.
+
+## 8. Dark theme
+
+Not built. When it is, it is one `@media (prefers-color-scheme: dark)` block in `app/globals.css` that redefines these same token names — and nothing downstream changes. Contrast must be re-verified against the dark values; the light ratios do not transfer.

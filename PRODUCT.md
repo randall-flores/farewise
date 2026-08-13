@@ -22,7 +22,7 @@ A sharp, honest operator who respects your time. Three words: **honest, transact
 
 Voice: state the fact, then why it matters, then stop. No mood words, no padding, no hedging, one idea per line. Plain language only — if a twice-a-year flyer wouldn't understand a word instantly, swap it ("wait" not "layover", "separate tickets" not "self-transfer", "no stops" not "nonstop"). The one exception: risk warnings stay full, blunt, complete sentences — clarity beats brevity exactly where the user must understand the danger.
 
-Visual identity (already committed, preserve it): "airport departure board at night" — warm charcoal page, amber board accent, cream text, serif display + mono labels. Calm and authoritative, not loud.
+Visual identity (already committed, preserve it): "the record" — cool paper grey page, white cards, every fact a labelled row with its value right-aligned, and the verdict printed as a finding in deep record navy. One alert red for the catch. Light, high-contrast, phone-first. Calm and authoritative, not loud.
 
 ## Anti-references
 

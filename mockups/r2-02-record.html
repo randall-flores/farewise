@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FareWise R2 — B: Record</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#eef0ee;          /* cool paper grey — no yellow */
+    --card:#ffffff;
+    --sunk:#e4e7e5;
+    --ink:#12171a;
+    --ink-2:#586267;       /* 5.4:1 on white */
+    --line:#d5d9d7;
+    --line-2:#c3c9c6;
+    --navy:#1e3f77;        /* the record ink: verdict, primary action */
+    --navy-2:#16305c;
+    --alert:#9c2028;       /* the catch */
+    --alert-bg:#fbeeee;
+    --ok:#1c6b52;
+    --r:16px;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#dfe3e0;color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.5}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+  /* ---------- mockup chrome ---------- */
+  .banner{background:var(--ink);color:#eef0ee;padding:18px 28px}
+  .banner .n{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.6;font-weight:600}
+  .banner .t{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+  .banner .d{opacity:.8;font-size:15px;max-width:78ch;margin-top:6px}
+  .sw{display:flex;gap:6px;margin-top:12px}
+  .sw i{width:30px;height:16px;display:block;border-radius:3px}
+  .stage{display:flex;gap:34px;padding:40px 28px 70px;overflow-x:auto;align-items:flex-start}
+  .col{flex:none}
+  .cap{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#6b7570;
+    font-weight:600;margin:0 0 12px 4px}
+
+  /* ---------- phone ---------- */
+  .phone{width:390px;background:var(--bg);border-radius:42px;padding:10px;
+    box-shadow:0 0 0 1.5px #b9bfbb, 0 30px 70px rgba(0,0,0,.28)}
+  .screen{background:var(--bg);border-radius:33px;overflow:hidden;min-height:812px;
+    display:flex;flex-direction:column;position:relative}
+  .status{display:flex;justify-content:space-between;align-items:center;
+    padding:14px 24px 6px;font-size:14px;font-weight:600}
+  .pad{padding:0 20px}
+  .grow{flex:1}
+  .homebar{height:5px;width:134px;background:#0e12144d;border-radius:3px;margin:14px auto 10px}
+
+  h1{font-size:30px;line-height:1.14;letter-spacing:-.03em;font-weight:700;margin:16px 0 6px}
+  h2{font-size:20px;line-height:1.25;letter-spacing:-.02em;font-weight:600;margin:0}
+  .lead{color:var(--ink-2);font-size:16px;margin:0}
+  .eyebrow{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600}
+
+  /* ---------- search ---------- */
+  .brandrow{display:flex;align-items:center;justify-content:space-between;padding-top:8px}
+  .brand{font-size:19px;font-weight:700;letter-spacing:-.02em}
+  .brand span{color:var(--navy)}
+  .avatar{width:34px;height:34px;border-radius:10px;border:1px solid var(--line-2);
+    display:grid;place-items:center;color:var(--ink-2);font-size:14px;font-weight:600;background:var(--card)}
+
+  .fields{margin-top:20px;background:var(--card);border-radius:var(--r);
+    border:1px solid var(--line);overflow:hidden}
+  .field{display:flex;align-items:center;gap:14px;padding:15px 18px;min-height:66px;
+    border-bottom:1px solid var(--line)}
+  .field:last-child{border-bottom:none}
+  .field .k{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);
+    font-weight:600;width:48px;flex:none}
+  .field .v{font-size:19px;font-weight:600;letter-spacing:-.01em}
+  .field .v small{display:block;font-size:14px;font-weight:400;color:var(--ink-2);letter-spacing:0}
+  .field .code{margin-left:auto;font-size:23px;font-weight:600;letter-spacing:.04em;color:var(--navy)}
+  .swap{position:relative;height:0}
+  .swap button{position:absolute;right:18px;top:-24px;width:48px;height:48px;border-radius:14px;
+    background:var(--card);border:1px solid var(--line-2);color:var(--ink);display:grid;
+    place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.07)}
+  .half{display:flex}
+  .half .field{flex:1;border-bottom:none}
+  .half .field+.field{border-left:1px solid var(--line)}
+
+  .chips{display:flex;gap:9px;margin-top:16px}
+  .chip{padding:11px 16px;border-radius:10px;border:1px solid var(--line-2);color:var(--ink-2);
+    font-size:15px;font-weight:500;background:var(--card);cursor:pointer;font-family:inherit}
+  .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+
+  .promise{margin-top:auto;padding-top:20px}
+  .promise p{margin:0;color:var(--ink-2);font-size:15px;line-height:1.5}
+  .promise b{color:var(--ink);font-weight:600}
+  .cta{display:block;width:100%;min-height:56px;border:none;border-radius:14px;background:var(--navy);
+    color:#fff;font-family:inherit;font-size:18px;font-weight:600;letter-spacing:-.01em;
+    cursor:pointer;margin-top:18px}
+  .cta:active{background:var(--navy-2)}
+  .cta.ghost{background:var(--card);border:1px solid var(--line-2);color:var(--ink)}
+
+  /* ---------- results ---------- */
+  .topbar{display:flex;align-items:center;gap:12px;padding:8px 20px 14px;
+    border-bottom:1px solid var(--line-2);background:var(--bg)}
+  .topbar .back{width:40px;height:40px;border-radius:12px;border:1px solid var(--line-2);
+    background:var(--card);display:grid;place-items:center;flex:none}
+  .topbar .route{font-size:18px;font-weight:700;letter-spacing:-.01em}
+  .topbar .sub{font-size:14px;color:var(--ink-2)}
+  .topbar .edit{margin-left:auto;color:var(--navy);font-size:15px;font-weight:600}
+
+  /* the verdict, printed as the record's finding */
+  .read{margin:18px 0 0;background:var(--navy);color:#fff;border-radius:var(--r);padding:20px}
+  .read .eyebrow{color:#a8c0e6;display:block;margin-bottom:12px}
+  .read p{margin:0 0 10px;font-size:19px;line-height:1.42;letter-spacing:-.015em}
+  .read p:last-of-type{margin-bottom:0}
+  .read .fine{font-size:14.5px;color:#bdcde8;margin-top:14px;padding-top:14px;
+    border-top:1px solid #ffffff2e;line-height:1.45}
+
+  .sechead{display:flex;align-items:baseline;justify-content:space-between;margin:24px 0 10px}
+  .sechead h3{margin:0;font-size:16px;font-weight:600}
+  .sechead span{font-size:14px;color:var(--ink-2)}
+
+  .fare{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:0;margin-bottom:14px;overflow:hidden}
+  .fare .head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+    padding:17px 18px 14px}
+  .amt{font-size:31px;font-weight:600;letter-spacing:-.03em;line-height:1;text-align:right}
+  .amt small{display:block;font-size:13px;font-weight:400;color:var(--ink-2);letter-spacing:0;
+    margin-top:5px;font-family:"IBM Plex Sans",sans-serif}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
+    letter-spacing:.12em;text-transform:uppercase;padding:5px 9px;border-radius:6px;margin-bottom:9px}
+  .tag.pick{background:#e8eef8;color:var(--navy)}
+  .tag.bad{background:var(--alert-bg);color:var(--alert)}
+
+  /* the record rows — the thing that makes it a record */
+  .rows{border-top:1px solid var(--line)}
+  .rw{display:flex;justify-content:space-between;gap:14px;padding:11px 18px;
+    border-bottom:1px solid var(--line);font-size:15.5px}
+  .rw:last-child{border-bottom:none}
+  .rw .k{color:var(--ink-2)}
+  .rw .v{font-weight:600;text-align:right}
+  .rw.flag .v{color:var(--alert)}
+  .rw.good .v{color:var(--ok)}
+  .say{padding:15px 18px;background:var(--sunk);font-size:16px;line-height:1.5;color:var(--ink)}
+  .say b{font-weight:600}
+
+  /* ---------- detail ---------- */
+  .hero{padding:18px 20px 18px}
+  .hero .amt{font-size:40px}
+  .alert{margin:0 20px;background:var(--card);border:1.5px solid var(--alert);border-radius:var(--r);
+    overflow:hidden}
+  .alert .hd{background:var(--alert);color:#fff;padding:11px 16px;font-weight:600;font-size:15.5px;
+    display:flex;align-items:center;gap:9px}
+  .alert .bd{padding:16px}
+  .alert p{margin:0;font-size:16px;line-height:1.5}
+  .alert p+p{margin-top:10px}
+
+  .timeline{margin:20px 20px 0;position:relative;padding-left:26px}
+  .timeline::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:var(--line-2)}
+  .stop{position:relative;padding-bottom:18px}
+  .stop::before{content:"";position:absolute;left:-26px;top:5px;width:12px;height:12px;border-radius:50%;
+    background:var(--bg);border:2px solid var(--alert)}
+  .stop .t{font-size:19px;font-weight:600;letter-spacing:-.01em}
+  .stop .p{font-size:15px;color:var(--ink-2);margin-top:2px}
+  .gap{margin:0 0 18px;padding:12px 14px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;font-size:15px;color:var(--ink-2)}
+  .gap b{color:var(--ink);font-weight:600}
+
+  .costs{margin:20px 20px 0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    overflow:hidden}
+  .cost{display:flex;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line);
+    font-size:16px;color:var(--ink-2)}
+  .cost b{color:var(--ink);font-weight:600}
+  .cost.sum{border-bottom:none;background:var(--sunk);color:var(--ink);font-weight:600;font-size:17px}
+
+  .dock{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 22%);padding:24px 20px 0}
+  .dock .cta{margin-top:0}
+  .dock .note{text-align:center;color:var(--ink-2);font-size:13.5px;margin:10px 0 0}
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="n">Round 2 · Direction B</div>
+  <div class="t">Record</div>
+  <div class="d">The dispatch idea grown up. No fake paper, no perforations — what survives is the rigour: every fact is a labelled row with the value right-aligned, and the verdict is printed as a finding in solid record navy. Light, high-contrast, reads instantly on a phone in daylight. Mono only where digits need to line up.</div>
+  <div class="sw">
+    <i style="background:#eef0ee"></i><i style="background:#ffffff"></i><i style="background:#12171a"></i>
+    <i style="background:#1e3f77"></i><i style="background:#9c2028"></i>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- ============ SEARCH ============ -->
+  <div class="col">
+    <p class="cap">Search</p>
+    <div class="phone"><div class="screen">
+      <div class="status"><span class="mono">9:41</span><span>▮▮▯ ⌁ ▰</span></div>
+      <div class="pad" style="display:flex;flex-direction:column;flex:1">
+        <div class="brandrow">
+          <div class="brand">Fare<span>Wise</span></div>
+          <div class="avatar">R</div>
+        </div>
+
+        <h1>Where to?</h1>
+        <p class="lead">We read every fare that comes back, then tell you what the cheap one costs you.</p>
+
+        <div class="fields">
+          <div class="field">
+            <span class="k">From</span>
+            <span class="v">Miami<small>All airports</small></span>
+            <span class="code mono">MIA</span>
+          </div>
+          <div class="swap"><button aria-label="Swap origin and destination">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 20l-3-3M17 20V4M17 4l3 3"/></svg>
+          </button></div>
+          <div class="field">
+            <span class="k">To</span>
+            <span class="v">Berlin<small>Brandenburg</small></span>
+            <span class="code mono">BER</span>
+          </div>
+          <div class="half">
+            <div class="field"><span class="k" style="width:auto">Out</span>
+              <span class="v" style="margin-left:auto;text-align:right">Fri 10 Jul<small>2026</small></span></div>
+            <div class="field"><span class="k" style="width:auto">Back</span>
+              <span class="v" style="margin-left:auto;text-align:right">Fri 24 Jul<small>2026</small></span></div>
+          </div>
+          <div class="field">
+            <span class="k" style="width:auto">Who</span>
+            <span class="v" style="margin-left:auto">1 adult · Economy</span>
+          </div>
+        </div>
+
+        <div class="chips">
+          <button class="chip" aria-pressed="true">Round trip</button>
+          <button class="chip" aria-pressed="false">One way</button>
+        </div>
+
+        <div class="promise">
+          <p><b>We don't inflate prices based on your search history.</b> The airline's price at checkout can still move with market and currency — that part is outside our control.</p>
+          <button class="cta">Search flights</button>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ============ RESULTS ============ -->
+  <div class="col">
+    <p class="cap">Results</p>
+    <div class="phone"><div class="screen">
+      <div class="status"><span class="mono">9:41</span><span>▮▮▯ ⌁ ▰</span></div>
+      <div class="topbar">
+        <div class="back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div><div class="route">MIA → BER</div><div class="sub">10–24 Jul · 1 adult · 14 fares read</div></div>
+        <div class="edit">Edit</div>
+      </div>
+
+      <div class="pad">
+        <section class="read">
+          <span class="eyebrow">The honest read</span>
+          <p>The $318 is real. It's also two separate tickets, and nobody owns the trip but you.</p>
+          <p>Pay the $102 more. TAP carries you the whole way, so a late first flight is their problem.</p>
+          <p class="fine">Ranked by what these fares actually cost you. Never by what anyone pays us.</p>
+        </section>
+
+        <div class="sechead"><h3>All 14 fares</h3><span>Sorted by value</span></div>
+
+        <article class="fare">
+          <div class="head">
+            <div><span class="tag pick">Best buy</span><h2>TAP Air Portugal</h2></div>
+            <div class="amt mono">$420<small>round trip</small></div>
+          </div>
+          <div class="rows">
+            <div class="rw"><span class="k">Route</span><span class="v mono">MIA 18:40 → BER 13:10</span></div>
+            <div class="rw"><span class="k">Stops</span><span class="v">1 · Lisbon, 1h 50m wait</span></div>
+            <div class="rw good"><span class="k">Ticket</span><span class="v">One ticket ✓</span></div>
+            <div class="rw"><span class="k">Total with bag + seat</span><span class="v mono">~$467</span></div>
+          </div>
+          <p class="say"><b>One ticket, both flights.</b> Miss the connection and TAP puts you on the next one.</p>
+        </article>
+
+        <article class="fare">
+          <div class="head">
+            <div><span class="tag bad">Separate tickets</span><h2>Vueling + Ryanair</h2></div>
+            <div class="amt mono">$318<small>round trip</small></div>
+          </div>
+          <div class="rows">
+            <div class="rw"><span class="k">Route</span><span class="v mono">MIA 21:15 → BER 21:50</span></div>
+            <div class="rw"><span class="k">Stops</span><span class="v">2 · Barcelona, London</span></div>
+            <div class="rw flag"><span class="k">Ticket</span><span class="v">Two separate ⚠</span></div>
+            <div class="rw"><span class="k">Total with both bags</span><span class="v mono">~$394</span></div>
+          </div>
+          <p class="say"><b>Two bookings, two airlines.</b> If the first flight is late you lose the second ticket and pay again.</p>
+        </article>
+        <div style="height:14px"></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+  </div>
+
+  <!-- ============ DETAIL ============ -->
+  <div class="col">
+    <p class="cap">The cheap one, opened</p>
+    <div class="phone"><div class="screen">
+      <div class="status"><span class="mono">9:41</span><span>▮▮▯ ⌁ ▰</span></div>
+      <div class="topbar">
+        <div class="back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div><div class="route">Cheapest fare</div><div class="sub">21h 05m · 2 stops</div></div>
+      </div>
+
+      <div class="hero">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">
+          <h2 style="font-size:24px">Vueling + Ryanair</h2>
+          <div class="amt mono">$318<small>round trip</small></div>
+        </div>
+      </div>
+
+      <div class="alert">
+        <div class="hd">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5" stroke-linecap="round"/><circle cx="12" cy="17.6" r="1.2" fill="currentColor" stroke="none"/></svg>
+          High risk — two separate tickets
+        </div>
+        <div class="bd">
+          <p>These are two separate tickets booked with two airlines. If your first flight is late and you miss the second, you lose that ticket and pay for a new one. Nobody is required to rebook you.</p>
+          <p>Your bag is not checked through. You collect it in Barcelona and check it in again yourself.</p>
+        </div>
+      </div>
+
+      <div class="timeline">
+        <div class="stop">
+          <div class="t"><span class="mono">18:40</span> &nbsp;Miami</div>
+          <div class="p">MIA · Vueling VY6402 · 9h 50m</div>
+        </div>
+        <div class="gap">Ticket 1 ends here. <b>4h 20m wait</b> in Barcelona — collect your bag and check in again.</div>
+        <div class="stop">
+          <div class="t"><span class="mono">13:05</span> &nbsp;Barcelona</div>
+          <div class="p">BCN · Ryanair FR8817 · 2h 15m</div>
+        </div>
+        <div class="gap">Ticket 2. <b>3h 40m wait</b> in London Gatwick.</div>
+        <div class="stop">
+          <div class="t"><span class="mono">21:50</span> &nbsp;Berlin</div>
+          <div class="p">BER · arrives next day</div>
+        </div>
+      </div>
+
+      <div class="costs">
+        <div class="cost"><span>Fare</span><b class="mono">$318</b></div>
+        <div class="cost"><span>Bag, first airline</span><b class="mono">+$35</b></div>
+        <div class="cost"><span>Bag, second airline</span><b class="mono">+$41</b></div>
+        <div class="cost sum"><span>What you'd actually pay</span><b class="mono">~$394</b></div>
+      </div>
+
+      <div class="grow"></div>
+      <div class="dock">
+        <button class="cta ghost">Book anyway on Vueling</button>
+        <p class="note">FareWise never takes your payment. You book with the airline.</p>
+        <div class="homebar"></div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+</body>
+</html>

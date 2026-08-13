@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FareWise — Direction 4: Signage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --panel:#12181a;      /* sign panel — cool near-black, no warmth */
+    --panel-2:#1b2325;
+    --white:#f0f4f3;      /* sign white — the dominant foreground */
+    --white-70:#f0f4f3b3;
+    --white-40:#f0f4f366;
+    --green:#0f7a5a;      /* wayfinding green — go, gates, safe */
+    --green-hi:#159a71;
+    --red:#b5302c;        /* restricted red */
+    --steel:#2a3437;
+    --hair:#f0f4f31f;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--panel);color:var(--white);
+    font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;padding-bottom:0;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+  .lbl{font-family:"Inter Tight",sans-serif;font-weight:600;text-transform:uppercase;
+    letter-spacing:.18em;font-size:11px;color:var(--white-70)}
+
+  /* ---- sign header ---- */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:24px;
+    padding:26px 0;border-bottom:1px solid var(--hair);flex-wrap:wrap}
+  .word{font-family:"Inter Tight",sans-serif;font-weight:800;font-size:26px;
+    letter-spacing:-.035em;line-height:1;margin:0}
+  .searchbar{display:flex;gap:0;border:1px solid var(--hair);flex-wrap:wrap}
+  .searchbar div{padding:9px 16px;border-right:1px solid var(--hair);
+    font-family:"Inter Tight",sans-serif;font-size:13px;font-weight:500;letter-spacing:.02em}
+  .searchbar div:last-child{border-right:none}
+  .searchbar b{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--white-40);font-weight:600;margin-bottom:1px}
+
+  /* ---- the verdict: a full-width sign panel ---- */
+  .verdict{background:var(--green);margin:0;padding:52px 0 46px;position:relative}
+  .verdict .wrap{display:grid;grid-template-columns:auto 1fr;gap:38px;align-items:start}
+  .arrow{width:78px;height:78px;flex:none}
+  .verdict h2{font-family:"Inter Tight",sans-serif;font-weight:700;
+    font-size:clamp(30px,4.2vw,50px);line-height:1.04;letter-spacing:-.035em;margin:0 0 16px;
+    max-width:18ch}
+  .verdict p{font-size:19px;line-height:1.5;margin:0 0 8px;max-width:56ch;color:#e6f2ed}
+  .verdict p:last-child{margin:0}
+  .verdict .kick{font-family:"Inter Tight",sans-serif;font-weight:600;text-transform:uppercase;
+    letter-spacing:.2em;font-size:11px;color:#a8d8c6;margin-bottom:14px}
+
+  /* ---- results as sign strips ---- */
+  .strips{margin:0;padding:0}
+  .strip{display:grid;grid-template-columns:64px 1fr 260px;gap:28px;align-items:center;
+    padding:30px 0;border-bottom:1px solid var(--hair)}
+  .pict{width:52px;height:52px}
+  .stripmain h3{font-family:"Inter Tight",sans-serif;font-weight:700;font-size:30px;
+    letter-spacing:-.03em;margin:0 0 4px;line-height:1.1}
+  .route{font-family:"Inter Tight",sans-serif;font-size:15px;font-weight:500;
+    letter-spacing:.01em;color:var(--white-70);margin:0 0 12px}
+  .route b{color:var(--white);font-weight:600}
+  .say{font-size:16.5px;line-height:1.55;margin:0;max-width:60ch;color:var(--white-70)}
+  .say b{color:var(--white);font-weight:500}
+  .fees{font-family:"Inter Tight",sans-serif;font-size:14px;font-weight:500;
+    color:var(--white-70);margin:12px 0 0;letter-spacing:.01em}
+  .fees b{color:var(--white);font-weight:600}
+  .money{text-align:right}
+  .money .amt{font-family:"Inter Tight",sans-serif;font-weight:700;font-size:46px;
+    line-height:1;letter-spacing:-.045em;display:block}
+  .money .unit{font-family:"Inter Tight",sans-serif;font-size:11px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.18em;color:var(--white-40);display:block;margin-top:7px}
+  a.go{display:inline-flex;align-items:center;gap:9px;margin-top:16px;background:var(--green);
+    color:#fff;text-decoration:none;font-family:"Inter Tight",sans-serif;font-weight:600;
+    font-size:14px;letter-spacing:.02em;padding:11px 18px}
+  a.go:hover{background:var(--green-hi)}
+  a.go.mute{background:none;color:var(--white);border:1px solid var(--hair)}
+  a.go.mute:hover{background:var(--steel)}
+
+  /* ---- restricted sign ---- */
+  .restricted{margin:16px 0 0;background:var(--red);padding:18px 22px;max-width:64ch}
+  .restricted .hd{font-family:"Inter Tight",sans-serif;font-weight:700;text-transform:uppercase;
+    letter-spacing:.16em;font-size:12px;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .restricted p{margin:0;font-size:16px;line-height:1.55;color:#fbeceb}
+  .restricted p+p{margin-top:9px}
+
+  footer{padding:34px 0 50px;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  footer p{margin:0;max-width:62ch;font-size:14.5px;color:var(--white-70)}
+
+  .banner{background:var(--white);color:var(--panel);padding:14px 32px}
+  .banner .n{font-family:"Inter Tight",sans-serif;text-transform:uppercase;letter-spacing:.2em;
+    font-size:11px;opacity:.55;font-weight:600}
+  .banner .t{font-family:"Inter Tight",sans-serif;font-size:21px;font-weight:700;letter-spacing:-.03em}
+  .banner .d{font-size:13px;opacity:.78;max-width:78ch}
+  .sw{display:flex;gap:6px;margin-top:8px}
+  .sw i{width:26px;height:14px;display:block;border:1px solid rgba(0,0,0,.2)}
+
+  @media(max-width:860px){
+    .verdict .wrap{grid-template-columns:1fr;gap:22px}
+    .strip{grid-template-columns:44px 1fr;gap:18px}
+    .money{grid-column:1/-1;text-align:left}
+    .pict{width:40px;height:40px}
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="n">Direction 04</div>
+  <div class="t">Signage</div>
+  <div class="d">Airport wayfinding, applied literally. Flat sign panels, one tight grotesk at real scale, pictograms and direction arrows. Colour is functional the way it is in a terminal: green means go this way, red means restricted. No accent-on-black glow, no cards — the verdict is a sign you read from across the concourse.</div>
+  <div class="sw">
+    <i style="background:#12181a"></i><i style="background:#2a3437"></i><i style="background:#f0f4f3"></i>
+    <i style="background:#0f7a5a"></i><i style="background:#b5302c"></i>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="top">
+    <h1 class="word">FareWise</h1>
+    <div class="searchbar">
+      <div><b>From</b> Miami · MIA</div>
+      <div><b>To</b> Berlin · BER</div>
+      <div><b>Dates</b> 10 Jul — 24 Jul</div>
+      <div><b>Party</b> 1 adult · Economy</div>
+      <div><b>Read</b> 14 live fares</div>
+    </div>
+  </div>
+</div>
+
+<section class="verdict">
+  <div class="wrap">
+    <svg class="arrow" viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M8 50h66M52 26l26 24-26 24" fill="none" stroke="#ffffff" stroke-width="9"
+            stroke-linecap="square"/>
+    </svg>
+    <div>
+      <div class="kick">The honest read</div>
+      <h2>Pay the $102. Don't take the cheap one.</h2>
+      <p>The $318 is real. It is also two separate tickets, and nobody owns the trip but you.</p>
+      <p>TAP carries you the whole way at $420, so a late first flight becomes their problem.</p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="strips">
+
+    <article class="strip">
+      <svg class="pict" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M4 30l40-14M14 24l-6-8 5-2 9 6M24 20l-4-10 5-2 8 10" fill="none" stroke="#f0f4f3"
+              stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M8 40h32" stroke="#f0f4f3" stroke-width="3.4" stroke-linecap="round"/>
+      </svg>
+      <div class="stripmain">
+        <h3>TAP Air Portugal</h3>
+        <p class="route">MIA <b>18:40</b> → LIS <b>07:10</b> &nbsp;·&nbsp; 1h 50m wait &nbsp;·&nbsp; LIS <b>09:00</b> → BER <b>13:10</b> &nbsp;·&nbsp; 11h 30m &nbsp;·&nbsp; 1 stop</p>
+        <p class="say"><b>One ticket, both flights.</b> If the first flight is late and you miss the second, TAP puts you on the next one. The 1h 50m wait in Lisbon is enough time on one ticket.</p>
+        <p class="fees">Bag <b>+$35</b> · Seat <b>+$12</b> → total <b>~$467</b></p>
+      </div>
+      <div class="money">
+        <span class="amt">$420</span>
+        <span class="unit">Round trip</span>
+        <a class="go" href="#">Book with TAP <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+
+    <article class="strip">
+      <svg class="pict" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M4 30l40-14M14 24l-6-8 5-2 9 6M24 20l-4-10 5-2 8 10" fill="none" stroke="#8d9a9d"
+              stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M8 40h32" stroke="#8d9a9d" stroke-width="3.4" stroke-linecap="round"/>
+      </svg>
+      <div class="stripmain">
+        <h3>Vueling + Ryanair</h3>
+        <p class="route">MIA <b>21:15</b> → BCN <b>13:05</b> &nbsp;·&nbsp; 4h 20m wait &nbsp;·&nbsp; BCN → LGW → BER <b>21:50</b> &nbsp;·&nbsp; 21h 05m &nbsp;·&nbsp; 2 stops</p>
+        <div class="restricted">
+          <div class="hd">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3l10 18H2z" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+              <path d="M12 10v5" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+              <circle cx="12" cy="18" r="1.3" fill="#fff"/>
+            </svg>
+            High risk — separate tickets
+          </div>
+          <p>These are two separate tickets booked with two airlines. If your first flight is late and you miss the second, you lose that ticket and pay for a new one. No one is required to rebook you.</p>
+          <p>Your bag is not checked through. You collect it in Barcelona and check it in again yourself.</p>
+        </div>
+        <p class="fees">Bag <b>+$35</b> · Second airline bag <b>+$41</b> → total <b>~$394</b></p>
+      </div>
+      <div class="money">
+        <span class="amt">$318</span>
+        <span class="unit">Round trip</span>
+        <a class="go mute" href="#">Book anyway <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+
+  </div>
+
+  <footer>
+    <p>We don't inflate prices based on your search history. The airline's price at checkout can still move with market and currency — that part is outside our control.</p>
+    <div class="lbl">FareWise · 12 Aug 2026</div>
+  </footer>
+</div>
+
+</body>
+</html>

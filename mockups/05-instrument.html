@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FareWise — Direction 5: Instrument</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --case:#191d20;       /* instrument case — matte graphite */
+    --panel:#212729;      /* panel face */
+    --panel-2:#272e31;
+    --bezel:#394245;      /* machined bezel */
+    --dial:#dfe6e7;       /* dial white — primary text */
+    --dial-70:#a7b3b6;
+    --dial-45:#78868a;
+    --ice:#8fb6c6;        /* muted instrument blue — data, scales */
+    --mint:#63a58a;       /* in-limits */
+    --crimson:#c05a63;    /* out-of-limits — the only alarm */
+    --hair:#ffffff14;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--case);color:var(--dial);
+    font-family:Barlow,system-ui,sans-serif;font-size:16px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;padding-bottom:60px;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+  .cond{font-family:"Barlow Semi Condensed",sans-serif}
+  .lbl{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;text-transform:uppercase;
+    letter-spacing:.16em;font-size:11.5px;color:var(--dial-45)}
+
+  /* ---- top rail ---- */
+  .rail{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;
+    padding:20px 0;border-bottom:1px solid var(--bezel)}
+  .word{font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:25px;
+    letter-spacing:.02em;margin:0;text-transform:uppercase}
+  .word span{color:var(--ice)}
+  .readout{display:flex;gap:1px;background:var(--bezel);border:1px solid var(--bezel)}
+  .readout div{background:var(--panel);padding:8px 15px;font-family:"Barlow Semi Condensed",sans-serif}
+  .readout b{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--dial-45);font-weight:600}
+  .readout span{font-size:15px;font-weight:600;letter-spacing:.02em}
+
+  /* ---- the range gauge: signature element ---- */
+  .gauge{margin:30px 0 0;background:var(--panel);border:1px solid var(--bezel);padding:22px 26px 18px}
+  .gauge .hd{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;
+    margin-bottom:18px}
+  .gauge .hd h2{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:13px;
+    text-transform:uppercase;letter-spacing:.2em;margin:0;color:var(--dial-70)}
+  .gauge .hd .src{font-size:12.5px;color:var(--dial-45);letter-spacing:.04em}
+  .gauge svg{display:block;width:100%;height:auto}
+
+  /* ---- the read ---- */
+  .read{margin:26px 0 0;display:grid;grid-template-columns:14px 1fr;gap:20px;align-items:start}
+  .read .tick{height:100%;min-height:76px;background:linear-gradient(var(--ice),transparent)}
+  .read .kick{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;text-transform:uppercase;
+    letter-spacing:.2em;font-size:11.5px;color:var(--ice);margin-bottom:12px}
+  .read p{margin:0 0 8px;font-size:21px;line-height:1.45;max-width:60ch;letter-spacing:-.005em}
+  .read p:last-child{margin:0}
+  .read p.q{font-size:15.5px;color:var(--dial-45);margin-top:12px}
+
+  /* ---- rows ---- */
+  .rows{margin-top:34px;border-top:1px solid var(--bezel)}
+  .r{display:grid;grid-template-columns:1fr 232px;gap:34px;padding:26px 0;
+    border-bottom:1px solid var(--hair)}
+  .r:last-child{border-bottom:1px solid var(--bezel)}
+  .flag{display:inline-flex;align-items:center;gap:7px;font-family:"Barlow Semi Condensed",sans-serif;
+    font-weight:600;text-transform:uppercase;letter-spacing:.16em;font-size:11px;
+    padding:3px 9px;margin-bottom:10px;border:1px solid currentColor}
+  .flag.ok{color:var(--mint)}
+  .flag.bad{color:var(--crimson)}
+  .r h3{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:26px;
+    letter-spacing:.01em;margin:0 0 6px;line-height:1.15}
+  .segs{display:flex;gap:0;margin:0 0 14px;flex-wrap:wrap;border-left:1px solid var(--bezel)}
+  .segs div{padding:3px 14px;border-right:1px solid var(--bezel);
+    font-family:"Barlow Semi Condensed",sans-serif;font-size:14px;letter-spacing:.03em;color:var(--dial-70)}
+  .segs b{color:var(--dial);font-weight:600}
+  .say{margin:0;font-size:16.5px;line-height:1.55;max-width:60ch;color:var(--dial-70)}
+  .say b{color:var(--dial);font-weight:500}
+  .breakdown{margin-top:16px;display:flex;gap:0;flex-wrap:wrap;border:1px solid var(--hair)}
+  .breakdown div{padding:7px 14px;border-right:1px solid var(--hair);
+    font-family:"Barlow Semi Condensed",sans-serif;font-size:13.5px;color:var(--dial-45);letter-spacing:.04em}
+  .breakdown div:last-child{border-right:none;color:var(--dial)}
+  .breakdown b{color:var(--dial);font-weight:600}
+
+  .meter{text-align:right}
+  .meter .amt{font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:44px;
+    line-height:1;letter-spacing:-.01em;display:block}
+  .meter .unit{font-family:"Barlow Semi Condensed",sans-serif;font-size:11px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.18em;color:var(--dial-45);display:block;margin-top:6px}
+  .meter .scale{margin-top:14px}
+  a.act{display:block;text-align:center;margin-top:16px;background:var(--ice);color:#141a1c;
+    text-decoration:none;font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;
+    text-transform:uppercase;letter-spacing:.12em;font-size:12.5px;padding:11px 14px}
+  a.act:hover{background:#a6c8d5}
+  a.act.mute{background:none;color:var(--dial-70);border:1px solid var(--bezel)}
+  a.act.mute:hover{border-color:var(--dial-45);color:var(--dial)}
+
+  /* out-of-limits callout */
+  .limit{margin:16px 0 0;border:1px solid var(--crimson);max-width:62ch;background:rgba(192,90,99,.07)}
+  .limit .bar{display:flex;align-items:center;gap:9px;background:var(--crimson);color:#161a1b;
+    font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;text-transform:uppercase;
+    letter-spacing:.16em;font-size:11.5px;padding:5px 12px}
+  .limit .bd{padding:13px 15px}
+  .limit p{margin:0;font-size:16px;line-height:1.55;color:var(--dial)}
+  .limit p+p{margin-top:9px}
+
+  footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--bezel);display:flex;
+    justify-content:space-between;gap:24px;flex-wrap:wrap}
+  footer p{margin:0;max-width:62ch;font-size:14.5px;color:var(--dial-45)}
+
+  .banner{background:var(--panel);border-bottom:1px solid var(--bezel);padding:14px 28px}
+  .banner .n{font-family:"Barlow Semi Condensed",sans-serif;text-transform:uppercase;
+    letter-spacing:.2em;font-size:11px;color:var(--dial-45);font-weight:600}
+  .banner .t{font-family:"Barlow Semi Condensed",sans-serif;font-size:22px;font-weight:600;
+    letter-spacing:.01em}
+  .banner .d{font-size:13px;color:var(--dial-70);max-width:78ch}
+  .sw{display:flex;gap:6px;margin-top:8px}
+  .sw i{width:26px;height:14px;display:block;border:1px solid rgba(255,255,255,.2)}
+
+  @media(max-width:820px){
+    .r{grid-template-columns:1fr;gap:18px}
+    .meter{text-align:left}
+    .read{grid-template-columns:1fr}
+    .read .tick{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="n">Direction 05</div>
+  <div class="t">Instrument</div>
+  <div class="d">A precision instrument, not a website. Matte graphite case, machined bezels, a dial-white readout and one muted instrument blue. The signature is a real measuring scale: every fare is plotted against the full range this search returned, so "cheap" is a position on a gauge instead of a claim. Alarm crimson appears only when something is out of limits.</div>
+  <div class="sw">
+    <i style="background:#191d20"></i><i style="background:#394245"></i><i style="background:#dfe6e7"></i>
+    <i style="background:#8fb6c6"></i><i style="background:#c05a63"></i>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="rail">
+    <h1 class="word">Fare<span>Wise</span></h1>
+    <div class="readout">
+      <div><b>From</b><span>MIA</span></div>
+      <div><b>To</b><span>BER</span></div>
+      <div><b>Out</b><span>10 Jul</span></div>
+      <div><b>Back</b><span>24 Jul</span></div>
+      <div><b>Party</b><span>1 · Economy</span></div>
+      <div><b>Read</b><span>14 fares</span></div>
+    </div>
+  </div>
+
+  <section class="gauge">
+    <div class="hd">
+      <h2>Where these fares sit</h2>
+      <div class="src">Range of the 14 fares returned for this search · $318 – $1,140</div>
+    </div>
+    <svg viewBox="0 0 1040 108" role="img" aria-label="Scale of all 14 fares returned, from $318 to $1,140. The $318 option is at the far left and flagged high risk; the $420 option sits near the low end.">
+      <!-- baseline -->
+      <line x1="30" y1="72" x2="1010" y2="72" stroke="#394245" stroke-width="1.5"/>
+      <!-- minor ticks -->
+      <g stroke="#394245" stroke-width="1">
+        <line x1="30" y1="72" x2="30" y2="60"/><line x1="128" y1="72" x2="128" y2="64"/>
+        <line x1="226" y1="72" x2="226" y2="64"/><line x1="324" y1="72" x2="324" y2="60"/>
+        <line x1="422" y1="72" x2="422" y2="64"/><line x1="520" y1="72" x2="520" y2="64"/>
+        <line x1="618" y1="72" x2="618" y2="60"/><line x1="716" y1="72" x2="716" y2="64"/>
+        <line x1="814" y1="72" x2="814" y2="64"/><line x1="912" y1="72" x2="912" y2="60"/>
+        <line x1="1010" y1="72" x2="1010" y2="60"/>
+      </g>
+      <g font-family="Barlow Semi Condensed" font-size="12" fill="#78868a" letter-spacing="1">
+        <text x="24" y="92">$318</text><text x="310" y="92">$520</text>
+        <text x="604" y="92">$730</text><text x="898" y="92">$940</text>
+        <text x="978" y="92">$1,140</text>
+      </g>
+      <!-- other fares -->
+      <g fill="#78868a">
+        <circle cx="212" cy="72" r="3.4"/><circle cx="268" cy="72" r="3.4"/>
+        <circle cx="352" cy="72" r="3.4"/><circle cx="410" cy="72" r="3.4"/>
+        <circle cx="486" cy="72" r="3.4"/><circle cx="558" cy="72" r="3.4"/>
+        <circle cx="640" cy="72" r="3.4"/><circle cx="704" cy="72" r="3.4"/>
+        <circle cx="812" cy="72" r="3.4"/><circle cx="878" cy="72" r="3.4"/>
+        <circle cx="962" cy="72" r="3.4"/><circle cx="1004" cy="72" r="3.4"/>
+      </g>
+      <!-- the risky cheapest -->
+      <line x1="30" y1="34" x2="30" y2="72" stroke="#c05a63" stroke-width="2"/>
+      <circle cx="30" cy="72" r="6" fill="#c05a63"/>
+      <text x="40" y="30" font-family="Barlow Semi Condensed" font-size="14" fill="#c05a63"
+            font-weight="600" letter-spacing="1">$318 · SEPARATE TICKETS</text>
+      <!-- the pick -->
+      <line x1="176" y1="20" x2="176" y2="72" stroke="#8fb6c6" stroke-width="2"/>
+      <circle cx="176" cy="72" r="6" fill="#8fb6c6"/>
+      <text x="186" y="16" font-family="Barlow Semi Condensed" font-size="14" fill="#8fb6c6"
+            font-weight="600" letter-spacing="1">$420 · ONE TICKET</text>
+    </svg>
+  </section>
+
+  <section class="read">
+    <div class="tick" aria-hidden="true"></div>
+    <div>
+      <div class="kick">The honest read</div>
+      <p>The $318 is real. It is also two separate tickets, and nobody owns the trip but you.</p>
+      <p>Pay the $102 more. TAP carries you the whole way, and a late first flight becomes their problem.</p>
+      <p class="q">Both fares came back from this search. Nothing is ranked by what anyone pays us.</p>
+    </div>
+  </section>
+
+  <section class="rows">
+    <article class="r">
+      <div>
+        <span class="flag ok">
+          <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13l5 5L20 6"
+            fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          One ticket
+        </span>
+        <h3>TAP Air Portugal</h3>
+        <div class="segs">
+          <div>MIA <b>18:40</b> → LIS <b>07:10</b></div>
+          <div>Wait <b>1h 50m</b></div>
+          <div>LIS <b>09:00</b> → BER <b>13:10</b></div>
+          <div><b>11h 30m</b> · 1 stop</div>
+        </div>
+        <p class="say"><b>One ticket, both flights.</b> If the first flight is late and you miss the second, TAP puts you on the next one. The 1h 50m wait in Lisbon is enough time on one ticket.</p>
+        <div class="breakdown">
+          <div>Fare <b>$420</b></div><div>Bag <b>+$35</b></div><div>Seat <b>+$12</b></div>
+          <div>Total <b>~$467</b></div>
+        </div>
+      </div>
+      <div class="meter">
+        <span class="amt">$420</span>
+        <span class="unit">Round trip</span>
+        <a class="act" href="#">Book with TAP</a>
+      </div>
+    </article>
+
+    <article class="r">
+      <div>
+        <span class="flag bad">
+          <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l10 18H2z"
+            fill="none" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
+            <path d="M12 10v5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+            <circle cx="12" cy="18" r="1.2" fill="currentColor"/></svg>
+          Separate tickets
+        </span>
+        <h3>Vueling + Ryanair</h3>
+        <div class="segs">
+          <div>MIA <b>21:15</b> → BCN <b>13:05</b></div>
+          <div>Wait <b>4h 20m</b></div>
+          <div>BCN → LGW → BER <b>21:50</b></div>
+          <div><b>21h 05m</b> · 2 stops</div>
+        </div>
+        <div class="limit">
+          <div class="bar">
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l10 18H2z"
+              fill="none" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
+              <path d="M12 10v5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+              <circle cx="12" cy="18" r="1.2" fill="currentColor"/></svg>
+            High risk — separate tickets
+          </div>
+          <div class="bd">
+            <p>These are two separate tickets booked with two airlines. If your first flight is late and you miss the second, you lose that ticket and pay for a new one. No one is required to rebook you.</p>
+            <p>Your bag is not checked through. You collect it in Barcelona and check it in again yourself.</p>
+          </div>
+        </div>
+        <div class="breakdown">
+          <div>Fare <b>$318</b></div><div>Bag <b>+$35</b></div><div>Second airline bag <b>+$41</b></div>
+          <div>Total <b>~$394</b></div>
+        </div>
+      </div>
+      <div class="meter">
+        <span class="amt">$318</span>
+        <span class="unit">Round trip</span>
+        <a class="act mute" href="#">Book anyway</a>
+      </div>
+    </article>
+  </section>
+
+  <footer>
+    <p>We don't inflate prices based on your search history. The airline's price at checkout can still move with market and currency — that part is outside our control.</p>
+    <div class="lbl">FareWise · 12 Aug 2026</div>
+  </footer>
+</div>
+
+</body>
+</html>

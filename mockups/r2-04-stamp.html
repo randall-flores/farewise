@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FareWise R2 — D: Stamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#e8ebe6;          /* cool stone — green-grey, no yellow */
+    --card:#fdfdfc;
+    --ink:#101512;
+    --ink-2:#4f5a53;       /* 6.4:1 on card */
+    --line:#d0d6cd;
+    --line-2:#bcc4b9;
+    --green:#0e4034;       /* the mark: verdict fields, primary action */
+    --green-2:#0a2d25;
+    --green-tint:#d9e5df;
+    --ox:#8d2630;          /* the catch */
+    --ox-tint:#f7e4e4;
+    --r:18px;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#d5dad3;color:var(--ink);
+    font-family:"Instrument Sans",system-ui,sans-serif;font-size:17px;line-height:1.5;
+    font-variant-numeric:tabular-nums}
+
+  .banner{background:var(--green);color:#e8f0ec;padding:18px 28px}
+  .banner .n{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.65;font-weight:600}
+  .banner .t{font-size:24px;font-weight:700;letter-spacing:-.03em;margin-top:2px}
+  .banner .d{opacity:.85;font-size:15px;max-width:78ch;margin-top:6px}
+  .sw{display:flex;gap:6px;margin-top:12px}
+  .sw i{width:30px;height:16px;display:block;border-radius:3px}
+  .stage{display:flex;gap:34px;padding:40px 28px 70px;overflow-x:auto;align-items:flex-start}
+  .col{flex:none}
+  .cap{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#65706a;font-weight:600;
+    margin:0 0 12px 4px}
+
+  .phone{width:390px;background:var(--bg);border-radius:42px;padding:10px;
+    box-shadow:0 0 0 1.5px #b3bab1, 0 30px 70px rgba(0,0,0,.26)}
+  .screen{background:var(--bg);border-radius:33px;overflow:hidden;min-height:812px;
+    display:flex;flex-direction:column}
+  .status{display:flex;justify-content:space-between;align-items:center;padding:14px 24px 6px;
+    font-size:14px;font-weight:600}
+  .pad{padding:0 20px}
+  .grow{flex:1}
+  .homebar{height:5px;width:134px;background:#10151233;border-radius:3px;margin:14px auto 10px}
+
+  h1{font-size:38px;line-height:1.02;letter-spacing:-.045em;font-weight:700;margin:18px 0 8px}
+  h2{font-size:22px;line-height:1.2;letter-spacing:-.03em;font-weight:600;margin:0}
+  .lead{color:var(--ink-2);font-size:16.5px;margin:0}
+  .eyebrow{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+
+  .brandrow{display:flex;align-items:center;justify-content:space-between;padding-top:8px}
+  .brand{font-size:20px;font-weight:700;letter-spacing:-.035em}
+  .brand span{color:var(--green)}
+  .avatar{width:34px;height:34px;border-radius:11px;background:var(--card);border:1px solid var(--line-2);
+    display:grid;place-items:center;color:var(--ink-2);font-size:14px;font-weight:600}
+
+  .fields{margin-top:22px;background:var(--card);border-radius:var(--r);border:1px solid var(--line);
+    overflow:hidden;box-shadow:0 1px 2px rgba(16,21,18,.05)}
+  .field{display:flex;align-items:center;gap:14px;padding:16px 18px;min-height:68px;
+    border-bottom:1px solid var(--line)}
+  .field:last-child{border-bottom:none}
+  .field .k{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);
+    font-weight:700;width:50px;flex:none}
+  .field .v{font-size:19px;font-weight:600;letter-spacing:-.02em}
+  .field .v small{display:block;font-size:14px;font-weight:400;color:var(--ink-2);letter-spacing:0}
+  .field .code{margin-left:auto;font-size:25px;font-weight:700;letter-spacing:-.02em;color:var(--green)}
+  .swap{position:relative;height:0}
+  .swap button{position:absolute;right:18px;top:-24px;width:48px;height:48px;border-radius:50%;
+    background:var(--green);border:none;color:#fff;display:grid;place-items:center;cursor:pointer;
+    box-shadow:0 3px 8px rgba(14,64,52,.28)}
+  .half{display:flex}
+  .half .field{flex:1;border-bottom:none}
+  .half .field+.field{border-left:1px solid var(--line)}
+  .chips{display:flex;gap:9px;margin-top:16px}
+  .chip{padding:11px 17px;border-radius:999px;border:1px solid var(--line-2);color:var(--ink-2);
+    font-size:15px;font-weight:500;background:var(--card);cursor:pointer;font-family:inherit}
+  .chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+
+  .promise{margin-top:auto;padding-top:20px}
+  .promise p{margin:0;color:var(--ink-2);font-size:15px;line-height:1.5}
+  .promise b{color:var(--ink);font-weight:600}
+  .cta{display:block;width:100%;min-height:58px;border:none;border-radius:15px;background:var(--green);
+    color:#fff;font-family:inherit;font-size:18px;font-weight:600;letter-spacing:-.015em;cursor:pointer;
+    margin-top:18px}
+  .cta:active{background:var(--green-2)}
+  .cta.ghost{background:var(--card);border:1px solid var(--line-2);color:var(--ink)}
+
+  .topbar{display:flex;align-items:center;gap:12px;padding:8px 20px 14px;border-bottom:1px solid var(--line-2)}
+  .topbar .back{width:40px;height:40px;border-radius:13px;background:var(--card);
+    border:1px solid var(--line-2);display:grid;place-items:center;flex:none}
+  .topbar .route{font-size:19px;font-weight:700;letter-spacing:-.03em}
+  .topbar .sub{font-size:14px;color:var(--ink-2)}
+  .topbar .edit{margin-left:auto;color:var(--green);font-size:15px;font-weight:600}
+
+  /* the verdict as a stamped field */
+  .read{margin:18px 0 0;background:var(--green);color:#fff;border-radius:var(--r);padding:22px 20px}
+  .read .eyebrow{color:#9dc3b5;display:block;margin-bottom:14px}
+  .read p{margin:0 0 11px;font-size:21px;line-height:1.32;letter-spacing:-.028em;font-weight:500}
+  .read p:last-of-type{margin-bottom:0}
+  .read .fine{font-size:14.5px;color:#b7d2c8;margin-top:16px;padding-top:14px;
+    border-top:1px solid #ffffff2b;line-height:1.45;font-weight:400;letter-spacing:0}
+
+  .sechead{display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 12px}
+  .sechead h3{margin:0;font-size:17px;font-weight:600;letter-spacing:-.02em}
+  .sechead span{font-size:14px;color:var(--ink-2)}
+
+  .fare{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+    margin-bottom:14px;box-shadow:0 1px 2px rgba(16,21,18,.05)}
+  .mark{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;padding:6px 11px;border-radius:8px;margin-bottom:11px}
+  .mark.ok{background:var(--green-tint);color:var(--green)}
+  .mark.bad{background:var(--ox-tint);color:var(--ox)}
+  .fhead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+  .amt{font-size:34px;font-weight:700;letter-spacing:-.045em;line-height:1;text-align:right}
+  .amt small{display:block;font-size:13px;font-weight:400;color:var(--ink-2);margin-top:5px;letter-spacing:0}
+  .strip{display:flex;align-items:center;gap:10px;margin:14px 0 0;font-size:15px;color:var(--ink-2)}
+  .strip b{color:var(--ink);font-weight:600}
+  .strip .dash{flex:1;height:1px;background:var(--line-2)}
+  .fact{margin:13px 0 0;font-size:16.5px;line-height:1.48;color:var(--ink)}
+  .fact b{font-weight:600}
+  .total{margin-top:14px;padding-top:13px;border-top:1px solid var(--line);font-size:15px;color:var(--ink-2)}
+  .total b{color:var(--ink);font-weight:600}
+
+  .alert{margin:0 20px;background:var(--ox);color:#fff;border-radius:var(--r);padding:20px}
+  .alert .hd{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;
+    letter-spacing:-.02em;margin-bottom:11px}
+  .alert p{margin:0;font-size:16.5px;line-height:1.48;color:#fbe9e9}
+  .alert p+p{margin-top:11px}
+
+  .timeline{margin:22px 20px 0;position:relative;padding-left:28px}
+  .timeline::before{content:"";position:absolute;left:5px;top:9px;bottom:9px;width:2px;background:var(--line-2)}
+  .stop{position:relative;padding-bottom:18px}
+  .stop::before{content:"";position:absolute;left:-28px;top:4px;width:13px;height:13px;border-radius:50%;
+    background:var(--bg);border:2.5px solid var(--ox)}
+  .stop .t{font-size:20px;font-weight:600;letter-spacing:-.03em}
+  .stop .p{font-size:15px;color:var(--ink-2);margin-top:2px}
+  .gap{margin:0 0 18px;padding:13px 15px;background:var(--card);border:1px solid var(--line);
+    border-radius:13px;font-size:15.5px;color:var(--ink-2)}
+  .gap b{color:var(--ink);font-weight:600}
+
+  .costs{margin:22px 20px 0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    overflow:hidden}
+  .cost{display:flex;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line);
+    font-size:16px;color:var(--ink-2)}
+  .cost b{color:var(--ink);font-weight:600}
+  .cost.sum{border-bottom:none;background:var(--green);color:#fff;font-weight:600;font-size:17.5px}
+  .cost.sum b{color:#fff}
+
+  .dock{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 22%);padding:24px 20px 0}
+  .dock .cta{margin-top:0}
+  .dock .note{text-align:center;color:var(--ink-2);font-size:13.5px;margin:10px 0 0}
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="n">Round 2 · Direction D</div>
+  <div class="t">Stamp</div>
+  <div class="d">Confident and plain. Cool stone paper, one deep bottle green that fills whole blocks instead of outlining them, oxblood for the one thing that can hurt you. Big tight type, few rules, lots of air — the verdict is a stamped field you can read at arm's length, and the risk is the only other filled block on the screen.</div>
+  <div class="sw">
+    <i style="background:#e8ebe6"></i><i style="background:#fdfdfc"></i><i style="background:#101512"></i>
+    <i style="background:#0e4034"></i><i style="background:#8d2630"></i>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- SEARCH -->
+  <div class="col">
+    <p class="cap">Search</p>
+    <div class="phone"><div class="screen">
+      <div class="status"><span>9:41</span><span>▮▮▯ ⌁ ▰</span></div>
+      <div class="pad" style="display:flex;flex-direction:column;flex:1">
+        <div class="brandrow"><div class="brand">Fare<span>Wise</span></div><div class="avatar">R</div></div>
+        <h1>Where to?</h1>
+        <p class="lead">We read every fare that comes back, then tell you what the cheap one costs you.</p>
+
+        <div class="fields">
+          <div class="field"><span class="k">From</span><span class="v">Miami<small>All airports</small></span><span class="code">MIA</span></div>
+          <div class="swap"><button aria-label="Swap origin and destination">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 20l-3-3M17 20V4M17 4l3 3"/></svg></button></div>
+          <div class="field"><span class="k">To</span><span class="v">Berlin<small>Brandenburg</small></span><span class="code">BER</span></div>
+          <div class="half">
+            <div class="field"><span class="k" style="width:auto">Out</span><span class="v" style="margin-left:auto;text-align:right">Fri 10 Jul<small>2026</small></span></div>
+            <div class="field"><span class="k" style="width:auto">Back</span><span class="v" style="margin-left:auto;text-align:right">Fri 24 Jul<small>2026</small></span></div>
+          </div>
+          <div class="field"><span class="k" style="width:auto">Who</span><span class="v" style="margin-left:auto">1 adult · Economy</span></div>
+        </div>
+
+        <div class="chips">
+          <button class="chip" aria-pressed="true">Round trip</button>
+          <button class="chip" aria-pressed="false">One way</button>
+        </div>
+
+        <div class="promise">
+          <p><b>We don't inflate prices based on your search history.</b> The airline's price at checkout can still move with market and currency — that part is outside our control.</p>
+          <button class="cta">Search flights</button>
+        </div>
+        <div class="homebar"></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="col">
+    <p class="cap">Results</p>
+    <div class="phone"><div class="screen">
+      <div class="status"><span>9:41</span><span>▮▮▯ ⌁ ▰</span></div>
+      <div class="topbar">
+        <div class="back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div><div class="route">MIA → BER</div><div class="sub">10–24 Jul · 1 adult · 14 fares read</div></div>
+        <div class="edit">Edit</div>
+      </div>
+
+      <div class="pad">
+        <section class="read">
+          <span class="eyebrow">The honest read</span>
+          <p>The $318 is real. It's also two separate tickets, and nobody owns the trip but you.</p>
+          <p>Pay the $102 more. TAP carries you the whole way, so a late first flight is their problem.</p>
+          <p class="fine">Ranked by what these fares actually cost you. Never by what anyone pays us.</p>
+        </section>
+
+        <div class="sechead"><h3>All 14 fares</h3><span>Sorted by value</span></div>
+
+        <article class="fare">
+          <span class="mark ok">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13l5 5L20 6"/></svg>
+            One ticket</span>
+          <div class="fhead"><h2>TAP Air Portugal</h2><div class="amt">$420<small>round trip</small></div></div>
+          <div class="strip"><b>MIA 18:40</b><span class="dash"></span><span>Lisbon · 1h 50m</span><span class="dash"></span><b>BER 13:10</b></div>
+          <p class="fact"><b>One ticket, both flights.</b> Miss the connection and TAP puts you on the next one.</p>
+          <p class="total">Bag +$35 · Seat +$12 → total <b>~$467</b></p>
+        </article>
+
+        <article class="fare">
+          <span class="mark bad">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5" stroke-linecap="round"/></svg>
+            Separate tickets</span>
+          <div class="fhead"><h2>Vueling + Ryanair</h2><div class="amt">$318<small>round trip</small></div></div>
+          <div class="strip"><b>MIA 21:15</b><span class="dash"></span><span>BCN · LGW</span><span class="dash"></span><b>BER 21:50</b></div>
+          <p class="fact"><b>Two bookings, two airlines.</b> If the first flight is late you lose the second ticket and pay again.</p>
+          <p class="total">Bag +$35 · Second bag +$41 → total <b>~$394</b></p>
+        </article>
+        <div style="height:14px"></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+  </div>
+
+  <!-- DETAIL -->
+  <div class="col">
+    <p class="cap">The cheap one, opened</p>
+    <div class="phone"><div class="screen">
+      <div class="status"><span>9:41</span><span>▮▮▯ ⌁ ▰</span></div>
+      <div class="topbar">
+        <div class="back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div><div class="route">Cheapest fare</div><div class="sub">21h 05m · 2 stops</div></div>
+      </div>
+
+      <div style="padding:18px 20px">
+        <div class="fhead"><h2 style="font-size:26px">Vueling + Ryanair</h2>
+          <div class="amt" style="font-size:44px">$318<small>round trip</small></div></div>
+      </div>
+
+      <div class="alert">
+        <div class="hd">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5" stroke-linecap="round"/><circle cx="12" cy="17.6" r="1.2" fill="currentColor" stroke="none"/></svg>
+          High risk — two separate tickets
+        </div>
+        <p>These are two separate tickets booked with two airlines. If your first flight is late and you miss the second, you lose that ticket and pay for a new one. Nobody is required to rebook you.</p>
+        <p>Your bag is not checked through. You collect it in Barcelona and check it in again yourself.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="stop"><div class="t">18:40 &nbsp;Miami</div><div class="p">MIA · Vueling VY6402 · 9h 50m</div></div>
+        <div class="gap">Ticket 1 ends here. <b>4h 20m wait</b> in Barcelona — collect your bag and check in again.</div>
+        <div class="stop"><div class="t">13:05 &nbsp;Barcelona</div><div class="p">BCN · Ryanair FR8817 · 2h 15m</div></div>
+        <div class="gap">Ticket 2. <b>3h 40m wait</b> in London Gatwick.</div>
+        <div class="stop"><div class="t">21:50 &nbsp;Berlin</div><div class="p">BER · arrives next day</div></div>
+      </div>
+
+      <div class="costs">
+        <div class="cost"><span>Fare</span><b>$318</b></div>
+        <div class="cost"><span>Bag, first airline</span><b>+$35</b></div>
+        <div class="cost"><span>Bag, second airline</span><b>+$41</b></div>
+        <div class="cost sum"><span>What you'd actually pay</span><b>~$394</b></div>
+      </div>
+
+      <div class="grow"></div>
+      <div class="dock">
+        <button class="cta ghost">Book anyway on Vueling</button>
+        <p class="note">FareWise never takes your payment. You book with the airline.</p>
+        <div class="homebar"></div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,399 +1,355 @@
-/* Page wrap sits above the fixed atmosphere layers (globals.css ::before/::after). */
+/* The app shell. One column always — it starts at phone width and stops
+   growing at a comfortable reading measure. There is no desktop layout,
+   only a wider phone. */
 .wrap {
-  position: relative;
-  z-index: 1;
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: clamp(24px, 4vw, 48px) clamp(18px, 5vw, 40px) 80px;
-}
-
-/* ---------- SPLIT HERO ---------- */
-/* Two columns: pitch + live board (left), search form (right). The min-height
-   pulls the block toward the vertical centre of the first screen so the page
-   reads as composed, not top-stranded. Collapses to one column on narrow views. */
-.hero {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  grid-template-areas:
-    "intro form"
-    "pitch form";
-  gap: clamp(18px, 3vw, 30px) clamp(28px, 5vw, 72px);
-  align-content: center;
-  min-height: min(78vh, 700px);
-}
-.heroCompact {
-  min-height: 0;
-  margin-bottom: clamp(8px, 2vw, 16px);
-}
-.heroIntro {
-  grid-area: intro;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  align-self: end; /* hug the pitch around the vertical centre line */
-  min-width: 0;
-}
-.heroPitch {
-  grid-area: pitch;
-  align-self: start;
-  min-width: 0;
-}
-.heroForm {
-  grid-area: form;
-  align-self: center;
   width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+  position: relative;
 }
 
-/* Mobile: identity first, then the form (primary action), then the pitch.
-   Areas drive the visual order; only the form holds focusable elements, so
-   keyboard/focus order is unaffected by the reorder. */
-@media (max-width: 880px) {
-  .hero {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "intro"
-      "form"
-      "pitch";
-    align-content: start;
-    min-height: 0;
-    gap: 26px;
-  }
-  .heroIntro,
-  .heroPitch,
-  .heroForm { align-self: stretch; }
+/* ---- app bar ---- */
+.appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0 6px;
+}
+.brand {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.brand span { color: var(--navy); }
+
+/* The whole prompt. Nothing under it explains the product, because the form
+   directly below already does. */
+.h1 {
+  font-size: 30px;
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  margin: 16px 0 0;
 }
 
-/* ---------- HERO LEFT ---------- */
-.kicker {
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.34em;
+/* ---- the field stack: one card, one row per fact ---- */
+.form { margin-top: 20px; }
+.fields {
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+}
+/* `.fields` deliberately has no overflow:hidden — that would clip the
+   autocomplete dropdown. It doesn't need one: no row paints a background of
+   its own, so nothing can square off the card's rounded corners. If a row ever
+   gains a fill, it has to carry the corner radius itself. */
+.field {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  min-height: 66px;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+.field:last-child { border-bottom: none; }
+.fieldKey {
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--amber);
-  margin: 0 0 18px;
+  color: var(--ink-2);
+  font-weight: 600;
+  width: 48px;
+  flex: none;
+  transition: color 0.15s ease;
+}
+.fieldInput {
+  width: 100%;
+  /* Flex items default to min-width: auto (their content's own natural
+     minimum), so a wide-enough child (a long airport label, or — see
+     .fieldSplit below — a native date input's own intrinsic minimum width)
+     refuses to shrink below it and forces its row past the card edge. */
+  min-width: 0;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: 6px 0;
+  min-height: 40px;
+}
+.fieldInput::placeholder { color: var(--ink-2); font-weight: 400; }
+
+/* Clicking into a field draws nothing. A text field already has the clearest
+   possible focus signal — the caret sitting in it — and anything drawn on top
+   of that is decoration. The label turning navy is the only addition: it names
+   the live row without adding a shape to the card.
+   Keyboard focus is a different problem: a Tab user has no caret to follow
+   across the form, so they get a real ring. See useFocusModality. */
+.fieldInput:focus { outline: none; }
+.field:focus-within .fieldKey { color: var(--navy); }
+:global(html[data-focus="keyboard"]) .fieldInput:focus {
+  outline: 2px solid var(--navy);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+.fieldSplit { display: flex; border-bottom: 1px solid var(--line); }
+/* Out/Back share the row's width 50/50. A native input[type=date] carries its
+   own intrinsic minimum width; next to a fixed-width side label (as .field
+   normally lays out From/To/Who) there isn't enough room at 390px for it to
+   shrink into without min-width:0 letting it get squeezed down to an
+   unreadably narrow, cramped box. Stack the key above the value instead —
+   the same top-to-bottom relationship the approved mockup uses for this row
+   (it prints "Fri 10 Jul" over "2026") — which frees the full half-width for
+   the input instead of splitting it with a side label. */
+.fieldSplit .field {
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  border-bottom: none;
+}
+.fieldSplit .fieldKey { width: auto; }
+.fieldSplit .fieldInput { font-size: 17px; }
+.fieldSplit .field + .field { border-left: 1px solid var(--line); }
+.fieldRow {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-.kicker::after {
-  content: "";
-  height: 1px;
-  flex: 1;
-  background: linear-gradient(90deg, var(--cream-12), transparent);
+  padding: 13px 16px;
+  min-height: 66px;
 }
 
-.brand {
-  font-size: clamp(2.8rem, 6vw, 4.4rem);
-  margin: 0 0 22px;
-}
-
-.subtitle {
-  font-size: 1.05rem;
-  color: var(--cream-60);
-  max-width: 46ch;
-  margin: 0;
-}
-
-/* split-flap route board */
-.board {
-  display: flex;
-  align-items: center;
-  gap: clamp(12px, 3vw, 26px);
-  flex-wrap: wrap;
-  margin: 4px 0 0;
-}
-/* on-load sample route: present but clearly a placeholder */
-.boardGhost { opacity: 0.5; }
-.code { display: flex; gap: 5px; }
-.flap {
-  position: relative;
-  width: clamp(42px, 11vw, 62px);
-  height: clamp(56px, 15vw, 84px);
-  background: linear-gradient(180deg, #16203a 0 50%, #0a1120 50% 100%);
-  border: 1px solid var(--cream-08);
-  border-radius: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--serif);
-  font-size: clamp(40px, 11vw, 60px);
-  color: var(--cream);
-  line-height: 1;
-  box-shadow: inset 0 1px 0 rgba(234, 238, 246, 0.05), 0 6px 16px rgba(0, 0, 0, 0.35);
-}
-.flap::before {
-  content: "";
+/* ---- From/To swap ---- */
+/* Zero-height row so it takes no layout space; the button is pulled up by
+   `top: -24px` to straddle the seam between the From and To rows. */
+.swap { position: relative; height: 0; }
+.swap button {
   position: absolute;
-  left: 0; right: 0; top: 50%;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.55);
-  transform: translateY(-0.5px);
-}
-.flap span { transform: translateY(-2px); }
-.arrow {
-  color: var(--amber);
-  font-family: var(--serif);
-  font-size: clamp(34px, 8vw, 52px);
-  line-height: 1;
-  position: relative;
-  top: -2px;
-  filter: drop-shadow(0 0 10px rgba(255, 122, 26, 0.4));
-}
-
-/* ---------- FORM ---------- */
-/* Flat card — no gradient, no shadow (focus rings are the only lift). Calmer
-   and more minimal: solid surface, quiet hairline, generous row spacing. */
-.form {
+  right: 18px;
+  top: -24px;
+  /* Both neighboring `.field` rows are also `position: relative` with no
+     z-index, so paint order would otherwise follow DOM order — meaning the To
+     field (which comes after this button in the markup) would paint over the
+     button's lower half whenever it picks up the `:focus-within` tint. This
+     lifts the button above both rows regardless of focus state. */
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   background: var(--card);
-  border: 1px solid var(--cream-12);
-  border-radius: var(--radius);
-  padding: clamp(22px, 3vw, 28px);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-/* form card header: gives the card a defined top edge */
-.formTitle {
-  margin: 0;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--cream-08);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-}
-.row { display: flex; gap: 16px; flex-wrap: wrap; }
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  flex: 1;
-  min-width: 140px;
+  border: 1px solid var(--line-2);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
 }
 
-/* Mobile: stack every field full-width so date pickers and inputs never
-   collide. Dropping min-width lets them shrink to the viewport instead of
-   overflowing. */
-@media (max-width: 600px) {
-  .row { flex-direction: column; gap: 14px; }
-  .field { min-width: 0; width: 100%; }
-  /* Full-width submit sits in the thumb zone for one-handed phone use. */
-  .submit { align-self: stretch; width: 100%; text-align: center; }
+/* ---- trip type ---- */
+.chips { display: flex; gap: 9px; margin-top: 16px; }
+.chip {
+  padding: 11px 16px;
+  min-height: var(--tap);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-2);
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
 }
-.field span {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--cream-60);
+.chip[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+  font-weight: 600;
 }
-.field input,
-.field select {
+
+.promise {
+  margin: 20px 0 0;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.promise b { color: var(--ink); font-weight: 600; }
+
+.submit {
+  display: block;
   width: 100%;
-  min-width: 0; /* let fields shrink to the card instead of forcing overflow */
-  max-width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--cream-12);
-  border-radius: 10px;
-  background: var(--page-2);
-  color: var(--cream);
-  font-family: var(--mono);
+  min-height: 56px;
+  margin-top: 16px;
+  border: none;
+  border-radius: 14px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+}
+.submit:hover { background: var(--navy-2); }
+.submit:disabled { opacity: 0.55; cursor: default; }
+
+/* One focus treatment for the whole app. */
+.chip:focus-visible,
+.submit:focus-visible,
+.cabinSelect:focus-visible,
+.swap button:focus-visible,
+.editButton:focus-visible,
+.backButton:focus-visible,
+.searchRoute:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
 }
 
-/* Date inputs carry a UA minimum width on iOS/WebKit that ignores width:100%
-   and pushes them past the card edge. Normalise the appearance so they size
-   to the field like every other input; the calendar indicator still renders. */
+/* ---- date fields ----
+   Three problems with a native date input dropped into this card. It carries a
+   UA minimum width on iOS/WebKit that ignores width:100% and pushes it past the
+   card edge. It renders its digits in the body face, while every other number
+   in this app (prices, clock times) is mono. And Chrome hangs its own grey
+   calendar glyph off the end, which belongs to the browser, not to this design.
+
+   So: strip the native appearance, set the value in mono with tabular figures
+   so 10/12/2026 lines up under 11/03/2026 the way a date column should, and use
+   the chevron the form already uses for Travelers and Cabin. A date field opens
+   something, same as those two — four openers, one mark, rather than a bespoke
+   calendar icon. Painted as a background on the input, exactly as .cabinSelect
+   does it. */
 .field input[type="date"] {
   -webkit-appearance: none;
   appearance: none;
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  padding-right: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23586267' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 12px;
+}
+/* Chrome's own indicator goes entirely, rather than being hidden and left in
+   place: an invisible control sitting under our chevron would open the picker
+   itself and then be told to open it again by the row's click handler, which
+   reads as a picker that flashes and shuts. One way in, ours — the whole row
+   opens it (see openDatePicker). */
+.field input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
 }
 
 /* Airport autocomplete */
-.autocomplete { position: relative; }
+/* min-width:0 for the same reason as .fieldInput above: without it, a long
+   picked label (e.g. a city name) can refuse to shrink and push this flex
+   item past the card edge. */
+.autocomplete { position: relative; min-width: 0; }
+/* The list hangs off the input it belongs to, not the card edge — anchoring it
+   to the input keeps it aligned no matter how wide the "From"/"To" label gets. */
 .suggestions {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
-  z-index: 30;
+  z-index: 40;
   margin: 0;
   padding: 6px;
   list-style: none;
-  background: var(--card-2);
-  border: 1px solid var(--cream-12);
-  border-radius: 10px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
-  max-height: 264px;
+  max-height: 320px;
   overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  box-shadow: 0 12px 30px rgba(18, 23, 26, 0.14);
 }
 .suggestion {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
-  cursor: pointer;
+  min-height: var(--tap);
   padding: 10px 12px;
-  min-height: 44px; /* comfortable touch target */
-  border-radius: 7px;
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--cream);
+  border: none;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--ink);
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
 }
 .suggestion:hover,
 .suggestion:focus-visible,
 .suggestionActive {
-  background: rgba(255, 122, 26, 0.14);
-  color: var(--amber-soft);
+  background: var(--navy-tint);
+  color: var(--navy);
   outline: none;
 }
-/* a city header stands out above its airports */
-.suggestionCity {
-  font-weight: 600;
-  color: var(--cream);
-  border-bottom: 1px solid var(--cream-08);
-  border-radius: 7px 7px 0 0;
-}
-/* airports listed under their city sit indented, with a guide rule */
+/* A city header stands above the airports it contains. */
+.suggestionCity { font-weight: 600; }
+/* Its airports sit indented beneath it, on a hairline guide. */
 .suggestionUnderCity {
-  padding-left: 26px;
-  border-left: 1px solid rgba(255, 122, 26, 0.45); /* 1px hairline guide, not a side-stripe */
+  padding-left: 24px;
   margin-left: 10px;
-  font-size: 12.5px;
-  color: var(--cream-60);
+  border-left: 1px solid var(--line-2);
+  font-size: 15.5px;
+  color: var(--ink-2);
 }
 .suggestionType {
   flex: none;
-  color: var(--cream-60);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 13.5px;
+  color: var(--ink-2);
 }
-.field input::placeholder { color: var(--cream-60); }
 
 /* Inline "pick from the list" error under an autocomplete field. */
 .fieldError {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  letter-spacing: 0.02em;
-  color: var(--risk);
-}
-
-/* Native date inputs on the dark theme: the format hint (mm/dd/yyyy) and the
-   calendar icon are dark-on-dark by default, so an empty field looks blank.
-   Show the hint muted, brighten a real value, and make the icon visible. */
-.field input[type="date"]::-webkit-datetime-edit { color: var(--cream-60); }
-.field input[type="date"]:focus::-webkit-datetime-edit,
-.field input[type="date"]:valid::-webkit-datetime-edit { color: var(--cream); }
-.field input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.8);
-  cursor: pointer;
-}
-.field input:focus,
-.field select:focus {
-  outline: 2px solid var(--amber);
-  outline-offset: 1px;
-  border-color: transparent;
-}
-.submit {
-  width: 100%;
+  display: block;
   margin-top: 4px;
-  padding: 13px 24px;
-  text-align: center;
-  border: none;
-  border-radius: 10px;
-  background: var(--amber);
-  color: #070b14;
-  font-family: var(--mono);
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-.submit:hover { background: var(--amber-soft); }
-.submit:disabled { opacity: 0.55; cursor: default; }
-
-/* ---------- CONTEXT STRIP (trip type · travelers · cabin) ---------- */
-/* Three self-evident controls, left-aligned, no field labels. Flat inset fills,
-   hairline borders, equal 44px height. Wraps on narrow screens. */
-.contextStrip {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
+  font-size: 14px;
+  color: var(--alert);
 }
 
-/* Segmented trip-type toggle: two pills in a hairline container. Active pill is
-   filled amber with dark text; inactive is transparent, muted cream. */
-.segmented {
-  display: inline-flex;
-  gap: 3px;
-  padding: 3px;
-  background: var(--page-2);
-  border: 1px solid var(--cream-12);
-  border-radius: 10px;
-}
-.segment {
-  appearance: none;
-  border: none;
-  background: none;
-  cursor: pointer;
-  min-height: 38px;
-  padding: 9px 16px;
-  border-radius: 7px;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-  transition: background 0.15s ease, color 0.15s ease;
-}
-.segment:hover { color: var(--cream); }
-.segmentActive,
-.segmentActive:hover { background: var(--amber); color: var(--page); }
-.segment:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
-
-/* Travelers button + cabin select share the inset fill, hairline, height. */
+/* Travelers button and cabin select are the two bordered controls on the form.
+   They share a shape so the last row reads as one pair. */
 .travelers,
 .cabinSelect {
-  min-height: 44px;
-  background: var(--page-2);
-  border: 1px solid var(--cream-12);
-  border-radius: 10px;
-  color: var(--cream);
-  font-family: var(--mono);
-  font-size: 13px;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 16px;
   cursor: pointer;
 }
-.travelers:focus-visible,
-.cabinSelect:focus-visible {
-  outline: 2px solid var(--amber);
-  outline-offset: 1px;
-  border-color: transparent;
-}
 
-/* Travelers — placeholder; non-functional until the counter is built. */
 .travelers {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 0 12px;
 }
 .travelersIcon,
-.travelersChev { flex: none; color: var(--cream-60); }
-.travelersCount { font-weight: 500; }
-.travelers { white-space: nowrap; }
+.travelersChev { flex: none; color: var(--ink-2); }
+.travelersCount {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-/* Travelers popover — floating layer (gets the dropdown shadow like the airport
-   suggestions; the flat-card rule is about the form surface, not popovers). */
-.travelersWrap { position: relative; }
+/* Travelers popover — a floating layer, so it carries a shadow the flat form
+   surface never does. Fixed width because the counter rows need room; the
+   button it hangs off is only half a row wide. */
+.travelersWrap { position: relative; flex: 1; min-width: 0; }
 .travelersPanel {
   position: absolute;
   top: calc(100% + 8px);
@@ -402,790 +358,663 @@
   width: 290px;
   max-width: calc(100vw - 40px);
   padding: 8px;
-  background: var(--card-2);
-  border: 1px solid var(--cream-12);
-  border-radius: 12px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  box-shadow: 0 12px 30px rgba(18, 23, 26, 0.14);
 }
 .counterRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px;
+  padding: 8px 6px;
 }
 .counterLabel {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  font-size: 14px;
-  color: var(--cream);
+  gap: 1px;
+  font-size: 16px;
 }
-.counterHint {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-}
-.counter { display: inline-flex; align-items: center; gap: 6px; }
+.counterHint { font-size: 13.5px; color: var(--ink-2); }
+.counter { display: flex; align-items: center; gap: 4px; }
 .counterBtn {
-  width: 44px;
-  height: 44px;
   display: grid;
   place-items: center;
-  background: var(--page-2);
-  border: 1px solid var(--cream-12);
-  border-radius: 9px;
-  color: var(--amber);
-  font-family: var(--mono);
+  width: var(--tap);
+  height: var(--tap);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  color: var(--ink);
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease;
 }
-.counterBtn:hover:not(:disabled) { border-color: rgba(255, 122, 26, 0.4); }
-.counterBtn:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
-.counterBtn:disabled { opacity: 0.35; color: var(--cream-60); cursor: default; }
+.counterBtn:hover:not(:disabled) { background: var(--navy-tint); }
+.counterBtn:disabled { opacity: 0.38; cursor: default; }
 .counterValue {
-  min-width: 26px;
+  min-width: 32px;
   text-align: center;
-  font-family: var(--mono);
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--cream);
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .travelersDone {
-  margin-top: 6px;
   width: 100%;
-  min-height: 44px;
-  padding: 11px;
-  background: var(--amber);
-  color: var(--page);
+  min-height: 48px;
+  margin-top: 6px;
   border: none;
-  border-radius: 9px;
-  font-family: var(--mono);
-  font-size: 12px;
+  border-radius: var(--r-sm);
+  background: var(--navy);
+  color: #fff;
+  font-size: 16px;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   cursor: pointer;
   transition: background 0.15s ease;
 }
-.travelersDone:hover { background: var(--amber-soft); }
-.travelersDone:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.travelersDone:hover { background: var(--navy-2); }
 
-/* Cabin — native select restyled to the dark theme with a custom chevron
-   (appearance:none + inline SVG), matching the date-input treatment. */
+/* Cabin — the native select with its own chevron (appearance:none + inline
+   SVG), so it matches the travelers button beside it. */
 .cabinSelect {
   appearance: none;
   -webkit-appearance: none;
-  padding: 10px 36px 10px 14px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23f6f1e7' stroke-opacity='0.6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  padding: 0 34px 0 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23586267' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 14px center;
+  background-position: right 12px center;
   background-size: 12px;
 }
 
-/* ---------- LOADING / ERROR ---------- */
-.loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 56px 0;
-  color: var(--cream-60);
-  font-family: var(--mono);
-  font-size: 13px;
-}
-.spinner {
-  width: 34px;
-  height: 34px;
-  border: 3px solid var(--cream-12);
-  border-top-color: var(--amber);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.error {
-  margin-top: 24px;
-  background: rgba(255, 107, 107, 0.08);
-  border: 1px solid rgba(255, 107, 107, 0.35);
-  color: #ffb3b3;
-  padding: 16px;
-  border-radius: var(--radius);
-}
-
-/* ---------- RESULTS ---------- */
-/* Capped and centred so line lengths stay readable under the wider hero shell. */
-.results { margin: 8px auto 0; max-width: 880px; }
-
-/* Zero-result state: an answer, not an empty page. */
-.empty {
-  margin-top: clamp(22px, 4vw, 32px);
-  background: var(--card);
-  border: 1px solid var(--cream-08);
-  border-radius: var(--radius);
-  padding: clamp(22px, 4vw, 30px);
-  color: var(--cream-60);
-  font-size: 16px;
-  line-height: 1.6;
-  text-wrap: pretty;
-}
-
-/* Results header: status line on the left, "New search" reset on the right. */
-.resultsHead {
-  margin: 30px 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-.meta {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--cream-60);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  flex-wrap: wrap;
-}
-/* Secondary "start over" action — quiet until hovered. */
-.newSearch {
-  flex: none;
-  min-height: 44px;
-  padding: 8px 16px;
-  background: none;
-  border: 1px solid var(--cream-12);
-  border-radius: 9px;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-.newSearch:hover {
-  color: var(--amber);
-  border-color: rgba(255, 122, 26, 0.4);
-}
-.newSearch:focus-visible {
-  outline: 2px solid var(--amber);
+/* Every control in the popovers takes the app's one focus treatment. */
+.travelers:focus-visible,
+.counterBtn:focus-visible,
+.travelersDone:focus-visible,
+.suggestion:focus-visible {
+  outline: 2px solid var(--navy);
   outline-offset: 2px;
 }
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--good);
-  box-shadow: 0 0 0 0 rgba(61, 214, 140, 0.5);
-  animation: pulse 2.4s ease-out infinite;
-}
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(61, 214, 140, 0.5); }
-  70% { box-shadow: 0 0 0 7px rgba(61, 214, 140, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(61, 214, 140, 0); }
-}
-.sep { color: var(--cream-40); } /* decorative separator dot — contrast-exempt */
 
-/* Real per-search price context (SerpApi price_insights). Quiet, factual —
-   not an amber call-to-action; amber stays reserved for actions. */
-.priceInsight {
+/* ---------- LOADING / ERROR ---------- */
+/* Placeholders in the shape of what's coming, so the answer lands in the space
+   already held for it. */
+.loadingWrap { padding-top: 18px; }
+
+/* The stage list. Each row is a phase the server said it reached, so a row
+   turning from waiting to working is real evidence, not decoration. */
+.progress { margin: 0 0 18px; }
+.stages { list-style: none; margin: 0; padding: 0; }
+.stageRow {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: clamp(18px, 3vw, 26px) 0 0;
-  padding: 12px 16px;
-  background: var(--cream-08);
-  border: 1px solid var(--cream-12);
-  border-radius: 10px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--cream-60);
-  text-wrap: pretty;
+  padding: 7px 0;
+  font-size: 16px;
+  color: var(--ink-2);
 }
-.priceInsightDot {
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--good);
-}
-
-/* Honest-read summary */
-.verdict {
-  position: relative;
-  margin-top: clamp(22px, 4vw, 32px);
-  background: linear-gradient(180deg, var(--card-2), var(--card));
-  border: 1px solid var(--cream-08);
-  border-radius: var(--radius);
-  padding: clamp(22px, 4vw, 30px) clamp(22px, 4vw, 34px);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
-}
-.verdictTag {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--amber);
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-.verdictTag::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  background: var(--amber);
-  transform: rotate(45deg);
-}
-/* Honest read as a bulleted list: one airline/insight per line, small accent
-   dots, never a wall of prose. */
-.readList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.readItem {
-  display: flex;
-  gap: 13px;
-  align-items: flex-start;
-}
-.readDot {
-  flex: none;
-  width: 7px;
-  height: 7px;
-  margin-top: 0.5em;
-  border-radius: 50%;
-  background: var(--amber);
-  box-shadow: 0 0 8px rgba(255, 122, 26, 0.5);
-}
-.readText {
-  margin: 0;
-  font-size: clamp(16px, 2.2vw, 18px);
-  line-height: 1.55;
-  color: var(--cream);
-  text-wrap: pretty;
-}
-/* Scannable lead-in: airline in Fraunces, price in the mono face. */
-.leadAirline { font-family: var(--serif); font-weight: 600; color: var(--cream); }
-.leadPrice { font-family: var(--mono); font-weight: 500; color: var(--cream); }
-
-.sectionLabel {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: clamp(36px, 6vw, 52px) 2px 18px;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-}
-.sectionLabel::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--cream-08);
-}
-
-/* ---------- FLIGHT CARDS (boarding-pass tickets) ---------- */
-.cards { display: flex; flex-direction: column; gap: 18px; }
-
-/* The ticket: a raised navy surface. On results it reveals with a slight,
-   index-staggered rise (animation-delay set inline per card). fill-mode is
-   `backwards` so the card rests at its natural, VISIBLE state if the animation
-   never runs (reduced-motion, headless render) — content never ships blank. */
-.card {
-  position: relative;
-  background: var(--card);
-  border: 1px solid var(--cream-08);
-  border-radius: var(--radius);
-  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
-}
-.card:hover { border-color: var(--cream-12); transform: translateY(-1px); }
-.muted { opacity: 0.94; }
-
-.ticket { animation: ticketIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-@keyframes ticketIn {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Body | perforated price stub. */
-.ticketMain {
-  display: grid;
-  grid-template-columns: 1fr clamp(150px, 24%, 200px);
-}
-.ticketBody { padding: clamp(20px, 3.4vw, 26px) clamp(20px, 3.4vw, 28px); min-width: 0; }
-
-.bodyHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-/* The one green tag the brief asks for: the single cheapest fare. */
-.cheapTag {
+.stageRow[data-state="active"] { color: var(--ink); font-weight: 600; }
+.stageRow[data-state="waiting"] { opacity: 0.55; }
+.stageMark {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  width: 18px;
   flex: none;
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--good);
-  background: rgba(61, 214, 140, 0.13);
-  border: 1px solid rgba(61, 214, 140, 0.32);
-  border-radius: 999px;
-  padding: 5px 11px;
 }
-.cheapIc { font-size: 11px; }
+.stageRow[data-state="done"] .stageMark { color: var(--ok); font-weight: 700; }
 
-/* Airline names render in Fraunces (the destination-text face of the board). */
-.airline {
-  margin: 0;
-  font-family: var(--serif);
-  font-size: clamp(22px, 3vw, 27px);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.05;
+/* Three dots breathing in sequence: enough to read as "working" without
+   pretending to know how far along it is. Frozen under reduced motion by the
+   global guard in globals.css, where the row still reads as the active one
+   through its weight and colour. */
+.working { display: inline-flex; gap: 3px; }
+.working i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ink);
+  animation: working 1.1s ease-in-out infinite;
 }
-.route {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--cream-60);
-  letter-spacing: 0.02em;
-}
-.route b { color: var(--cream); font-weight: 600; }
-
-/* Departure -> arrival clock times. The +N day-offset is accent so an overnight
-   / next-day arrival is never read as same-day. */
-.times {
-  margin: 7px 0 0;
-  font-family: var(--mono);
-  font-size: 15px;
-  color: var(--cream);
-  letter-spacing: 0.02em;
-  white-space: nowrap; /* never split the "18:25 → 16:40" pair across lines */
-}
-.timesArrow { color: var(--cream-40); margin: 0 4px; }
-.dayOffset {
-  margin-left: 3px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--amber);
-  vertical-align: super;
+.working i:nth-child(2) { animation-delay: 0.15s; }
+.working i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes working {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
 }
 
-/* Round-trip legs (Outbound / Return), divided by a hairline. */
-.leg + .leg {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--cream-08);
+/* Announced, never shown — the visible list carries the same information. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
-.legLabel {
+.skeleton {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 18px 16px;
+  margin-bottom: 14px;
+}
+.skLine {
+  height: 13px;
+  border-radius: 6px;
+  background: var(--sunk);
+  margin-bottom: 11px;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.skLine:last-child { margin-bottom: 0; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+/* We'd rather show nothing than prices we can't verify, so this is the loud
+   state: a real failure, edged in alert red. */
+.error {
+  margin: 18px 0 0;
+  padding: 16px;
+  border-radius: var(--r);
+  background: var(--alert-bg);
+  border: 1px solid var(--alert);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* ---------- RESULTS ---------- */
+/* ---- results: sticky search context ---- */
+.results { padding-top: 4px; }
+.searchbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
-  align-items: baseline;
-  gap: 9px;
-  margin: 0 0 5px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--cream-60);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0 14px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line-2);
 }
-.legDate { letter-spacing: 0.04em; color: var(--cream-60); }
-.legAirline { color: var(--cream-60); }
-.segHead {
-  margin-top: 8px;
-  font-family: var(--mono);
-  font-size: 10px;
+/* Back arrow — "start over" (resetSearch). Bordered square on the card
+   surface, matching the mockup's `.topbar .back` treatment, sized to the
+   44px touch floor. */
+.backButton {
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+}
+/* Route + meta share the middle of the bar. min-width:0 lets them shrink
+   instead of pushing Edit off the right edge on a narrow phone. */
+.searchbarInfo {
+  flex: 1;
+  min-width: 0;
+}
+/* Focus target after a fresh search lands (see resultsHeadingRef). It takes
+   the same navy ring as every other focusable thing — :focus-visible only
+   matches on programmatic focus when the last input was the keyboard, so a
+   mouse user never sees it. */
+.searchRoute {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.searchMeta {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.editButton {
+  margin-left: auto;
+  min-height: var(--tap);
+  padding: 0 12px;
+  border: none;
+  background: none;
+  color: var(--navy);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---- the honest read: the finding, printed in record navy ---- */
+.read {
+  margin-top: 18px;
+  background: var(--navy);
+  color: #fff;
+  border-radius: var(--r);
+  padding: 20px;
+}
+.readKicker {
+  margin: 0 0 12px;
+  font-size: 12.5px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--cream-60);
-}
-.segHead:first-child { margin-top: 0; }
-
-/* ----- split-flap reveal for the key times ----- */
-/* The board mechanic, reused on results: each character flips into place with a
-   stagger. The final text is always in the DOM (carried on aria-label), so this
-   only animates the entrance. globals.css disables it under reduced-motion. */
-.flapText { display: inline-flex; }
-.flapChar {
-  display: inline-block;
-  transform-origin: center;
-  backface-visibility: hidden;
-}
-.flapChar[data-flap="in"] {
-  animation: flapIn 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-}
-@keyframes flapIn {
-  0%   { transform: rotateX(-90deg); opacity: 0; }
-  60%  { transform: rotateX(12deg);  opacity: 1; }
-  100% { transform: rotateX(0deg);   opacity: 1; }
-}
-
-/* ----- the perforated price stub ----- */
-.ticketStub {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  text-align: right;
-  gap: 6px;
-  padding: clamp(20px, 3.4vw, 26px) clamp(18px, 3vw, 24px);
-  border-left: 2px dashed var(--cream-12);
-}
-/* notch cut-outs punched into the ticket edge at each end of the perforation */
-.ticketStub::before,
-.ticketStub::after {
-  content: "";
-  position: absolute;
-  left: -9px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--page);
-  border: 1px solid var(--cream-08);
-}
-.ticketStub::before { top: -9px; }
-.ticketStub::after  { bottom: -9px; }
-
-.price {
-  font-family: var(--mono);
-  font-size: clamp(30px, 5vw, 40px);
   font-weight: 600;
-  line-height: 0.95;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  color: var(--cream);
+  color: var(--navy-on);
 }
-.priceValue { display: inline-flex; align-items: baseline; }
-.priceCurrency { color: var(--amber); margin-right: 1px; } /* the $ in accent orange */
-.price.dim { color: var(--cream-60); }
-.priceUnit {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-  white-space: nowrap;
+.readLine {
+  margin: 0 0 10px;
+  font-size: 19px;
+  line-height: 1.42;
+  letter-spacing: -0.015em;
 }
-.allin {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--cream-60);
-}
-.allin b { color: var(--cream); font-weight: 600; }
+/* The read's lines are the last thing in the block, so the final one drops its
+   bottom margin rather than padding out the navy. */
+.readLine:last-child { margin-bottom: 0; }
 
-/* Mobile: the stub drops BELOW the body; the perforation flips horizontal and
-   the notches move to the left and right edges. */
-@media (max-width: 560px) {
-  .ticketMain { grid-template-columns: 1fr; }
-  .ticketStub {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    text-align: left;
-    gap: 4px 14px;
-    padding-top: clamp(16px, 4vw, 20px);
-    border-left: none;
-    border-top: 2px dashed var(--cream-12);
-  }
-  .ticketStub::before { left: -9px; top: -9px; bottom: auto; }
-  .ticketStub::after  { left: auto; right: -9px; top: -9px; bottom: auto; }
-}
-
-/* ----- trade-off note: the one-line verdict, color + icon paired (never color alone) ----- */
-.tradeoff {
+/* Holds the block's shape while the read is still being written, so the cards
+   below don't jump when it lands. */
+.readWaiting {
   display: flex;
-  align-items: flex-start;
-  gap: 11px;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 16px;
+  color: var(--navy-on);
+}
+.readWaiting .working i { background: var(--navy-on); }
+/* The airline name and price that renderHonestLine pulls out of each line. */
+.leadAirline { font-weight: 600; }
+.leadPrice { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.insight {
   margin: 14px 0 0;
   font-size: 15px;
   line-height: 1.5;
+  color: var(--ink-2);
 }
-.ic {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-family: var(--mono);
-  font-size: 12px;
+
+.sectionLabel {
+  margin: 26px 0 12px;
+  font-size: 16px;
   font-weight: 600;
-  margin-top: 1px;
+  letter-spacing: -0.01em;
 }
-.flagGood { color: var(--cream); }
-.flagGood .ic { background: rgba(61, 214, 140, 0.16); color: var(--good); }
-.flagCaution { color: var(--cream); }
-.flagCaution .ic { background: rgba(232, 184, 75, 0.18); color: var(--warn); }
-.flagRisk { color: #ffb3b3; }
-.flagRisk .ic { background: rgba(255, 107, 107, 0.18); color: var(--risk); }
 
-/* always-visible deterministic warnings */
-.warnings {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
-}
-.warn {
-  margin: 0;
-  font-size: 14px;
+/* Zero results is an answer, not a failure — so it's a calm card, not the red
+   error block. */
+.empty {
+  margin: 18px 0 0;
+  padding: 22px 18px;
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  color: var(--ink);
+  font-size: 17px;
   line-height: 1.5;
-  padding: 10px 12px;
-  border-radius: 9px;
-  border: 1px solid var(--cream-08);
-}
-.warnLbl {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  margin-right: 8px;
-}
-.warn_high { background: rgba(255, 107, 107, 0.12); border-color: rgba(255, 107, 107, 0.35); color: #ffb3b3; }
-.warn_high .warnLbl { color: var(--risk); }
-.warn_warn { background: rgba(255, 122, 26, 0.1); border-color: rgba(255, 122, 26, 0.3); color: #f0d99b; }
-.warn_warn .warnLbl { color: var(--amber); }
-.warn_info { background: var(--cream-08); color: var(--cream-60); }
-.warn_info .warnLbl { color: var(--cream-60); }
-
-/* Foot: spans the full ticket width below the body + stub; holds Explain + detail. */
-.ticketFoot {
-  padding: 4px clamp(20px, 3.4vw, 28px) clamp(10px, 2vw, 14px);
-  border-top: 1px solid var(--cream-08);
+  text-wrap: pretty;
 }
 
-.toggle {
-  margin-top: 4px;
-  background: none;
-  border: none;
-  padding: 6px 0 0;
-  cursor: pointer;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--amber);
+
+/* ---------- FLIGHT CARDS (the record) ---------- */
+.cards { display: block; }
+
+/* One fare, one card. On results it reveals with a slight, index-staggered rise
+   (animation-delay set inline per card). fill-mode is `backwards` so the card
+   rests at its natural, VISIBLE state if the animation never runs
+   (reduced-motion, headless render) — content never ships blank. */
+.fare {
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  margin-bottom: 14px;
+  overflow: hidden;
+  animation: fareIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+@keyframes fareIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fareHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 16px 13px;
+}
+.fareId { min-width: 0; }
+.airline {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+/* The price. Mono digits at 31px, with the unit under it so "round trip" is
+   never mistaken for part of the number. */
+.amt {
+  margin: 0;
+  flex: none;
+  text-align: right;
+  font-size: 31px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.amt small {
+  display: block;
+  margin-top: 5px;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink-2);
+}
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* At most one tag per card. Navy marks the pick; green and red are signals and
+   so always carry an icon and a word, never colour alone. */
+.tag {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  width: fit-content;
-  min-height: 44px;
-  transition: color 0.2s ease;
+  gap: 6px;
+  margin-bottom: 9px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
-.toggle:hover { color: var(--amber-soft); }
-.toggle:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
-.chev { transition: transform 0.35s ease; display: inline-block; }
-.card.open .chev { transform: rotate(180deg); }
+.tagIc { font-size: 11px; }
+.tagPick { background: var(--navy-tint); color: var(--navy); }
+.tagOk { background: var(--ok-tint); color: var(--ok); }
+.tagBad { background: var(--alert-bg); color: var(--alert); }
 
-/* smooth expand: grid-rows 0fr -> 1fr */
+/* The record itself: one labelled row per fact, value right-aligned. */
+.rows { border-top: 1px solid var(--line); }
+.rw {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 15.5px;
+}
+.rw:last-child { border-bottom: none; }
+.rwKey { color: var(--ink-2); flex: none; }
+.rwVal { font-weight: 600; text-align: right; min-width: 0; }
+/* Gap between the airport codes and the clock times inside one mono value.
+   A styled span, not stacked spaces, so it can't collapse. */
+.rwSep { display: inline-block; width: 10px; }
+/* +1 means the flight lands on a later calendar day. Never let that read as
+   same-day: alert red, and the row carries an aria-label spelling it out. */
+.dayOffset {
+  margin-left: 4px;
+  color: var(--alert);
+  font-weight: 700;
+}
+
+/* The one-line judgement, on the recessed surface so it reads as commentary
+   rather than another fact in the record. */
+.say {
+  margin: 0;
+  padding: 14px 16px;
+  background: var(--sunk);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Risk callouts. Full sentences, an icon, and a word — never colour alone. */
+.warnings { padding: 14px 16px 0; }
+.warn {
+  border-radius: 12px;
+  padding: 13px 14px;
+  margin-bottom: 12px;
+}
+.warnLbl {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.warnMsg { margin: 0; font-size: 16px; line-height: 1.5; }
+.warn_high { background: var(--alert-bg); border: 1px solid var(--alert); }
+.warn_high .warnLbl { color: var(--alert); }
+.warn_warn { background: var(--alert-bg); }
+.warn_warn .warnLbl { color: var(--alert); }
+.warn_info { background: var(--sunk); }
+.warn_info .warnLbl { color: var(--ink-2); }
+
+/* ---------- THE OPENED DETAIL ---------- */
+/* The toggle is the card's own last row: full bleed, its own hairline, and it
+   says what opening it gets you rather than naming the action. */
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border: none;
+  border-top: 1px solid var(--line);
+  background: none;
+  color: var(--navy);
+  font-size: 15.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.toggle:hover { background: var(--navy-tint); }
+.toggle:focus-visible { outline: 2px solid var(--navy); outline-offset: -2px; }
+
+/* The second disclosure, one level in: "How to book". Quieter than the card's
+   own toggle — no full-bleed edge, no hairline — because it opens a panel
+   inside a panel and shouldn't read as another card row. */
+.bookToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--navy);
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.bookToggle:hover { color: var(--navy-2); }
+.bookToggle:focus-visible { outline: 2px solid var(--navy); outline-offset: 3px; border-radius: 4px; }
+
+/* Each chevron follows its own button, not the card's open state. */
+.chev { flex: none; transition: transform 0.25s ease; }
+.toggle[aria-expanded="true"] .chev,
+.bookToggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+/* Smooth expand: grid-rows 0fr -> 1fr. `visibility` is part of it on purpose —
+   without it the collapsed panel is invisible but still tabbable, so keyboard
+   focus disappears into content nobody can see. It flips to visible instantly
+   on open, and back only after the panel has finished closing. */
 .detail {
-  grid-column: 1 / -1;
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.4s ease;
+  transition: grid-template-rows 0.35s ease;
 }
 .detailInner {
   overflow: hidden;
   opacity: 0;
-  transition: opacity 0.3s ease 0.05s;
+  visibility: hidden;
+  transition: opacity 0.28s ease 0.04s, visibility 0s linear 0.35s;
 }
-.card.open .detail { grid-template-rows: 1fr; }
-.card.open .detailInner { opacity: 1; }
+.open .detail { grid-template-rows: 1fr; }
+.open .detailInner {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.28s ease 0.04s, visibility 0s;
+}
 
-.detailPad {
-  padding: 4px 0 2px;
-  border-top: 1px solid var(--cream-08);
-  margin-top: 6px;
-}
-/* brightened expanded text — ~92% cream, never faint (per the design brief) */
+.detailPad { padding: 4px 16px 18px; }
 .detailPad p {
-  margin: 18px 0 0;
-  font-size: 15.5px;
-  line-height: 1.66;
-  color: rgba(234, 238, 246, 0.92);
+  margin: 0 0 10px;
+  font-size: 16px;
+  line-height: 1.55;
   text-wrap: pretty;
 }
-.detailPad p b { color: var(--cream); font-weight: 600; }
+.detailPad p:last-child { margin-bottom: 0; }
+.detailPad p b { font-weight: 600; }
 
-.segments {
-  list-style: none;
-  padding: 0;
-  margin: 16px 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+/* Every flight, in the order it's flown, one line each. */
+.stops { list-style: none; margin: 0 0 16px; padding: 0; }
+.stopsHead {
+  margin: 14px 0 6px;
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 600;
 }
-.segments li { font-family: var(--mono); font-size: 12.5px; color: var(--cream-60); }
-.segments b { color: var(--cream); font-weight: 500; }
+.stopsHead:first-child { margin-top: 0; }
+.stop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+.stop:last-child { border-bottom: none; }
+.stopT { font-size: 16px; font-weight: 600; }
+.stopP { font-size: 14.5px; color: var(--ink-2); text-align: right; }
 
-.book {
+/* The one action on the card. Navy, because leaving for the airline is the
+   thing the whole screen is for. */
+.book,
+.bookGo {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  margin-top: 20px;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--amber);
+  justify-content: center;
+  width: 100%;
+  min-height: 50px;
+  border: none;
+  border-radius: 12px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
   text-decoration: none;
-  border: 1px solid rgba(255, 122, 26, 0.4);
-  border-radius: 9px;
-  padding: 10px 16px;
-  transition: background 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
-.book:hover { background: var(--amber); color: #070b14; }
+.book { margin-top: 16px; }
+.book:hover,
+.bookGo:hover { background: var(--navy-2); }
+.book:focus-visible,
+.bookGo:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 
-/* Placeholder shown when there's no booking link/token for an option. */
+/* Shown when there's no booking link or token for an option. */
 .bookSoon {
-  margin: 20px 0 0;
-  max-width: 60ch;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--cream-60);
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
 }
 
 /* ---------- "How to book": lazy booking options ---------- */
-.bookWrap { margin-top: 4px; }
-.bookPanel {
-  margin-top: 10px;
-  padding-top: 14px;
-  border-top: 1px solid var(--cream-08);
-}
+.bookWrap { margin-top: 16px; }
+.bookPanel { margin-top: 12px; }
 .bookNote {
-  margin: 0 0 12px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--cream-60);
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
 }
 
-/* Flat rows divided by hairlines — never nested cards. */
-.bookList { list-style: none; margin: 0; padding: 0; }
-.bookOption { padding: 16px 0; border-top: 1px solid var(--cream-08); }
-.bookOption:first-child { border-top: none; padding-top: 2px; }
+/* One seller per bordered row. Each is a separate decision, so each gets its
+   own edge — but they sit on the card, not in a second card. */
+.bookList { list-style: none; margin: 12px 0 0; padding: 0; }
+.bookOption {
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.bookOption:last-child { margin-bottom: 0; }
 
 .bookOptionHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
+  margin-bottom: 8px;
 }
 .bookSeller {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 15px;
+  font-size: 16.5px;
   font-weight: 600;
-  color: var(--cream);
 }
 /* Direct vs third-party, labeled plainly — never hidden. */
 .bookTag {
-  font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 2px 7px;
+  padding: 3px 7px;
   border-radius: 5px;
-  transform: translateY(-1px);
 }
-.bookTagDirect { color: var(--good); background: rgba(61, 214, 140, 0.14); }
-.bookTagThird { color: var(--cream-60); background: var(--cream-08); }
-.bookFare {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--cream-60);
-}
+.bookTagDirect { color: var(--ok); background: var(--ok-tint); }
+.bookTagThird { color: var(--ink-2); background: var(--sunk); }
+.bookFare { font-size: 14px; font-weight: 400; color: var(--ink-2); }
 .bookPrice {
   font-family: var(--mono);
   font-size: 18px;
-  font-weight: 500;
-  color: var(--cream);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 /* Separate tickets = a real risk. Full risk treatment, not a quiet note. */
 .bookWarn {
-  margin: 10px 0 0;
-  padding: 10px 12px;
-  font-size: 13.5px;
+  margin: 8px 0;
+  padding: 11px 12px;
+  border-radius: 10px;
+  background: var(--alert-bg);
+  border: 1px solid var(--alert);
+  color: var(--ink);
+  font-size: 15.5px;
   line-height: 1.5;
-  color: #ffb3b3;
-  background: rgba(255, 107, 107, 0.12);
-  border: 1px solid rgba(255, 107, 107, 0.35);
-  border-radius: 9px;
 }
 .bookConds {
-  margin: 10px 0 0;
+  margin: 8px 0;
   padding-left: 18px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--cream-60);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-2);
 }
 .bookBags {
-  margin: 9px 0 0;
-  font-family: var(--mono);
-  font-size: 12.5px;
-  color: var(--cream-60);
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: var(--ink-2);
 }
-
-/* Quiet at rest, amber on intent — keeps amber scarce across many options. */
-.bookForm { margin-top: 14px; }
-.bookGo {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 10px 16px;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--cream);
-  background: none;
-  border: 1px solid var(--cream-12);
-  border-radius: 9px;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-.bookGo:hover { background: var(--amber); color: #070b14; border-color: var(--amber); }
-.bookGo:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.bookForm { margin-top: 12px; }
 
 /* ---------- FOOTER ---------- */
+/* Only ever says where the numbers came from. */
 .foot {
-  margin-top: 44px;
-  padding-top: 20px;
-  border-top: 1px solid var(--cream-08);
-  font-family: var(--mono);
-  font-size: 11.5px;
-  letter-spacing: 0.04em;
-  color: var(--cream-60);
-  line-height: 1.7;
+  margin: 22px 0 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
 }

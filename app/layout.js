@@ -1,22 +1,18 @@
-import { Fraunces, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-// The departure-board type trio. Each becomes a CSS variable used in globals.css.
-// Fraunces (display): the FareWise wordmark and airline names — a high-contrast
-// serif that reads like the destination text on a real board.
-const display = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-display",
-  display: "swap",
-});
-// Hanken Grotesk (body): plain, legible running text.
-const body = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-body", display: "swap" });
-// JetBrains Mono (mono): all metadata, labels, times, and prices — the gate-listing face.
-const mono = JetBrains_Mono({
+// Record's two faces. IBM Plex Sans carries everything a person reads; IBM Plex
+// Mono carries anything whose digits must line up in a column (times, prices,
+// airport codes). There is no display face — a product UI doesn't need one.
+const body = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
+  display: "swap",
+});
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["500", "600"],
   variable: "--font-mono",
   display: "swap",
 });
@@ -28,7 +24,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en" className={`${body.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );
