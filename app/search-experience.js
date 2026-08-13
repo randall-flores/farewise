@@ -20,6 +20,36 @@ function usePrefersReducedMotion() {
   return reduce;
 }
 
+// Records whether the person is currently driving the page with a pointer or
+// with the keyboard, as `data-focus` on <html>.
+//
+// Why this exists: a text input matches :focus-visible when you CLICK it, not
+// just when you Tab to it, so a focus ring styled the normal way appears on
+// every click and reads as clutter. A mouse user doesn't need a ring — the
+// caret is already sitting in the field they just clicked. A keyboard user
+// does, because they have nothing else tracking where they are. This lets the
+// CSS tell those two cases apart.
+function useFocusModality() {
+  useEffect(() => {
+    const root = document.documentElement;
+    const pointer = () => root.setAttribute("data-focus", "pointer");
+    // Only navigation keys switch the mode — typing into a field you clicked
+    // shouldn't suddenly draw a ring around it.
+    const keyboard = (e) => {
+      if (e.key === "Tab" || e.key === "ArrowUp" || e.key === "ArrowDown") {
+        root.setAttribute("data-focus", "keyboard");
+      }
+    };
+    pointer(); // assume pointer until a Tab says otherwise
+    window.addEventListener("pointerdown", pointer, true);
+    window.addEventListener("keydown", keyboard, true);
+    return () => {
+      window.removeEventListener("pointerdown", pointer, true);
+      window.removeEventListener("keydown", keyboard, true);
+    };
+  }, []);
+}
+
 // Belt-and-suspenders: the generation prompt forbids em dashes, but if one ever
 // slips through we never render it. Turn an em dash (or "--") into a comma break
 // so the plain-spoken voice holds in the UI too.
@@ -866,6 +896,7 @@ function TravelersControl({ counts, onChange }) {
 }
 
 export default function SearchExperience() {
+  useFocusModality();
   const [form, setForm] = useState({
     origin: "",
     destination: "",

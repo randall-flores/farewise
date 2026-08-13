@@ -205,7 +205,9 @@ The honest read: a filled navy card, an uppercase kicker in `navy-on`, then the 
 - **Disclosure:** navy text, no fill. The card's own toggle is a full-bleed 52px row with a hairline above it; the nested "How to book" is quieter — inline, no edge — because it opens a panel inside a panel. Each chevron rotates off its own button's `aria-expanded`.
 
 ### Form
-One card, one row per fact, 66px per row, hairline between, label 48px wide on the left. Focus tints the whole row `navy-tint` so the active field is obvious without a heavy outline. Out/Back split the row; Who and cabin share the last one.
+One card, one row per fact, 66px per row, hairline between, label 48px wide on the left. Out/Back split the row; Who and cabin share the last one. Every control that opens something — Out, Back, Who, cabin — carries the same chevron; there is one "this opens" mark in the app, not four drawn four ways. Dates set their value in mono with tabular figures, because a column of dates is a column of numbers.
+
+**The Caret-Is-The-Focus Rule.** Clicking into a field draws nothing: no tint, no ring, no underline. A text field already has the clearest focus signal there is — the caret sitting in it — and anything drawn on top is decoration that competes with the one filled block on the screen. The row's label turning navy is the only addition. Keyboard focus is the opposite case and gets a real navy ring, because a Tab user has no caret to follow across the form. The two are told apart by `data-focus` on `<html>` (see `useFocusModality`), since a text input matches `:focus-visible` on click as well as on Tab and CSS alone can't separate them.
 
 ### Warnings (signature)
 Always visible, never behind a toggle, and generated in code rather than by the model. A tinted block with an icon plus an uppercase word (`Warning` / `Note`), then a full, blunt, complete sentence. This is the one place brevity loses to clarity.
