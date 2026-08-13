@@ -841,11 +841,15 @@ function SearchProgress({ stage, roundTrip }) {
 // four counter rows. Controlled — counts live in the parent form state; this owns
 // only the open/closed state. All count rules live in lib/passengers (adjust /
 // canIncrement / canDecrement), so the buttons just call them.
+// "Infant in seat" and "infant on lap" are what an airline desk says, not what a
+// person says. The thing being asked is whether the baby gets a seat of its own
+// or is held, so the labels say that, and every row carries an age instead of
+// leaving the reader to work out where one band ends and the next begins.
 const TRAVELER_ROWS = [
-  { type: "adults", label: "Adults" },
+  { type: "adults", label: "Adults", hint: "12 and over" },
   { type: "children", label: "Children", hint: "2 to 11" },
-  { type: "infantsInSeat", label: "Infants in seat" },
-  { type: "infantsOnLap", label: "Infants on lap" },
+  { type: "infantsInSeat", label: "Baby with a seat", hint: "under 2" },
+  { type: "infantsOnLap", label: "Baby on a lap", hint: "under 2" },
 ];
 
 function TravelersControl({ counts, onChange }) {

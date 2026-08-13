@@ -317,9 +317,12 @@
 
 /* Travelers button and cabin select are the two bordered controls on the form.
    They share a shape so the last row reads as one pair. */
+/* flex-basis auto, not 0: "2 adults" needs more room than "Economy", and an
+   even 50/50 split forces the wider one to truncate on a narrow phone. Sized by
+   content, shrinking proportionally when the row runs out of width. */
 .travelers,
 .cabinSelect {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   min-height: var(--tap);
   border: 1px solid var(--line-2);
@@ -330,10 +333,17 @@
   cursor: pointer;
 }
 
+/* width:100% is load-bearing on WebKit. A <button> sizes to its content there
+   even as a block-level flex container, so without this it ignores the width
+   its wrapper was given, grows to fit "2 adults" plus both glyphs, and spills
+   over the cabin select next to it — which is exactly what it did on iOS.
+   Filling the wrapper instead hands the shrinking to .travelersCount, which
+   ellipsises. */
 .travelers {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   padding: 0 12px;
 }
 .travelersIcon,
