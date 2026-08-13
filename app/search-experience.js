@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { formatMoney, totalExtraFees, allInPrice } from "@/lib/flight-helpers";
 import { searchAirports, loadAirports } from "@/lib/airport-search";
 import { PASSENGER_DEFAULTS, passengerSummary, adjust, canIncrement, canDecrement } from "@/lib/passengers";
@@ -18,6 +18,51 @@ function usePrefersReducedMotion() {
     return () => mq.removeEventListener("change", sync);
   }, []);
   return reduce;
+}
+
+// Make the date picker's own "Clear" button reach React state.
+//
+// The picker's Clear empties the input and fires a native `change` event, but
+// WebKit doesn't fire `input` for it — and React routes onChange for a date
+// input through `input`. So the clear never reached state, React re-rendered
+// the controlled value it still held, and the date snapped straight back: a
+// button that visibly does nothing.
+//
+// Listening for `change` directly sidesteps which event React is watching. It's
+// safe if that diagnosis is wrong, because writing the same value twice is a
+// no-op — worst case this is one redundant state write.
+function useDateClearFix(ref, name, onChange) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const sync = () => onChange({ target: { name, value: el.value } });
+    el.addEventListener("change", sync);
+    return () => el.removeEventListener("change", sync);
+  }, [ref, name, onChange]);
+}
+
+// One Out/Back date row: the label, the input, its own ref for the clear fix.
+// A component rather than two refs in the parent, because the Back field only
+// exists on a round trip and its listener should come and go with it.
+function DateField({ label, name, value, onChange, min, required = false }) {
+  const ref = useRef(null);
+  useDateClearFix(ref, name, onChange);
+  return (
+    <label className={styles.field}>
+      <span className={styles.fieldKey}>{label}</span>
+      <input
+        ref={ref}
+        className={styles.fieldInput}
+        type="date"
+        name={name}
+        value={value}
+        onChange={onChange}
+        onClick={openDatePicker}
+        min={min}
+        required={required}
+      />
+    </label>
+  );
 }
 
 // Open a date field's calendar when the field is clicked.
@@ -987,9 +1032,13 @@ export default function SearchExperience() {
     if (data) resultsHeadingRef.current?.focus();
   }, [data]);
 
-  function update(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
+  // Functional update, not a spread of the current `form`: useDateClearFix
+  // attaches a native listener that outlives the render it was created in, and
+  // a captured `form` would go stale and undo whatever changed meanwhile.
+  const update = useCallback((e) => {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: value }));
+  }, []);
 
   // Trip type drives which date fields show. Switching to One way clears any
   // return date already entered, so a stale return can never reach the search
@@ -1171,32 +1220,22 @@ export default function SearchExperience() {
             />
 
             <div className={styles.fieldSplit}>
-              <label className={styles.field}>
-                <span className={styles.fieldKey}>Out</span>
-                <input
-                  className={styles.fieldInput}
-                  type="date"
-                  name="depart"
-                  value={form.depart}
-                  onChange={update}
-                  onClick={openDatePicker}
-                  min={today}
-                  required
-                />
-              </label>
+              <DateField
+                label="Out"
+                name="depart"
+                value={form.depart}
+                onChange={update}
+                min={today}
+                required
+              />
               {form.tripType === "round-trip" && (
-                <label className={styles.field}>
-                  <span className={styles.fieldKey}>Back</span>
-                  <input
-                    className={styles.fieldInput}
-                    type="date"
-                    name="returnDate"
-                    value={form.returnDate}
-                    onChange={update}
-                    onClick={openDatePicker}
-                    min={form.depart || today}
-                  />
-                </label>
+                <DateField
+                  label="Back"
+                  name="returnDate"
+                  value={form.returnDate}
+                  onChange={update}
+                  min={form.depart || today}
+                />
               )}
             </div>
 
