@@ -33,6 +33,28 @@ function noEmDash(text) {
     .trim();
 }
 
+// The one chevron in the app, on both disclosure buttons. It points down when
+// the panel is shut and flips when it opens — the flip is driven purely by the
+// button's own aria-expanded, so each toggle always shows its own state.
+function Chevron() {
+  return (
+    <svg
+      className={styles.chev}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 // A From/To field with debounced airport/city autocomplete.
 // Shows what the user types; commits the chosen IATA code to the parent form.
 function AirportField({ label, name, initial, initialCommitted, onSelect }) {
@@ -428,9 +450,9 @@ function BookOptions({ token, search }) {
 
   return (
     <div className={styles.bookWrap}>
-      <button type="button" className={styles.toggle} onClick={toggle} aria-expanded={open}>
+      <button type="button" className={styles.bookToggle} onClick={toggle} aria-expanded={open}>
         <span>{open ? "Hide booking options" : "How to book"}</span>
-        <span className={styles.chev}>↓</span>
+        <Chevron />
       </button>
 
       {open && (
@@ -611,65 +633,78 @@ function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 
         </div>
       )}
 
-      {/* ---- Foot: Explain toggle + on-demand detail (spans the full ticket width) ---- */}
-      <div className={styles.ticketFoot}>
-        <button
-          type="button"
-          className={styles.toggle}
-          onClick={() => setOpen((o) => !o)}
-          aria-expanded={open}
-        >
-          <span>{open ? "Hide detail" : "Explain"}</span>
-          <span className={styles.chev}>↓</span>
-        </button>
+      {/* ---- The detail, opened on demand: every flight in order, the full
+              reasoning, then how to actually book it. ---- */}
+      <button
+        type="button"
+        className={styles.toggle}
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
+        <span>{open ? "Hide the detail" : "See every flight and fee"}</span>
+        <Chevron />
+      </button>
 
-        {/* Layer 3: full reasoning + segment breakdown, smooth-expanded on demand. */}
-        <div className={styles.detail}>
-          <div className={styles.detailInner}>
-            <div className={styles.detailPad}>
-              <ul className={styles.segments}>
-                {roundTrip && <li className={styles.segHead}>Outbound</li>}
-                {flight.segments.map((s, i) => (
-                  <li key={`o${i}`}>
-                    <b>{s.from} → {s.to}</b> · {s.airline} {s.flightNo} · {s.duration}
-                  </li>
-                ))}
-                {roundTrip && flight.returnSegments?.length > 0 && (
-                  <>
-                    <li className={styles.segHead}>Return</li>
-                    {flight.returnSegments.map((s, i) => (
-                      <li key={`r${i}`}>
-                        <b>{s.from} → {s.to}</b> · {s.airline} {s.flightNo} · {s.duration}
-                      </li>
-                    ))}
-                  </>
-                )}
-              </ul>
-              {verdict?.explanation ? (
-                noEmDash(verdict.explanation)
-                  .split("\n")
-                  .filter(Boolean)
-                  .map((p, i) => <p key={i}>{p}</p>)
-              ) : (
-                <p>No further detail available.</p>
-              )}
-              {flight.bookVia?.token ? (
-                // Real source: lazy-fetch booking options on demand (not on load).
-                <BookOptions token={flight.bookVia.token} search={search} />
-              ) : flight.bookVia?.url ? (
-                // Demo data carries a placeholder link.
-                <a
-                  className={styles.book}
-                  href={flight.bookVia.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Book direct with {flight.bookVia.name} ↗
-                </a>
-              ) : (
-                <p className={styles.bookSoon}>No booking link for this option yet.</p>
-              )}
-            </div>
+      <div className={styles.detail}>
+        <div className={styles.detailInner}>
+          <div className={styles.detailPad}>
+            {/* Each flight on its own line, in the order they're flown. On a
+                round trip the two directions are separate lists so the
+                numbering restarts where the journey does. */}
+            {roundTrip && <p className={styles.stopsHead}>Outbound</p>}
+            <ol className={styles.stops}>
+              {flight.segments.map((s, i) => (
+                <li key={`o${i}`} className={styles.stop}>
+                  <span className={styles.stopT}>
+                    <span className={styles.mono}>{clockTime(s.depart)}</span> {s.from} → {s.to}
+                  </span>
+                  <span className={styles.stopP}>
+                    {s.airline} {s.flightNo} · {s.duration}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            {roundTrip && flight.returnSegments?.length > 0 && (
+              <>
+                <p className={styles.stopsHead}>Return</p>
+                <ol className={styles.stops}>
+                  {flight.returnSegments.map((s, i) => (
+                    <li key={`r${i}`} className={styles.stop}>
+                      <span className={styles.stopT}>
+                        <span className={styles.mono}>{clockTime(s.depart)}</span> {s.from} → {s.to}
+                      </span>
+                      <span className={styles.stopP}>
+                        {s.airline} {s.flightNo} · {s.duration}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </>
+            )}
+            {verdict?.explanation ? (
+              noEmDash(verdict.explanation)
+                .split("\n")
+                .filter(Boolean)
+                .map((p, i) => <p key={i}>{p}</p>)
+            ) : (
+              <p>No further detail available.</p>
+            )}
+            {flight.bookVia?.token ? (
+              // Real source: lazy-fetch booking options on demand (not on load).
+              <BookOptions token={flight.bookVia.token} search={search} />
+            ) : flight.bookVia?.url ? (
+              // Demo data carries a placeholder link.
+              <a
+                className={styles.book}
+                href={flight.bookVia.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Book direct with {flight.bookVia.name} ↗
+              </a>
+            ) : (
+              <p className={styles.bookSoon}>No booking link for this option yet.</p>
+            )}
           </div>
         </div>
       </div>

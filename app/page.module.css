@@ -718,220 +718,221 @@
 .warn_info { background: var(--sunk); }
 .warn_info .warnLbl { color: var(--ink-2); }
 
-.segHead {
-  margin-top: 8px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-}
-.segHead:first-child { margin-top: 0; }
-
-/* Foot: spans the full ticket width below the body + stub; holds Explain + detail. */
-.ticketFoot {
-  padding: 4px clamp(20px, 3.4vw, 28px) clamp(10px, 2vw, 14px);
-  border-top: 1px solid var(--cream-08);
-}
-
+/* ---------- THE OPENED DETAIL ---------- */
+/* The toggle is the card's own last row: full bleed, its own hairline, and it
+   says what opening it gets you rather than naming the action. */
 .toggle {
-  margin-top: 4px;
-  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
   border: none;
-  padding: 6px 0 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  color: var(--navy);
+  font-size: 15.5px;
+  font-weight: 600;
+  text-align: left;
   cursor: pointer;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--amber);
+}
+.toggle:hover { background: var(--navy-tint); }
+.toggle:focus-visible { outline: 2px solid var(--navy); outline-offset: -2px; }
+
+/* The second disclosure, one level in: "How to book". Quieter than the card's
+   own toggle — no full-bleed edge, no hairline — because it opens a panel
+   inside a panel and shouldn't read as another card row. */
+.bookToggle {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  width: fit-content;
-  min-height: 44px;
-  transition: color 0.2s ease;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--navy);
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
 }
-.toggle:hover { color: var(--amber-soft); }
-.toggle:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
-.chev { transition: transform 0.35s ease; display: inline-block; }
-.open .chev { transform: rotate(180deg); }
+.bookToggle:hover { color: var(--navy-2); }
+.bookToggle:focus-visible { outline: 2px solid var(--navy); outline-offset: 3px; border-radius: 4px; }
 
-/* smooth expand: grid-rows 0fr -> 1fr */
+/* Each chevron follows its own button, not the card's open state. */
+.chev { flex: none; transition: transform 0.25s ease; }
+.toggle[aria-expanded="true"] .chev,
+.bookToggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+/* Smooth expand: grid-rows 0fr -> 1fr. `visibility` is part of it on purpose —
+   without it the collapsed panel is invisible but still tabbable, so keyboard
+   focus disappears into content nobody can see. It flips to visible instantly
+   on open, and back only after the panel has finished closing. */
 .detail {
-  grid-column: 1 / -1;
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.4s ease;
+  transition: grid-template-rows 0.35s ease;
 }
 .detailInner {
   overflow: hidden;
   opacity: 0;
-  transition: opacity 0.3s ease 0.05s;
+  visibility: hidden;
+  transition: opacity 0.28s ease 0.04s, visibility 0s linear 0.35s;
 }
 .open .detail { grid-template-rows: 1fr; }
-.open .detailInner { opacity: 1; }
-
-.detailPad {
-  padding: 4px 0 2px;
-  border-top: 1px solid var(--cream-08);
-  margin-top: 6px;
+.open .detailInner {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.28s ease 0.04s, visibility 0s;
 }
-/* brightened expanded text — ~92% cream, never faint (per the design brief) */
+
+.detailPad { padding: 4px 16px 18px; }
 .detailPad p {
-  margin: 18px 0 0;
-  font-size: 15.5px;
-  line-height: 1.66;
-  color: rgba(234, 238, 246, 0.92);
+  margin: 0 0 10px;
+  font-size: 16px;
+  line-height: 1.55;
   text-wrap: pretty;
 }
-.detailPad p b { color: var(--cream); font-weight: 600; }
+.detailPad p:last-child { margin-bottom: 0; }
+.detailPad p b { font-weight: 600; }
 
-.segments {
-  list-style: none;
-  padding: 0;
-  margin: 16px 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+/* Every flight, in the order it's flown, one line each. */
+.stops { list-style: none; margin: 0 0 16px; padding: 0; }
+.stopsHead {
+  margin: 14px 0 6px;
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 600;
 }
-.segments li { font-family: var(--mono); font-size: 12.5px; color: var(--cream-60); }
-.segments b { color: var(--cream); font-weight: 500; }
+.stopsHead:first-child { margin-top: 0; }
+.stop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+.stop:last-child { border-bottom: none; }
+.stopT { font-size: 16px; font-weight: 600; }
+.stopP { font-size: 14.5px; color: var(--ink-2); text-align: right; }
 
-.book {
+/* The one action on the card. Navy, because leaving for the airline is the
+   thing the whole screen is for. */
+.book,
+.bookGo {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  margin-top: 20px;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--amber);
+  justify-content: center;
+  width: 100%;
+  min-height: 50px;
+  border: none;
+  border-radius: 12px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
   text-decoration: none;
-  border: 1px solid rgba(255, 122, 26, 0.4);
-  border-radius: 9px;
-  padding: 10px 16px;
-  transition: background 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
-.book:hover { background: var(--amber); color: #070b14; }
+.book { margin-top: 16px; }
+.book:hover,
+.bookGo:hover { background: var(--navy-2); }
+.book:focus-visible,
+.bookGo:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 
-/* Placeholder shown when there's no booking link/token for an option. */
+/* Shown when there's no booking link or token for an option. */
 .bookSoon {
-  margin: 20px 0 0;
-  max-width: 60ch;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--cream-60);
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
 }
 
 /* ---------- "How to book": lazy booking options ---------- */
-.bookWrap { margin-top: 4px; }
-.bookPanel {
-  margin-top: 10px;
-  padding-top: 14px;
-  border-top: 1px solid var(--cream-08);
-}
+.bookWrap { margin-top: 16px; }
+.bookPanel { margin-top: 12px; }
 .bookNote {
-  margin: 0 0 12px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--cream-60);
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
 }
 
-/* Flat rows divided by hairlines — never nested cards. */
-.bookList { list-style: none; margin: 0; padding: 0; }
-.bookOption { padding: 16px 0; border-top: 1px solid var(--cream-08); }
-.bookOption:first-child { border-top: none; padding-top: 2px; }
+/* One seller per bordered row. Each is a separate decision, so each gets its
+   own edge — but they sit on the card, not in a second card. */
+.bookList { list-style: none; margin: 12px 0 0; padding: 0; }
+.bookOption {
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.bookOption:last-child { margin-bottom: 0; }
 
 .bookOptionHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
+  margin-bottom: 8px;
 }
 .bookSeller {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 15px;
+  font-size: 16.5px;
   font-weight: 600;
-  color: var(--cream);
 }
 /* Direct vs third-party, labeled plainly — never hidden. */
 .bookTag {
-  font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 2px 7px;
+  padding: 3px 7px;
   border-radius: 5px;
-  transform: translateY(-1px);
 }
-.bookTagDirect { color: var(--good); background: rgba(61, 214, 140, 0.14); }
-.bookTagThird { color: var(--cream-60); background: var(--cream-08); }
-.bookFare {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--cream-60);
-}
+.bookTagDirect { color: var(--ok); background: var(--ok-tint); }
+.bookTagThird { color: var(--ink-2); background: var(--sunk); }
+.bookFare { font-size: 14px; font-weight: 400; color: var(--ink-2); }
 .bookPrice {
   font-family: var(--mono);
   font-size: 18px;
-  font-weight: 500;
-  color: var(--cream);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 /* Separate tickets = a real risk. Full risk treatment, not a quiet note. */
 .bookWarn {
-  margin: 10px 0 0;
-  padding: 10px 12px;
-  font-size: 13.5px;
+  margin: 8px 0;
+  padding: 11px 12px;
+  border-radius: 10px;
+  background: var(--alert-bg);
+  border: 1px solid var(--alert);
+  color: var(--ink);
+  font-size: 15.5px;
   line-height: 1.5;
-  color: #ffb3b3;
-  background: rgba(255, 107, 107, 0.12);
-  border: 1px solid rgba(255, 107, 107, 0.35);
-  border-radius: 9px;
 }
 .bookConds {
-  margin: 10px 0 0;
+  margin: 8px 0;
   padding-left: 18px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--cream-60);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-2);
 }
 .bookBags {
-  margin: 9px 0 0;
-  font-family: var(--mono);
-  font-size: 12.5px;
-  color: var(--cream-60);
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: var(--ink-2);
 }
-
-/* Quiet at rest, amber on intent — keeps amber scarce across many options. */
-.bookForm { margin-top: 14px; }
-.bookGo {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 10px 16px;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--cream);
-  background: none;
-  border: 1px solid var(--cream-12);
-  border-radius: 9px;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-.bookGo:hover { background: var(--amber); color: #070b14; border-color: var(--amber); }
-.bookGo:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.bookForm { margin-top: 12px; }
 
 /* ---------- FOOTER ---------- */
 .foot {
