@@ -534,7 +534,7 @@ function BookOptions({ token, search }) {
 // labelled row per fact with the value right-aligned, then the one-line
 // judgement, then any warnings — which are ALWAYS visible, never behind the
 // toggle. The foot opens the full detail.
-function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 0 }) {
+function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 0, readPending = false }) {
   const [open, setOpen] = useState(false);
   const reduce = usePrefersReducedMotion();
   const fees = totalExtraFees(flight);
@@ -686,6 +686,10 @@ function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 
                 .split("\n")
                 .filter(Boolean)
                 .map((p, i) => <p key={i}>{p}</p>)
+            ) : readPending ? (
+              // The flights above are real and final; only the written read is
+              // still coming. Say which it is rather than claiming there's nothing.
+              <p>Still reading this one. The flights and warnings above are final.</p>
             ) : (
               <p>No further detail available.</p>
             )}
@@ -879,6 +883,7 @@ export default function SearchExperience() {
 
   const [loading, setLoading] = useState(false);
   const [stage, setStage] = useState(null); // which phase the server says it's in
+  const [readPending, setReadPending] = useState(false); // cards are up, read still writing
   const [data, setData] = useState(null); // { flights, riskMap, summary, verdicts }
   const [error, setError] = useState(null);
   // True while the user has results but tapped "Edit" to change the search
@@ -980,6 +985,7 @@ export default function SearchExperience() {
     setError(null);
     setData(null);
     setStage(null);
+    setReadPending(false);
     try {
       const res = await fetch("/api/explain", {
         method: "POST",
@@ -1012,11 +1018,20 @@ export default function SearchExperience() {
             continue; // never let one malformed line kill a good search
           }
           if (msg.stage) setStage(msg.stage);
-          else if (msg.error) {
+          else if (msg.results) {
+            // Verified fares, sent before the read. Show them now: the prices,
+            // times, and warnings on these cards are all real, and none of them
+            // depend on the model. The read replaces this payload when it lands.
+            setData(msg.results);
+            setReadPending(true);
+            setLoading(false);
+          } else if (msg.error) {
             setError(msg.error);
+            setReadPending(false);
             settled = true;
           } else if (msg.done) {
             setData(msg);
+            setReadPending(false);
             settled = true;
           }
         }
@@ -1254,14 +1269,25 @@ export default function SearchExperience() {
                 <h2 id="honest-read-title" className={styles.readKicker}>
                   The honest read
                 </h2>
-                {data.summary
-                  .split("\n")
-                  .filter(Boolean)
-                  .map((line, i) => (
-                    <p key={i} className={styles.readLine}>
-                      {renderHonestLine(noEmDash(line), data.flights)}
-                    </p>
-                  ))}
+                {readPending ? (
+                  <p className={styles.readWaiting} role="status" aria-live="polite">
+                    <span className={styles.working} aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                    Reading these {data.flights.length} fares and their fine print.
+                  </p>
+                ) : (
+                  data.summary
+                    .split("\n")
+                    .filter(Boolean)
+                    .map((line, i) => (
+                      <p key={i} className={styles.readLine}>
+                        {renderHonestLine(noEmDash(line), data.flights)}
+                      </p>
+                    ))
+                )}
               </section>
 
               {/* Real per-search price context from SerpApi (price_insights).
@@ -1289,6 +1315,7 @@ export default function SearchExperience() {
                         flight={f}
                         risks={data.riskMap[f.id] || []}
                         verdict={data.verdicts[f.id]}
+                        readPending={readPending}
                         search={data.search}
                         cheapest={f.id === cheapestId}
                         index={i}

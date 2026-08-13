@@ -88,16 +88,48 @@ export async function POST(request) {
         return;
       }
 
+      // Deterministic honesty flags, computed in code (not left to the AI).
+      // The 2nd arg (all flights) is intentional — it lets detectRisks spot a
+      // possible mistake fare by comparing each price against the others.
+      const riskMap = {};
+      for (const f of flights) riskMap[f.id] = detectRisks(f, flights);
+
+      // Echo the searched context so the client can request booking options later
+      // with the EXACT search that produced these results (not a since-edited form).
+      const searchContext = {
+        origin: search.origin,
+        destination: search.destination,
+        depart: search.depart,
+        returnDate: search.returnDate || "", // present -> booking uses the round-trip path
+        // Carry the party + cabin so "How to book" prices booking options for the
+        // same travelers/cabin as the results — not SerpApi's 1-adult, economy default.
+        cabin: search.cabin,
+        adults: search.adults,
+        children: search.children,
+        infantsInSeat: search.infantsInSeat,
+        infantsOnLap: search.infantsOnLap,
+      };
+
+      // The fares are verified and the risk flags are computed, so send them now
+      // rather than holding real prices behind a model call that takes another
+      // half minute. The cards and their warnings render immediately; the read
+      // arrives in the `done` line below and replaces this payload wholesale.
+      send({
+        results: {
+          flights,
+          riskMap,
+          summary: "",
+          verdicts: {},
+          priceInsights,
+          source,
+          search: searchContext,
+        },
+      });
+
       // 2) Explain. A failure here is different: we HAVE real flights, the AI layer
       // just didn't respond. Say so honestly, separately from a data outage.
       send({ stage: "read" });
       try {
-        // Deterministic honesty flags, computed in code (not left to the AI).
-        // The 2nd arg (all flights) is intentional — it lets detectRisks spot a
-        // possible mistake fare by comparing each price against the others.
-        const riskMap = {};
-        for (const f of flights) riskMap[f.id] = detectRisks(f, flights);
-
         // ONE Claude call: summary + per-flight verdict tags + explanations.
         // priceInsights (per-search, real or null) lets Claude ground its read.
         const result = await getComparison(flights, search, riskMap, priceInsights);
@@ -113,21 +145,9 @@ export async function POST(request) {
           };
         }
 
-        // Echo the searched context so the client can request booking options later
-        // with the EXACT search that produced these results (not a since-edited form).
-        const searchContext = {
-          origin: search.origin,
-          destination: search.destination,
-          depart: search.depart,
-          returnDate: search.returnDate || "", // present -> booking uses the round-trip path
-          // Carry the party + cabin so "How to book" prices booking options for the
-          // same travelers/cabin as the results — not SerpApi's 1-adult, economy default.
-          cabin: search.cabin,
-          adults: search.adults,
-          children: search.children,
-          infantsInSeat: search.infantsInSeat,
-          infantsOnLap: search.infantsOnLap,
-        };
+        // The same payload the client already has, plus the read. Sent whole
+        // rather than as a patch so the client replaces rather than merges,
+        // and the two can never drift apart.
         send({
           done: true,
           flights,

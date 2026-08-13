@@ -581,6 +581,18 @@
 /* The read's lines are the last thing in the block, so the final one drops its
    bottom margin rather than padding out the navy. */
 .readLine:last-child { margin-bottom: 0; }
+
+/* Holds the block's shape while the read is still being written, so the cards
+   below don't jump when it lands. */
+.readWaiting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 16px;
+  color: var(--navy-on);
+}
+.readWaiting .working i { background: var(--navy-on); }
 /* The airline name and price that renderHonestLine pulls out of each line. */
 .leadAirline { font-weight: 600; }
 .leadPrice { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; }
