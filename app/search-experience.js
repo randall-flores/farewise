@@ -33,30 +33,6 @@ function noEmDash(text) {
     .trim();
 }
 
-// Split-flap reveal: render the final string in board tiles and, on mount, flip
-// each character into place with a stagger (the hero board's mechanic, reused on
-// results). The final text is always in the DOM and carried on aria-label, so
-// reduced-motion and headless renders read the real value; only the entrance moves.
-function FlapText({ text, className }) {
-  const reduce = usePrefersReducedMotion();
-  const str = String(text ?? "");
-  return (
-    <span className={`${styles.flapText} ${className || ""}`} aria-label={str}>
-      {str.split("").map((ch, i) => (
-        <span
-          key={i}
-          className={styles.flapChar}
-          aria-hidden="true"
-          data-flap={reduce ? "off" : "in"}
-          style={reduce ? undefined : { animationDelay: `${i * 45}ms` }}
-        >
-          {ch === " " ? " " : ch}
-        </span>
-      ))}
-    </span>
-  );
-}
-
 // A From/To field with debounced airport/city autocomplete.
 // Shows what the user types; commits the chosen IATA code to the parent form.
 function AirportField({ label, name, initial, initialCommitted, onSelect }) {
@@ -219,10 +195,6 @@ function AirportField({ label, name, initial, initialCommitted, onSelect }) {
   );
 }
 
-// Verdict level → flag color class + glyph (color is never the only signal; the tag text carries meaning).
-const VERDICT_CLASS = { good: "flagGood", caution: "flagCaution", "high-risk": "flagRisk" };
-const VERDICT_ICON = { good: "✓", caution: "!", "high-risk": "▲" };
-
 const CABIN_LABEL = { economy: "Economy", premium: "Premium economy", business: "Business", first: "First class" };
 
 // Build the board-style route line ("MIA — LIS — BER") from the segments.
@@ -232,46 +204,54 @@ function routeCodes(segments = []) {
   return [first, ...rest].filter(Boolean).join(" — ");
 }
 
-// One leg's line: route + stops + duration, then its clock times with day offset.
-// `label` ("Outbound"/"Return") is set on round trips; it also turns on the
-// per-leg airline (outbound and return can be different airlines).
+// One leg as two record rows: where it goes and when (mono, so the digits line
+// up down the card), then the shape of the journey. `label`
+// ("Outbound"/"Return") only appears on round trips, where the user genuinely
+// has two legs to tell apart — and it carries that leg's airline, since the two
+// directions can be flown by different ones.
 function LegLine({ segments, stops, totalDuration, label }) {
   if (!segments?.length) return null;
   const dep = clockTime(segments[0]?.depart);
   const arr = clockTime(segments[segments.length - 1]?.arrive);
   const off = dayOffset(segments[0]?.depart, segments[segments.length - 1]?.arrive);
   const date = shortDate(segments[0]?.depart);
+  const shape = [
+    stops === 0 ? "no stops" : `${stops} stop${stops === 1 ? "" : "s"}`,
+    totalDuration,
+    label && segments[0]?.airline ? segments[0].airline : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <div className={styles.leg}>
-      {label && (
-        <span className={styles.legLabel}>
-          {label}
-          {date && <span className={styles.legDate}>{date}</span>}
+    <>
+      <div className={styles.rw}>
+        <span className={styles.rwKey}>
+          {label ? `${label}${date ? ` · ${date}` : ""}` : "Route"}
         </span>
-      )}
-      <p className={styles.route}>
-        <b>{routeCodes(segments)}</b> &nbsp;·&nbsp;{" "}
-        {stops === 0 ? "no stops" : `${stops} stop${stops === 1 ? "" : "s"}`}{" "}
-        &nbsp;·&nbsp; {totalDuration}
-        {label && segments[0]?.airline ? (
-          <span className={styles.legAirline}> · {segments[0].airline}</span>
-        ) : null}
-      </p>
-      {dep && arr && (
-        <p className={styles.times}>
-          <FlapText text={dep} /> <span className={styles.timesArrow}>→</span> <FlapText text={arr} />
-          {off > 0 && (
-            <span
-              className={styles.dayOffset}
-              aria-label={off === 1 ? "arrives the next day" : `arrives ${off} days later`}
-            >
-              {" "}
-              +{off}
-            </span>
+        <span className={`${styles.rwVal} ${styles.mono}`}>
+          {routeCodes(segments)}
+          {dep && arr && (
+            <>
+              <span className={styles.rwSep}> </span>
+              {dep} → {arr}
+              {off > 0 && (
+                <span
+                  className={styles.dayOffset}
+                  aria-label={off === 1 ? "arrives the next day" : `arrives ${off} days later`}
+                >
+                  +{off}
+                </span>
+              )}
+            </>
           )}
-        </p>
-      )}
-    </div>
+        </span>
+      </div>
+      <div className={styles.rw}>
+        <span className={styles.rwKey}>Stops</span>
+        <span className={styles.rwVal}>{shape}</span>
+      </div>
+    </>
   );
 }
 
@@ -528,10 +508,10 @@ function BookOptions({ token, search }) {
   );
 }
 
-// One flight result, rendered as a boarding-pass ticket.
-// Body (left): airline, the flight(s), the trade-off note, and ALWAYS-visible warnings.
-// Stub (right, perforated): the price counting up. Foot: "Explain" -> full
-// reasoning + segment breakdown + booking.
+// One flight result, rendered as a record: a head (tag, airline, price), then one
+// labelled row per fact with the value right-aligned, then the one-line
+// judgement, then any warnings — which are ALWAYS visible, never behind the
+// toggle. The foot opens the full detail.
 function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 0 }) {
   const [open, setOpen] = useState(false);
   const reduce = usePrefersReducedMotion();
@@ -543,86 +523,93 @@ function FlightCard({ flight, risks, verdict, search, cheapest = false, index = 
 
   return (
     <article
-      className={`${styles.card} ${styles.ticket} ${open ? styles.open : ""} ${level === "high-risk" ? styles.muted : ""}`}
+      className={`${styles.fare} ${open ? styles.open : ""}`}
       style={reduce ? undefined : { animationDelay: `${index * 70}ms` }}
     >
-      <div className={styles.ticketMain}>
-        {/* ---- Ticket body ---- */}
-        <div className={styles.ticketBody}>
-          <div className={styles.bodyHead}>
-            <h2 className={styles.airline}>{flight.bookVia.name}</h2>
-            {cheapest && (
-              <span className={styles.cheapTag}>
-                <span className={styles.cheapIc} aria-hidden="true">✓</span> Cheapest
-              </span>
-            )}
-          </div>
-
-          <div className={styles.legs}>
-            {roundTrip ? (
-              <>
-                <LegLine
-                  segments={flight.segments}
-                  stops={flight.stops}
-                  totalDuration={flight.totalDuration}
-                  label="Outbound"
-                />
-                <LegLine
-                  segments={flight.returnSegments}
-                  stops={flight.returnStops}
-                  totalDuration={flight.returnTotalDuration}
-                  label="Return"
-                />
-              </>
-            ) : (
-              <LegLine
-                segments={flight.segments}
-                stops={flight.stops}
-                totalDuration={flight.totalDuration}
-              />
-            )}
-          </div>
-
-          {/* Trade-off note: the one-line verdict, color + icon paired (never color alone). */}
-          {verdict?.tag && (
-            <p className={`${styles.tradeoff} ${styles[VERDICT_CLASS[level]]}`}>
-              <span className={styles.ic} aria-hidden="true">{VERDICT_ICON[level]}</span>
-              <span>{noEmDash(verdict.tag)}</span>
-            </p>
-          )}
-
-          {/* Warnings ALWAYS show — even collapsed. Deterministic, from code, not the AI. */}
-          {risks.length > 0 && (
-            <div className={styles.warnings}>
-              {risks.map((r, i) => (
-                <p key={i} className={`${styles.warn} ${styles[`warn_${r.severity}`]}`}>
-                  <span className={styles.warnLbl}>{r.severity === "info" ? "Note" : "Warning"}</span>
-                  {r.message}
-                </p>
-              ))}
-            </div>
-          )}
+      <div className={styles.fareHead}>
+        <div className={styles.fareId}>
+          {/* At most one tag. "Check the catch" points at the warning below it;
+              "No catch found" says only what we checked, never that the ticket
+              is protected — the data source doesn't tell us that. */}
+          {level === "high-risk" ? (
+            <span className={`${styles.tag} ${styles.tagBad}`}>
+              <span className={styles.tagIc} aria-hidden="true">▲</span>
+              Check the catch
+            </span>
+          ) : cheapest ? (
+            <span className={`${styles.tag} ${styles.tagPick}`}>Cheapest</span>
+          ) : level === "good" ? (
+            <span className={`${styles.tag} ${styles.tagOk}`}>
+              <span className={styles.tagIc} aria-hidden="true">✓</span>
+              No catch found
+            </span>
+          ) : null}
+          <h2 className={styles.airline}>{flight.bookVia.name}</h2>
         </div>
+        <p className={styles.amt}>
+          <span className={styles.mono}>{formatMoney(flight.price, flight.currency)}</span>
+          <small>{roundTrip ? "round trip" : "one way"}</small>
+        </p>
+      </div>
 
-        {/* ---- Perforated price stub ---- */}
-        {/* Plain mono price, no count-up (Task 4 removed the animation). Card
-            styling belongs to Task 5 — this is unstyled on purpose until then. */}
-        <div className={styles.ticketStub}>
-          <div>{formatMoney(flight.price, flight.currency)}</div>
-          <div className={styles.priceUnit}>{roundTrip ? "round trip" : "one way"}</div>
-          <div className={styles.allin}>
+      <div className={styles.rows}>
+        {roundTrip ? (
+          <>
+            <LegLine
+              segments={flight.segments}
+              stops={flight.stops}
+              totalDuration={flight.totalDuration}
+              label="Outbound"
+            />
+            <LegLine
+              segments={flight.returnSegments}
+              stops={flight.returnStops}
+              totalDuration={flight.returnTotalDuration}
+              label="Return"
+            />
+          </>
+        ) : (
+          <LegLine
+            segments={flight.segments}
+            stops={flight.stops}
+            totalDuration={flight.totalDuration}
+          />
+        )}
+        <div className={styles.rw}>
+          <span className={styles.rwKey}>Total cost</span>
+          <span className={styles.rwVal}>
             {!feesKnown ? (
               "fare only · fees not listed"
             ) : fees > 0 ? (
               <>
-                <b>~{formatMoney(allIn, flight.currency)}</b> total
+                <span className={styles.mono}>~{formatMoney(allIn, flight.currency)}</span> with
+                bag and seat
               </>
             ) : (
-              "fare only · no extra fees"
+              "no extra fees listed"
             )}
-          </div>
+          </span>
         </div>
       </div>
+
+      {/* The one-line judgement. */}
+      {verdict?.tag && <p className={styles.say}>{noEmDash(verdict.tag)}</p>}
+
+      {/* Deterministic, from code, not from the model. Colour is never the only
+          signal — the icon and the word carry it too. */}
+      {risks.length > 0 && (
+        <div className={styles.warnings}>
+          {risks.map((r, i) => (
+            <div key={i} className={`${styles.warn} ${styles[`warn_${r.severity}`]}`}>
+              <p className={styles.warnLbl}>
+                <span aria-hidden="true">{r.severity === "info" ? "i" : "▲"}</span>
+                {r.severity === "info" ? "Note" : "Warning"}
+              </p>
+              <p className={styles.warnMsg}>{r.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ---- Foot: Explain toggle + on-demand detail (spans the full ticket width) ---- */}
       <div className={styles.ticketFoot}>

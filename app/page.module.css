@@ -582,120 +582,142 @@
 }
 
 
-/* ---------- FLIGHT CARDS (boarding-pass tickets) ---------- */
-.cards { display: flex; flex-direction: column; gap: 18px; }
+/* ---------- FLIGHT CARDS (the record) ---------- */
+.cards { display: block; }
 
-/* The ticket: a raised navy surface. On results it reveals with a slight,
-   index-staggered rise (animation-delay set inline per card). fill-mode is
-   `backwards` so the card rests at its natural, VISIBLE state if the animation
-   never runs (reduced-motion, headless render) — content never ships blank. */
-.card {
-  position: relative;
+/* One fare, one card. On results it reveals with a slight, index-staggered rise
+   (animation-delay set inline per card). fill-mode is `backwards` so the card
+   rests at its natural, VISIBLE state if the animation never runs
+   (reduced-motion, headless render) — content never ships blank. */
+.fare {
   background: var(--card);
-  border: 1px solid var(--cream-08);
-  border-radius: var(--radius);
-  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  margin-bottom: 14px;
+  overflow: hidden;
+  animation: fareIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
-.card:hover { border-color: var(--cream-12); transform: translateY(-1px); }
-.muted { opacity: 0.94; }
-
-.ticket { animation: ticketIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-@keyframes ticketIn {
-  from { opacity: 0; transform: translateY(14px); }
+@keyframes fareIn {
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Body | perforated price stub. */
-.ticketMain {
-  display: grid;
-  grid-template-columns: 1fr clamp(150px, 24%, 200px);
-}
-.ticketBody { padding: clamp(20px, 3.4vw, 26px) clamp(20px, 3.4vw, 28px); min-width: 0; }
-
-.bodyHead {
+.fareHead {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
+  gap: 14px;
+  padding: 16px 16px 13px;
+}
+.fareId { min-width: 0; }
+.airline {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
-/* The one green tag the brief asks for: the single cheapest fare. */
-.cheapTag {
+/* The price. Mono digits at 31px, with the unit under it so "round trip" is
+   never mistaken for part of the number. */
+.amt {
+  margin: 0;
+  flex: none;
+  text-align: right;
+  font-size: 31px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.amt small {
+  display: block;
+  margin-top: 5px;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink-2);
+}
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* At most one tag per card. Navy marks the pick; green and red are signals and
+   so always carry an icon and a word, never colour alone. */
+.tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex: none;
-  font-family: var(--mono);
-  font-size: 10px;
+  margin-bottom: 9px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tagIc { font-size: 11px; }
+.tagPick { background: var(--navy-tint); color: var(--navy); }
+.tagOk { background: var(--ok-tint); color: var(--ok); }
+.tagBad { background: var(--alert-bg); color: var(--alert); }
+
+/* The record itself: one labelled row per fact, value right-aligned. */
+.rows { border-top: 1px solid var(--line); }
+.rw {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 15.5px;
+}
+.rw:last-child { border-bottom: none; }
+.rwKey { color: var(--ink-2); flex: none; }
+.rwVal { font-weight: 600; text-align: right; min-width: 0; }
+/* Gap between the airport codes and the clock times inside one mono value.
+   A styled span, not stacked spaces, so it can't collapse. */
+.rwSep { display: inline-block; width: 10px; }
+/* +1 means the flight lands on a later calendar day. Never let that read as
+   same-day: alert red, and the row carries an aria-label spelling it out. */
+.dayOffset {
+  margin-left: 4px;
+  color: var(--alert);
+  font-weight: 700;
+}
+
+/* The one-line judgement, on the recessed surface so it reads as commentary
+   rather than another fact in the record. */
+.say {
+  margin: 0;
+  padding: 14px 16px;
+  background: var(--sunk);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Risk callouts. Full sentences, an icon, and a word — never colour alone. */
+.warnings { padding: 14px 16px 0; }
+.warn {
+  border-radius: 12px;
+  padding: 13px 14px;
+  margin-bottom: 12px;
+}
+.warnLbl {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--good);
-  background: rgba(61, 214, 140, 0.13);
-  border: 1px solid rgba(61, 214, 140, 0.32);
-  border-radius: 999px;
-  padding: 5px 11px;
 }
-.cheapIc { font-size: 11px; }
+.warnMsg { margin: 0; font-size: 16px; line-height: 1.5; }
+.warn_high { background: var(--alert-bg); border: 1px solid var(--alert); }
+.warn_high .warnLbl { color: var(--alert); }
+.warn_warn { background: var(--alert-bg); }
+.warn_warn .warnLbl { color: var(--alert); }
+.warn_info { background: var(--sunk); }
+.warn_info .warnLbl { color: var(--ink-2); }
 
-/* Airline names render in Fraunces (the destination-text face of the board). */
-.airline {
-  margin: 0;
-  font-family: var(--serif);
-  font-size: clamp(22px, 3vw, 27px);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.05;
-}
-.route {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--cream-60);
-  letter-spacing: 0.02em;
-}
-.route b { color: var(--cream); font-weight: 600; }
-
-/* Departure -> arrival clock times. The +N day-offset is accent so an overnight
-   / next-day arrival is never read as same-day. */
-.times {
-  margin: 7px 0 0;
-  font-family: var(--mono);
-  font-size: 15px;
-  color: var(--cream);
-  letter-spacing: 0.02em;
-  white-space: nowrap; /* never split the "18:25 → 16:40" pair across lines */
-}
-.timesArrow { color: var(--cream-40); margin: 0 4px; }
-.dayOffset {
-  margin-left: 3px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--amber);
-  vertical-align: super;
-}
-
-/* Round-trip legs (Outbound / Return), divided by a hairline. */
-.leg + .leg {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--cream-08);
-}
-.legLabel {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  margin: 0 0 5px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-}
-.legDate { letter-spacing: 0.04em; color: var(--cream-60); }
-.legAirline { color: var(--cream-60); }
 .segHead {
   margin-top: 8px;
   font-family: var(--mono);
@@ -705,143 +727,6 @@
   color: var(--cream-60);
 }
 .segHead:first-child { margin-top: 0; }
-
-/* ----- split-flap reveal for the key times ----- */
-/* The board mechanic, reused on results: each character flips into place with a
-   stagger. The final text is always in the DOM (carried on aria-label), so this
-   only animates the entrance. globals.css disables it under reduced-motion. */
-.flapText { display: inline-flex; }
-.flapChar {
-  display: inline-block;
-  transform-origin: center;
-  backface-visibility: hidden;
-}
-.flapChar[data-flap="in"] {
-  animation: flapIn 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-}
-@keyframes flapIn {
-  0%   { transform: rotateX(-90deg); opacity: 0; }
-  60%  { transform: rotateX(12deg);  opacity: 1; }
-  100% { transform: rotateX(0deg);   opacity: 1; }
-}
-
-/* ----- the perforated price stub ----- */
-.ticketStub {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  text-align: right;
-  gap: 6px;
-  padding: clamp(20px, 3.4vw, 26px) clamp(18px, 3vw, 24px);
-  border-left: 2px dashed var(--cream-12);
-}
-/* notch cut-outs punched into the ticket edge at each end of the perforation */
-.ticketStub::before,
-.ticketStub::after {
-  content: "";
-  position: absolute;
-  left: -9px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--page);
-  border: 1px solid var(--cream-08);
-}
-.ticketStub::before { top: -9px; }
-.ticketStub::after  { bottom: -9px; }
-
-.priceUnit {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--cream-60);
-  white-space: nowrap;
-}
-.allin {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--cream-60);
-}
-.allin b { color: var(--cream); font-weight: 600; }
-
-/* Mobile: the stub drops BELOW the body; the perforation flips horizontal and
-   the notches move to the left and right edges. */
-@media (max-width: 560px) {
-  .ticketMain { grid-template-columns: 1fr; }
-  .ticketStub {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    text-align: left;
-    gap: 4px 14px;
-    padding-top: clamp(16px, 4vw, 20px);
-    border-left: none;
-    border-top: 2px dashed var(--cream-12);
-  }
-  .ticketStub::before { left: -9px; top: -9px; bottom: auto; }
-  .ticketStub::after  { left: auto; right: -9px; top: -9px; bottom: auto; }
-}
-
-/* ----- trade-off note: the one-line verdict, color + icon paired (never color alone) ----- */
-.tradeoff {
-  display: flex;
-  align-items: flex-start;
-  gap: 11px;
-  margin: 14px 0 0;
-  font-size: 15px;
-  line-height: 1.5;
-}
-.ic {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 600;
-  margin-top: 1px;
-}
-.flagGood { color: var(--cream); }
-.flagGood .ic { background: rgba(61, 214, 140, 0.16); color: var(--good); }
-.flagCaution { color: var(--cream); }
-.flagCaution .ic { background: rgba(232, 184, 75, 0.18); color: var(--warn); }
-.flagRisk { color: #ffb3b3; }
-.flagRisk .ic { background: rgba(255, 107, 107, 0.18); color: var(--risk); }
-
-/* always-visible deterministic warnings */
-.warnings {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
-}
-.warn {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
-  padding: 10px 12px;
-  border-radius: 9px;
-  border: 1px solid var(--cream-08);
-}
-.warnLbl {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  margin-right: 8px;
-}
-.warn_high { background: rgba(255, 107, 107, 0.12); border-color: rgba(255, 107, 107, 0.35); color: #ffb3b3; }
-.warn_high .warnLbl { color: var(--risk); }
-.warn_warn { background: rgba(255, 122, 26, 0.1); border-color: rgba(255, 122, 26, 0.3); color: #f0d99b; }
-.warn_warn .warnLbl { color: var(--amber); }
-.warn_info { background: var(--cream-08); color: var(--cream-60); }
-.warn_info .warnLbl { color: var(--cream-60); }
 
 /* Foot: spans the full ticket width below the body + stub; holds Explain + detail. */
 .ticketFoot {
@@ -870,7 +755,7 @@
 .toggle:hover { color: var(--amber-soft); }
 .toggle:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
 .chev { transition: transform 0.35s ease; display: inline-block; }
-.card.open .chev { transform: rotate(180deg); }
+.open .chev { transform: rotate(180deg); }
 
 /* smooth expand: grid-rows 0fr -> 1fr */
 .detail {
@@ -884,8 +769,8 @@
   opacity: 0;
   transition: opacity 0.3s ease 0.05s;
 }
-.card.open .detail { grid-template-rows: 1fr; }
-.card.open .detailInner { opacity: 1; }
+.open .detail { grid-template-rows: 1fr; }
+.open .detailInner { opacity: 1; }
 
 .detailPad {
   padding: 4px 0 2px;
